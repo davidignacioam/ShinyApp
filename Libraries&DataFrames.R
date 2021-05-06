@@ -46,7 +46,6 @@ library(janitor) # For rownames_to_column()
 # Others
 library(xlsx) # For ecporting. xlsx files
 
-
 ## SQL 
 # Connection
 con <- dbConnect(
@@ -263,8 +262,6 @@ df.S.2 <-
     "ZonaCorporal","RegiónCorporal","Agrupación"
   )
 
-
-
 ## DF_PD
 # Defining Specific PlayerDimension Data Frame
 df_PD <- 
@@ -335,12 +332,8 @@ df_PD$TipoMedición <- df_PD$TipoMedición %>% as.factor()
 df_PD$Medición <- df_PD$Medición %>% as.factor()
 df_PD$ValorMedición <- df_PD$ValorMedición %>% as.numeric()
 
-
-
-
 ## Defining specific Objects
 date.range <- seq.Date(from=Sys.Date()-60,to=Sys.Date(),by="day")
-
 
 ### Text
 ## Header Logo
@@ -400,7 +393,6 @@ not5 <-
   <h5><strong>Este símbolo te permite acceder a la Selección de las Variables que forman la Visualización.</strong></h5>
   </center>
        ')
-
 
 ### CSS
 css <- "
@@ -499,17 +491,3 @@ css <- "
   
   
   "
-
-
-
-
-
-
-
-
-
-
-
-
-
-
