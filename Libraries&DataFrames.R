@@ -51,10 +51,10 @@ library(xlsx) # For ecporting. xlsx files
 # Connection
 con <- dbConnect(
   drv = RMySQL::MySQL(),
-  user = "reconquer-api",
-  password = "024C18f18683A8bed5ec$",
-  dbname = "reconquerdb",
-  host = "triceps-reconquer-rds-qa.cbubsie7wfl3.us-east-1.rds.amazonaws.com",
+  user = "",
+  password = "",
+  dbname = "",
+  host = "",
   Trusted_Connection = "True"
 )
 # Encodin UTF-8 in SQL
