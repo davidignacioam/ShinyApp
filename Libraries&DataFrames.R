@@ -3,6 +3,9 @@
 ####  Importing Libraries and Data Frames source("Libraries&DataFrames.R")
 
 ## Importing Libraries
+# SQL
+library(DBI)
+library(RMySQL)
 # Shiny
 library(shiny) # General interface
 library(shinythemes) # Some Shiny themes
@@ -44,15 +47,169 @@ library(janitor) # For rownames_to_column()
 library(xlsx) # For ecporting. xlsx files
 
 
-### Importing xlsx
-df_CED <- xlsx::read.xlsx(
-  "Data/ClinicalEvent.xlsx", sheetIndex = 1, header=TRUE, encoding="UTF-8"
-) %>% 
-  as.data.frame() 
-df_PD <- xlsx::read.xlsx(
-  "Data/PlayerDimension.xlsx", sheetIndex = 1, header=TRUE, encoding="UTF-8"
-) %>% as.data.frame()
-
+## SQL 
+# Connection
+con <- dbConnect(
+  drv = RMySQL::MySQL(),
+  user = "reconquer-api",
+  password = "024C18f18683A8bed5ec$",
+  dbname = "reconquerdb",
+  host = "triceps-reconquer-rds-qa.cbubsie7wfl3.us-east-1.rds.amazonaws.com",
+  Trusted_Connection = "True"
+)
+# Encodin UTF-8 in SQL
+dbSendQuery(con, "SET NAMES utf8")
+# Creating the Data Frame
+df_CED <- 
+  dbGetQuery(
+    con,
+    "
+    ##############  DIAGNÓSTICOS Y EVENTO CLÍNICO  ##############
+  
+    SELECT 
+    # Jugador
+    concat(us.name,' ',us.last_name) AS Jugador,
+    pl.birthday AS FechaNacimiento,
+    if (pl.side=1,'Diestro','Zurdo') AS Lateralidad,
+    pl.height AS Estatura,
+    pl.initial_weight AS Peso,
+    ct.name_category AS Categoría,
+    pt.name_position AS Posición,
+    # Evento Clínico
+    ce.id AS ID_EventoClínico,
+    ins.name AS Instancia,
+    mm.name AS InstanciaPartido,
+    sev.name AS Presentación,
+    smc.name AS MecanismoEspecífico,
+    gmc.name AS MecanismoGeneral,
+    # Diagnóstico
+    dg.id AS ID_Diagnóstico,
+    dg.side AS Lado,
+    dgt.name AS Categoría_I,
+    sdg.name AS Categoría_II,
+    pa.name AS Diagnóstico,
+    act.name_availability_condition_type AS Disponibilidad,
+    pm.name AS Material_Proc_Refl,
+    dgc.name AS Complemento_I,
+    sm.name AS Complemento_II,
+    gr.name AS Agrupación,
+    bz.name AS ZonaCorporal,
+    br.name AS RegiónCorporal,
+    dg.created AS FechaDiagnóstico,
+    # Medicina
+    med.id AS ID_Medicamento,
+    med.name AS Medicamento,
+    medc.name AS ClasificaciónMed,
+    # Tratamiento Kinésico 
+    kt.id AS ID_TratamientoKinésico,
+    kt.text AS TratamientoKinésico,
+    kt.created AS FechaTratamientoKinésico,
+    # Objetivo Evaluación
+    eo.id AS ID_ObjetivoEvaluación,
+    eo.text AS ObjetivoEvaluación,
+    eo.created AS FechaObjetivoEvaluación
+      
+    FROM player pl 
+    
+    # Jugador
+    LEFT JOIN user us ON us.id = pl.id_user 
+      AND us.deleted = 0
+      AND us.id_user_type = 12
+      AND us.tenant_code = 'TRICEPS'
+    LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+    LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+    LEFT JOIN position_type pt ON pl.id_position_type = pt.id	
+    # Evento Clínico
+    LEFT JOIN clinical_event ce ON pl.id = ce.id_player 
+      AND ce.deleted = 0 
+      AND ce.tenant_code = 'TRICEPS'
+    LEFT JOIN instance ins ON ins.id = ce.id_instance
+    LEFT JOIN match_moment mm ON mm.id = ce.id_match_moment
+    LEFT JOIN severity sev ON sev.id = ce.id_severity
+    LEFT JOIN specific_mechanism smc ON smc.id = ce.id_specific_mechanism
+    LEFT JOIN general_mechanism gmc ON gmc.id = ce.id_general_mechanism
+    # Diagnóstico
+    LEFT JOIN diagnostic dg ON ce.id = dg.id_clinical_event 
+      AND dg.deleted = 0
+      AND dg.tenant_code = 'TRICEPS'
+    LEFT JOIN diagnostic_type dgt ON dgt.id = dg.id_diagnostic_type
+    LEFT JOIN sub_diagnostic sdg ON sdg.id = dg.id_sub_diagnostic
+    LEFT JOIN pathology pa ON pa.id = dg.id_pathology
+    LEFT JOIN diagnostic_complement dgc ON dgc.id = dg.id_diagnostic_complement
+    LEFT JOIN procedure_material pm ON pm.id = dg.id_procedure_material
+    LEFT OUTER JOIN diagnostic_availability dga ON dga.id_diagnostic = dg.id 
+      AND dga.deleted = 0
+      AND dga.tenant_code = 'TRICEPS'
+    LEFT JOIN availability_condition ac ON ac.id = dga.id_availability_condition
+      AND ac.deleted = 0
+      AND ac.tenant_code = 'TRICEPS'
+    LEFT JOIN availability_condition_type act ON ac.id_availability_condition_type = act.id
+    # Músculo Esquelétio
+    LEFT JOIN skeletal_muscle sm ON sm.id = dg.id_skeletal_muscle
+    LEFT JOIN grouper gr ON gr.id = sm.id_grouper
+    LEFT JOIN body_zone bz ON bz.id = sm.id_body_zone
+    LEFT JOIN body_region br ON br.id = bz.id_body_region
+    # Medicina
+    LEFT JOIN diagnostic_medicine dgm ON dgm.id_diagnostic = dg.id 
+      AND dgm.deleted = 0
+      AND dgm.tenant_code = 'TRICEPS'
+    LEFT JOIN medicine med ON med.id = dgm.id_medicine
+    LEFT JOIN medicine_classification medc ON medc.id = dgm.id_medicine_classification
+    LEFT JOIN medicine_via medv ON medv.id = dgm.id_medicine_via
+    # Otros
+    LEFT JOIN kinesic_treatment kt ON kt.id_diagnostic = dg.id 
+      AND kt.deleted = 0
+      AND kt.tenant_code = 'TRICEPS'
+    LEFT JOIN evaluation_objective eo ON eo.id_diagnostic = dg.id 
+      AND eo.deleted = 0
+      AND eo.tenant_code = 'TRICEPS'
+    
+    WHERE pl.deleted = 0 
+      AND pl.tenant_code = 'TRICEPS'
+    ;
+    "
+  ) %>% as.data.frame() 
+# Creating General PlayerDimension Data Frame
+df_PD_G <- 
+  dbGetQuery(
+    con,
+    "
+    ##############  DIMENSIONES DE JUGADOR  ##############
+    
+    SELECT 
+    # Jugador
+    concat(us.name,' ',us.last_name) AS Jugador,
+    ct.name_category AS Categoría,
+    # Dimensiones de Jugador
+    dm.name AS Dimensión,
+    pldm.date AS FechaDimensión,
+    # Meters
+    pldm.meters AS Medición
+    
+    FROM player pl 
+    
+    # Jugador
+    LEFT JOIN user us ON us.id = pl.id_user 
+      AND us.deleted = 0
+      AND us.id_user_type = 12
+      AND us.tenant_code = 'TRICEPS'
+    LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+    LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+    # Dimensiones de Jugador
+    LEFT JOIN player_dimension pldm ON pl.id = pldm.id_player 
+      AND pldm.deleted = 0
+      AND us.tenant_code = 'TRICEPS'
+    LEFT JOIN dimension dm ON dm.id = pldm.id_dimension
+      AND dm.tenant_code = 'TRICEPS'
+      
+    WHERE pl.deleted = 0 
+      AND pl.tenant_code = 'TRICEPS'
+      
+    ;
+    "
+  )
+# Disconnection
+dbDisconnect(con)
 
 ### Data Transformation
 
@@ -107,7 +264,68 @@ df.S.2 <-
   )
 
 
-## df_PD
+
+## DF_PD
+# Defining Specific PlayerDimension Data Frame
+df_PD <- 
+  df_PD_G %>% select(-Medición)
+# Defining Specific Json's Meters Data Frame
+df_Json <- 
+  df_PD_G %>% select(Medición)
+# Condition for NA values
+json <- 
+  df_Json$Medición #[-which(sapply(df_Json$Medición, is.na))]
+# Creating DF's Structutre
+df <- 
+  data.frame(
+    "id" = integer(),
+    "name" = character(),
+    "value" = double(),
+    "TipoMedición" = character(),
+    "Jugador" = character(),      
+    "Categoría" = character(),             
+    "Dimensión" = character(),             
+    "FechaDimensión" = character()     
+  )
+# Triple Loop for Building the whole DT
+for (i in (1:length(json))) {
+  json_n <- 
+    json[i] %>% 
+    jsonlite::fromJSON() 
+  for (j in (1:length(json_n))) {
+    json_df <- json_n[[j]]
+    for (k in (1:length(json_df$meters))) {
+      json_m <- json_df$meters[[k]] %>% 
+        as.data.frame() %>% 
+        mutate("TipoMedición"=json_df$name)
+      json_df_c <- 
+        cbind(json_m, 
+              df_PD[i,] %>% 
+                slice(rep(1:n(), each = nrow(json_m))))
+      df <- rbind(df,json_df_c) 
+    }
+  }
+}
+# Renaming, Relocating and Filtering
+df_PD <- 
+  df %>% 
+  select(-id) %>% 
+  rename(
+    "Medición"=name,
+    "ValorMedición"=value
+  ) %>% 
+  relocate(
+    "Jugador", 
+    "Categoría",           
+    "FechaDimensión",
+    "Dimensión",
+    "TipoMedición",
+    "Medición",
+    "ValorMedición"
+  ) %>% 
+  filter(Medición != "PCR") 
+# Removing NA
+df_PD <- df_PD %>% tidyr::drop_na() 
 # Defining Nature
 df_PD$Categoría <- df_PD$Categoría %>% as.factor()
 df_PD$Jugador <- df_PD$Jugador %>% as.factor()
@@ -116,8 +334,8 @@ df_PD$Dimensión <- df_PD$Dimensión %>% as.factor()
 df_PD$TipoMedición <- df_PD$TipoMedición %>% as.factor()
 df_PD$Medición <- df_PD$Medición %>% as.factor()
 df_PD$ValorMedición <- df_PD$ValorMedición %>% as.numeric()
-# Removing NA
-df_PD <- df_PD %>% tidyr::drop_na() 
+
+
 
 
 ## Defining specific Objects
@@ -281,38 +499,6 @@ css <- "
   
   
   "
-
-
-
-# /*     Table     */ 
-#   
-#   .dataTable tbody tr:hover {
-#     background: linear-gradient(35deg, #050505F2, #00C0EF);
-#                                 color: #FFFFFF;
-#   } 
-
-# .primary-box {
-#   padding-left: 0px; 
-# } 
-# .primary-box-icon {
-#   padding-left: 0px; 
-# } 
-# .primary-box-content {
-#   padding-left: -2px; 
-# } 
-
-# .navbar-nav > dropdownBlock  {
-#   background-color: black;
-#   box-shadow: 10px 10px 10px darkgrey;
-
-# .shiny-output-error-validation {
-#   color: #2FB4CC; 
-#     font-size: 15px; 
-#   font-weight: bold; 
-#   text-align: center
-# }
-
-
 
 
 
