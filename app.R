@@ -1,20 +1,16 @@
 
-
 ####  Importing Libraries and Data Frames 
 
 source("Libraries&DataFrames.R")
-
 
 #### UI ####
 
 ui <- dashboardPagePlus(
   
-  title = "ReConquer Analytics",
-  
   skin = "black",
   
   enable_preloader = TRUE, 
-  loading_duration = 3,
+  loading_duration = 4,
   
   collapse_sidebar = TRUE,
   sidebar_fullCollapse = FALSE,
@@ -668,31 +664,15 @@ ui <- dashboardPagePlus(
                     sidebar_icon = "sliders-h",
                     sidebar_content = tagList(
                       br(),
-                      conditionalPanel(
-                        condition = "input.Player == true",
-                        materialSwitch(
-                          inputId = "Player_tab1.2.2", 
-                          label = strong("Segunda capa Jugador"),
-                          status = "primary",
-                          right = TRUE
-                        ),
-                        conditionalPanel(
-                          condition = "input.Player_tab1.2.2 == true",
-                          uiOutput("Player_tab1.2.2_Option_1"),
-                          uiOutput("Player_tab1.2.2_Option_2")
-                        ),
-                        hr(),
-                        materialSwitch(
-                          inputId = "Player_tab1.2.2.2", 
-                          label = strong("Segundo Jugador"),
-                          status = "primary",
-                          right = TRUE
-                        ),
-                        conditionalPanel(
-                          condition = "input.Player_tab1.2.2.2 == true",
-                          uiOutput("Player_tab1.2.2.2_Option")
-                        )
-                      )
+                      materialSwitch(
+                        inputId = "Fill_tab1.2.2", 
+                        label = strong("Relleno Pligonal"),
+                        status = "primary",
+                        right = TRUE
+                      ),
+                      br(),
+                      uiOutput("Player_tab1.2.2_Option_1"),
+                      uiOutput("Player_tab1.2.2_Option_2"),
                     )
                   )
                 )
@@ -2042,7 +2022,7 @@ server <- function(input, output, session) {
   })
   
   output$Player_tab1.2.2_Option_1 <- renderUI({
-    if(input$Player_tab1.2.2){
+    if(input$Player){
       dateInput(
         inputId = "timeFromInput_tab1.2.2", 
         label = "Fecha desde:",
@@ -2055,7 +2035,7 @@ server <- function(input, output, session) {
     }
   })
   output$Player_tab1.2.2_Option_2 <- renderUI({
-    if(input$Player_tab1.2.2){
+    if(input$Player){
       dateInput(
         inputId = "timeToInput_tab1.2.2", 
         label = "hasta:",
@@ -2067,8 +2047,9 @@ server <- function(input, output, session) {
       )
     }
   })
+  
   df.tab1.1_PD_2 <- reactive({
-    if(input$Player_tab1.2.2){
+    if(input$Player){
       df_PD %>% filter(Categoría %in% input$CategoryInput,
                        Dimensión %in% input$DimInput_tab1.2,
                        TipoMedición %in% input$TypeMetInput_tap1.2,
@@ -2079,165 +2060,55 @@ server <- function(input, output, session) {
     }
   })
   
-  output$Player_tab1.2.2.2_Option <- renderUI({
-    if(input$Player_tab1.2.2.2){
-      selectInput(
-        width = "210px",
-        inputId = 'PlayerInput_tab1.2.2.2', 
-        label = "Seleccione el Segundo Jugador:",
-        choices = levelsPlayers(),
-        selected = levelsPlayers()[2]
-      )
-    }
-  })
-  df.tab1.1_PD_2.2 <- reactive({
-    if(input$Player_tab1.2.2.2){
-      df_PD %>% filter(Categoría %in% input$CategoryInput,
-                       Dimensión %in% input$DimInput_tab1.2,
-                       TipoMedición %in% input$TypeMetInput_tap1.2,
-                       Medición %in% input$MetInput_tab1.2,
-                       FechaDimensión >= input$timeFromInput,
-                       FechaDimensión <= input$timeToInput,
-                       Jugador %in% input$PlayerInput_tab1.2.2.2)
-    }
-  })
-  
   ####  TAB_1.2.2  #### 
   
   df.Cl_t <- reactive({
-    
     # Input Validation
     validate(need(!df.PD.s() %>% nrow() == 0, 
                   message = na.time.med))
-    
     if(input$Player){
-      
-      if (input$Player_tab1.2.2) {
-        
-        ## Promedio General
-        df.P_g <- 
-          df.PD.s() %>%
-          group_by(Medición) %>% 
-          summarise(Valor=mean(ValorMedición)) %>% 
-          as.data.frame()
-        for (i in seq(1, nrow(df.P_g))) {
-          df.P_g[i,2] <-  
-            round(df.P_g[i,2] / max(filter(df_PD, Medición %in% df.P_g[i,1])
-                                    [,"ValorMedición"]) * 100, 1)
-        }
-        df.G <- df.P_g %>% tidyr::spread(Medición, Valor)  
-        ## Promedio Jugador capa Principal
-        df.P_j <- 
-          df.tab1.2_PD() %>% 
-          group_by(Medición) %>% 
-          summarise(Valor=mean(ValorMedición)) %>% 
-          as.data.frame()
-        for (i in seq(1, nrow(df.P_j))) {
-          df.P_j[i,2] <-  
-            round(df.P_j[i,2] / max(filter(df_PD, Medición %in% df.P_j[i,1])
-                                    [,"ValorMedición"]) * 100, 1)
-        }
-        df.J <- df.P_j %>% tidyr::spread(Medición, Valor)
-        ## Internal Validation
-        validate(need(ncol(df.J) == ncol(df.G), 
-                      message = na.cl.com))
-        ## Promedio Jugador segunda Capa
-        df.P_j_2 <- 
-          df.tab1.1_PD_2() %>% 
-          group_by(Medición) %>% 
-          summarise(Valor=mean(ValorMedición)) %>% 
-          as.data.frame()
-        for (i in seq(1, nrow(df.P_j_2))) {
-          df.P_j_2[i,2] <-  
-            round(df.P_j_2[i,2] / max(filter(df_PD, Medición %in% df.P_j_2[i,1])
-                                      [,"ValorMedición"]) * 100, 1)
-        }
-        df.j_2 <- df.P_j_2 %>% tidyr::spread(Medición, Valor)
-        ## DF Final
-        rbind(df.G, df.J, df.j_2)
-        
-      } else {
-        
-        if (input$Player_tab1.2.2.2) {
-          
-          ## Promedio General
-          df.P_g <- 
-            df.PD.s() %>%
-            group_by(Medición) %>% 
-            summarise(Valor=mean(ValorMedición)) %>% 
-            as.data.frame()
-          for (i in seq(1, nrow(df.P_g))) {
-            df.P_g[i,2] <-  
-              round(df.P_g[i,2] / max(filter(df_PD, Medición %in% df.P_g[i,1])
-                                      [,"ValorMedición"]) * 100, 1)
-          }
-          df.G <- df.P_g %>% tidyr::spread(Medición, Valor)  
-          ## Promedio Jugador capa Principal
-          df.P_j <- 
-            df.tab1.2_PD() %>% 
-            group_by(Medición) %>% 
-            summarise(Valor=mean(ValorMedición)) %>% 
-            as.data.frame()
-          for (i in seq(1, nrow(df.P_j))) {
-            df.P_j[i,2] <-  
-              round(df.P_j[i,2] / max(filter(df_PD, Medición %in% df.P_j[i,1])
-                                      [,"ValorMedición"]) * 100, 1)
-          }
-          df.J <- df.P_j %>% tidyr::spread(Medición, Valor)
-          ## Internal Validation
-          validate(need(ncol(df.J) == ncol(df.G), 
-                        message = na.cl.com))
-          ## Promedio Jugador segunda Capa
-          df.P_j_2 <- 
-            df.tab1.1_PD_2.2() %>% 
-            group_by(Medición) %>% 
-            summarise(Valor=mean(ValorMedición)) %>% 
-            as.data.frame()
-          for (i in seq(1, nrow(df.P_j_2))) {
-            df.P_j_2[i,2] <-  
-              round(df.P_j_2[i,2] / max(filter(df_PD, Medición %in% df.P_j_2[i,1])
-                                        [,"ValorMedición"]) * 100, 1)
-          }
-          df.j_2 <- df.P_j_2 %>% tidyr::spread(Medición, Valor)
-          ## DF Final
-          rbind(df.G, df.J, df.j_2)
-          
-        } else {
-          
-          ## Promedio General
-          df.P_g <- 
-            df.PD.s() %>%
-            group_by(Medición) %>% 
-            summarise(Valor=mean(ValorMedición)) %>% 
-            as.data.frame()
-          for (i in seq(1, nrow(df.P_g))) {
-            df.P_g[i,2] <-  
-              round(df.P_g[i,2] / max(filter(df_PD, Medición %in% df.P_g[i,1])
-                                      [,"ValorMedición"]) * 100, 1)
-          }
-          df.G <- df.P_g %>% tidyr::spread(Medición, Valor)  
-          ## Promedio Jugador
-          df.P_j <- 
-            df.tab1.2_PD() %>% 
-            group_by(Medición) %>% 
-            summarise(Valor=mean(ValorMedición)) %>% 
-            as.data.frame()
-          for (i in seq(1, nrow(df.P_j))) {
-            df.P_j[i,2] <-  
-              round(df.P_j[i,2] / max(filter(df_PD, Medición %in% df.P_j[i,1])
-                                      [,"ValorMedición"]) * 100, 1)
-          }
-          df.J <- df.P_j %>% tidyr::spread(Medición, Valor)
-          ## Internal Validation
-          validate(need(ncol(df.J) == ncol(df.G), 
-                        message = na.cl.com))
-          ## DF Final
-          rbind(df.G, df.J)
-        }
+      ## Promedio General
+      df.P_g <- 
+        df.PD.s() %>%
+        group_by(Medición) %>% 
+        summarise(Valor=mean(ValorMedición)) %>% 
+        as.data.frame()
+      for (i in seq(1, nrow(df.P_g))) {
+        df.P_g[i,2] <-  
+          round(df.P_g[i,2] / max(filter(df_PD, Medición %in% df.P_g[i,1])
+                                  [,"ValorMedición"]) * 100, 1)
       }
-      
+      df.G <- df.P_g %>% tidyr::spread(Medición, Valor)  
+      ## Promedio Jugador capa Principal
+      df.P_j <- 
+        df.tab1.2_PD() %>% 
+        group_by(Medición) %>% 
+        summarise(Valor=mean(ValorMedición)) %>% 
+        as.data.frame()
+      for (i in seq(1, nrow(df.P_j))) {
+        df.P_j[i,2] <-  
+          round(df.P_j[i,2] / max(filter(df_PD, Medición %in% df.P_j[i,1])
+                                  [,"ValorMedición"]) * 100, 1)
+      }
+      df.J <- df.P_j %>% tidyr::spread(Medición, Valor)
+      ## Internal Validation
+      validate(need(ncol(df.J) == ncol(df.G), 
+                    message = na.cl.com))
+      ## Promedio Jugador segunda Capa
+      df.P_j_2 <- 
+        df.tab1.1_PD_2() %>% 
+        group_by(Medición) %>% 
+        summarise(Valor=mean(ValorMedición)) %>% 
+        as.data.frame()
+      for (i in seq(1, nrow(df.P_j_2))) {
+        df.P_j_2[i,2] <-  
+          round(df.P_j_2[i,2] / max(filter(df_PD, Medición %in% df.P_j_2[i,1])
+                                    [,"ValorMedición"]) * 100, 1)
+      }
+      df.P_j_2 <- df.P_j_2 %>% tidyr::spread(Medición, Valor)
+      ## DF Final
+      rbind(df.G, df.J, df.P_j_2)
     } else {
-      
       ## Promedio General
       df.P_g <- 
         df.tab1.2_PD() %>% 
@@ -2251,213 +2122,96 @@ server <- function(input, output, session) {
       }
       ## DF Final
       df.P_g %>% tidyr::spread(Medición, Valor)
-      
     }
   })
   
   output$Plot_tab1.2.2 <- renderPlotly({
-    
     if(input$Player){
-      
-      if (input$Player_tab1.2.2) {
-        
-        plot_ly(
-          type = 'scatterpolar',
-          mode = "lines+markers",
-          fill = 'toself'
-        ) %>%
-          add_trace(
-            r = as.numeric(df.Cl_t()[1,]),
-            theta = colnames(df.Cl_t()),
-            name = "Plantel",
-            marker = list(
-              size = 13
-            ),
-            line = list(
-              width = 0
-            )
-          ) %>%
-          add_trace(
-            r = as.numeric(df.Cl_t()[2,]),
-            theta = colnames(df.Cl_t()),
-            name = paste(input$PlayerInput," 1"),
-            marker = list(
-              size = 13
-            ),
-            line = list(
-              width = 0
-            )
-          ) %>%
-          add_trace(
-            r = as.numeric(df.Cl_t()[3,]),
-            theta = colnames(df.Cl_t()),
-            name = paste(input$PlayerInput," 2"),
-            marker = list(
-              size = 13
-            ),
-            line = list(
-              width = 0
-            )
-          ) %>%
-          layout(
-            showlegend = TRUE
-          ) %>%
-          config(
-            displaylogo = FALSE,
-            modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                       "zoomOut2d", "lasso2d", 
-                                       "toggleSpikelines"), 
-            toImageButtonOptions = list(
-              format = "jpeg",
-              filename = paste(
-                "Gráfica Spyder de Promedios Proporcionales del_", input$CategoryInput, 
-                " y del Jugador ", input$PlayerInput,
-                " en ", input$DimInput_tab1.2,
-                " con rango de fecha (1) desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                " y (2) desde ", input$timeFromInput_tab1.2.2,
-                " hasta ", input$timeToInput_tab1.2.2,
-                sep = ""
-              ),
-              scale = 2
-            )
-          ) %>% toWebGL()
-        
-      } else {
-        
-        if (input$Player_tab1.2.2.2) {
-          
-          plot_ly(
-            type = 'scatterpolar',
-            mode = "lines+markers",
-            fill = 'toself'
-          ) %>%
-            add_trace(
-              r = as.numeric(df.Cl_t()[1,]),
-              theta = colnames(df.Cl_t()),
-              name = "Plantel",
-              marker = list(
-                size = 13
-              ),
-              line = list(
-                width = 0
-              )
-            ) %>%
-            add_trace(
-              r = as.numeric(df.Cl_t()[2,]),
-              theta = colnames(df.Cl_t()),
-              name = input$PlayerInput,
-              marker = list(
-                size = 13
-              ),
-              line = list(
-                width = 0
-              )
-            ) %>%
-            add_trace(
-              r = as.numeric(df.Cl_t()[3,]),
-              theta = colnames(df.Cl_t()),
-              name = input$PlayerInput_tab1.2.2.2,
-              marker = list(
-                size = 13
-              ),
-              line = list(
-                width = 0
-              )
-            ) %>%
-            layout(
-              showlegend = TRUE
-            ) %>%
-            config(
-              displaylogo = FALSE,
-              modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                         "zoomOut2d", "lasso2d", 
-                                         "toggleSpikelines"), 
-              toImageButtonOptions = list(
-                format = "jpeg",
-                filename = paste(
-                  "Gráfica Spyder de Promedios Proporcionales del_", input$CategoryInput, 
-                  " y del Jugador ", input$PlayerInput,
-                  " en ", input$DimInput_tab1.2,
-                  " con rango de fecha (1) desde ", input$timeFromInput, 
-                  " hasta ", input$timeToInput,
-                  " y (2) desde ", input$timeFromInput_tab1.2.2,
-                  " hasta ", input$timeToInput_tab1.2.2,
-                  sep = ""
-                ),
-                scale = 2
-              )
-            ) %>% toWebGL()
-          
-        } else {
-          
-          plot_ly(
-            type = 'scatterpolar',
-            mode = "lines+markers",
-            fill = 'toself'
-          ) %>%
-            add_trace(
-              r = as.numeric(df.Cl_t()[1,]),
-              theta = colnames(df.Cl_t()),
-              name = "Plantel",
-              marker = list(
-                size = 13
-              ),
-              line = list(
-                width = 0
-              )
-            ) %>%
-            add_trace(
-              r = as.numeric(df.Cl_t()[2,]),
-              theta = colnames(df.Cl_t()),
-              name = input$PlayerInput,
-              marker = list(
-                size = 13
-              ),
-              line = list(
-                width = 0
-              )
-            ) %>%
-            layout(
-              showlegend = TRUE
-            ) %>%
-            config(
-              displaylogo = FALSE,
-              modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                         "zoomOut2d", "lasso2d", 
-                                         "toggleSpikelines"), 
-              toImageButtonOptions = list(
-                format = "jpeg",
-                filename = paste(
-                  "Gráfica Spyder de Promedios Proporcionales del_", input$CategoryInput, 
-                  " y del Jugador ", input$PlayerInput,
-                  " en ", input$DimInput_tab1.2,
-                  " con rango de fecha desde ", input$timeFromInput, 
-                  " hasta ", input$timeToInput,
-                  sep = ""
-                ),
-                scale = 2
-              )
-            ) %>% toWebGL()
-        }
-      }
-      
-    } else {
-      
       plot_ly(
         type = 'scatterpolar',
         mode = "lines+markers",
-        fill = 'toself'
+        opacity = 0.8,
+        fill = if (input$Fill_tab1.2.2) {
+          'toself'
+        } else {
+          NULL
+        }
       ) %>%
         add_trace(
-          r = as.numeric(df.Cl_t()[1,]),
-          theta = colnames(df.Cl_t()),
+          r = c(as.numeric(df.Cl_t()[1,]), as.numeric(df.Cl_t()[1,])[1]),
+          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
           name = "Plantel",
           marker = list(
-            size = 13
+            size = 14
           ),
           line = list(
-            width = 0
+            width = 4
+          )
+        ) %>%
+        add_trace(
+          r = c(as.numeric(df.Cl_t()[2,]), as.numeric(df.Cl_t()[2,])[1]),
+          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
+          name = paste(input$PlayerInput," 1"),
+          marker = list(
+            size = 14
+          ),
+          line = list(
+            width = 4
+            )
+          ) %>%
+        add_trace(
+          r = c(as.numeric(df.Cl_t()[3,]), as.numeric(df.Cl_t()[3,])[1]),
+          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
+          name = paste(input$PlayerInput," 2"),
+          marker = list(
+            size = 14
+          ),
+          line = list(
+            width = 4
+          )
+        ) %>%
+        layout(
+          showlegend = TRUE
+        ) %>%
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename = paste(
+              "Gráfica Spyder de Promedios Proporcionales del_", input$CategoryInput, 
+              " y del Jugador ", input$PlayerInput,
+              " en ", input$DimInput_tab1.2,
+              " con rango de fecha (1) desde ", input$timeFromInput, 
+              " hasta ", input$timeToInput,
+              " y (2) desde ", input$timeFromInput_tab1.2.2,
+              " hasta ", input$timeToInput_tab1.2.2,
+              sep = ""
+            ),
+            scale = 2
+          )
+        ) %>% toWebGL()
+    } else {
+      plot_ly(
+        type = 'scatterpolar',
+        mode = "lines+markers",
+        fill = if (input$Fill_tab1.2.2) {
+          'toself'
+        } else {
+          NULL
+        }
+      ) %>%
+        add_trace(
+          r = c(as.numeric(df.Cl_t()[1,]), as.numeric(df.Cl_t()[1,])[1]),
+          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
+          name = "Plantel",
+          marker = list(
+            size = 14
+          ),
+          line = list(
+            width = 4
           )
         ) %>%
         layout(
@@ -2481,7 +2235,6 @@ server <- function(input, output, session) {
           )
         ) %>% toWebGL()
     }
-    
   })
   observeEvent(input$Plot_tab1.2.2_HELP, {
     showModal(
@@ -2497,108 +2250,40 @@ server <- function(input, output, session) {
   ####  TABLE_1.2.2  ####
   
   df.Cl_t2 <- reactive({
-    
     # Input Validation
     validate(need(!df.PD.s() %>% nrow() == 0, 
                   message = na.time.med))
-    
     if(input$Player){
-      
-      if (input$Player_tab1.2.2) {
-        
-        ## Promedio General
-        df.G <- 
-          df.PD.s() %>%
-          group_by(Medición) %>% 
-          summarise(Valor=round(mean(ValorMedición),1)) %>% 
-          as.data.frame() %>% 
-          tidyr::spread(Medición, Valor)  
-        ## Promedio Jugador
-        df.J <- 
-          df.tab1.2_PD() %>% 
-          group_by(Medición) %>% 
-          summarise(Valor=round(mean(ValorMedición),1)) %>% 
-          as.data.frame() %>% 
-          tidyr::spread(Medición, Valor)
-        ## Internal Validation
-        validate(need(ncol(df.J) == ncol(df.G), 
-                      message = na.cl.com))
-        ## Promedio Jugador
-        df.J_2 <- 
-          df.tab1.1_PD_2() %>% 
-          group_by(Medición) %>% 
-          summarise(Valor=round(mean(ValorMedición),1)) %>% 
-          as.data.frame() %>% 
-          tidyr::spread(Medición, Valor)
-        ## DF Final
-        data <- 
-          rbind(df.G,df.J,df.J_2) %>% 
-          mutate(Categoría=c("Plantel", input$PlayerInput, "Jugador2")) 
-        data
-        
-      } else {
-        
-        if (input$Player_tab1.2.2.2) {
-          
-          ## Promedio General
-          df.G <- 
-            df.PD.s() %>%
-            group_by(Medición) %>% 
-            summarise(Valor=round(mean(ValorMedición),1)) %>% 
-            as.data.frame() %>% 
-            tidyr::spread(Medición, Valor)  
-          ## Promedio Jugador
-          df.J <- 
-            df.tab1.2_PD() %>% 
-            group_by(Medición) %>% 
-            summarise(Valor=round(mean(ValorMedición),1)) %>% 
-            as.data.frame() %>% 
-            tidyr::spread(Medición, Valor)
-          ## Internal Validation
-          validate(need(ncol(df.J) == ncol(df.G), 
-                        message = na.cl.com))
-          ## Promedio Jugador
-          df.J_2 <- 
-            df.tab1.1_PD_2.2() %>% 
-            group_by(Medición) %>% 
-            summarise(Valor=round(mean(ValorMedición),1)) %>% 
-            as.data.frame() %>% 
-            tidyr::spread(Medición, Valor)
-          ## DF Final
-          data <- 
-            rbind(df.G,df.J,df.J_2) %>% 
-            mutate(Categoría=c("Plantel", input$PlayerInput, "Jugador2")) 
-          data
-          
-        } else {
-          
-          ## Promedio General
-          df.G <- 
-            df.PD.s() %>%
-            group_by(Medición) %>% 
-            summarise(Valor=round(mean(ValorMedición),1)) %>% 
-            as.data.frame() %>% 
-            tidyr::spread(Medición, Valor)  
-          ## Promedio Jugador
-          df.J <- 
-            df.tab1.2_PD() %>% 
-            group_by(Medición) %>% 
-            summarise(Valor=round(mean(ValorMedición),1)) %>% 
-            as.data.frame() %>% 
-            tidyr::spread(Medición, Valor)
-          ## Internal Validation
-          validate(need(ncol(df.J) == ncol(df.G), 
-                        message = na.cl.com))
-          ## DF Final
-          data <- 
-            rbind(df.G, df.J) %>% 
-            mutate(Categoría=c("Plantel", input$PlayerInput)) 
-          data
-        }
-      }
-      
+      ## Promedio General
+      df.G <- 
+        df.PD.s() %>%
+        group_by(Medición) %>% 
+        summarise(Valor=round(mean(ValorMedición),1)) %>% 
+        as.data.frame() %>% 
+        tidyr::spread(Medición, Valor)  
+      ## Promedio Jugador
+      df.J <- 
+        df.tab1.2_PD() %>% 
+        group_by(Medición) %>% 
+        summarise(Valor=round(mean(ValorMedición),1)) %>% 
+        as.data.frame() %>% 
+        tidyr::spread(Medición, Valor)
+      ## Internal Validation
+      validate(need(ncol(df.J) == ncol(df.G), 
+                    message = na.cl.com))
+      ## Promedio Jugador
+      df.J_2 <- 
+        df.tab1.1_PD_2() %>% 
+        group_by(Medición) %>% 
+        summarise(Valor=round(mean(ValorMedición),1)) %>% 
+        as.data.frame() %>% 
+        tidyr::spread(Medición, Valor)
+      ## DF Final
+      data <- 
+        rbind(df.G,df.J,df.J_2) %>% 
+        mutate(Categoría=c("Plantel", input$PlayerInput, "Jugador2")) 
+      data
     } else {
-      
       ## DF Final
       data <- 
         df.tab1.2_PD() %>% 
@@ -2611,104 +2296,35 @@ server <- function(input, output, session) {
   })
   
   Table_tab1.2.2 <- reactive({
-    
     if(input$Player){
-      
-      if (input$Player_tab1.2.2) {
-        
-        df <- df.Cl_t2() %>% t()
-        colnames(df) <- df["Categoría",1:3]
-        df <- df %>% as.data.frame() %>% filter(!Plantel %in% "Plantel")
-        ## Original DT
-        df.T <- 
-          df %>% 
-          as.data.frame() %>% 
-          tibble::rownames_to_column(var = "Medición") %>%
-          mutate_at(
-            c("Plantel",input$PlayerInput,"Jugador2"), 
-            as.numeric
-          )
-        ## Min & Max DT
-        df_MM <- 
-          df.PD.s() %>% 
-          group_by(Medición) %>% 
-          summarise(Máximo=max(ValorMedición)) %>%
-          select(!Medición)
-        ## Mergin
-        cbind(df.T,df_MM) %>% 
-          relocate(Medición,Máximo,Plantel,input$PlayerInput,Jugador2) %>%
-          rename(
-            "Valor Máximo" = Máximo,
-            "Promedio Plantel" = Plantel
-          ) %>%
-          rename_at(input$PlayerInput, list( ~paste0("Promedio ",input$PlayerInput, " 1"))) %>%
-          rename_at("Jugador2", list( ~paste0("Promedio ",input$PlayerInput, " 2")))
-        
-      } else {
-        
-        if (input$Player_tab1.2.2.2) {
-          
-          df <- df.Cl_t2() %>% t()
-          colnames(df) <- df["Categoría",1:3]
-          df <- df %>% as.data.frame() %>% filter(!Plantel %in% "Plantel")
-          ## Original DT
-          df.T <- 
-            df %>% 
-            as.data.frame() %>% 
-            tibble::rownames_to_column(var = "Medición") %>%
-            mutate_at(
-              c("Plantel",input$PlayerInput,"Jugador2"), 
-              as.numeric
-            )
-          ## Min & Max DT
-          df_MM <- 
-            df.PD.s() %>% 
-            group_by(Medición) %>% 
-            summarise(Máximo=max(ValorMedición)) %>%
-            select(!Medición)
-          ## Mergin
-          cbind(df.T,df_MM) %>% 
-            relocate(Medición,Máximo,Plantel,input$PlayerInput,Jugador2) %>%
-            rename(
-              "Valor Máximo" = Máximo,
-              "Promedio Plantel" = Plantel
-            ) %>%
-            rename_at(input$PlayerInput, list( ~paste0("Promedio ",input$PlayerInput))) %>%
-            rename_at("Jugador2", list( ~paste0("Promedio ", input$PlayerInput_tab1.2.2.2)))
-          
-        } else {
-          
-          df <- df.Cl_t2() %>% t()
-          colnames(df) <- df["Categoría",1:2]
-          df <- df %>% as.data.frame() %>% filter(!Plantel %in% "Plantel")
-          ## Original DT
-          df.T <- 
-            df %>% 
-            as.data.frame() %>% 
-            tibble::rownames_to_column(var = "Medición") %>%
-            mutate_at(
-              c("Plantel",input$PlayerInput), 
-              as.numeric
-            )
-          ## Min & Max DT
-          df_MM <- 
-            df.PD.s() %>% 
-            group_by(Medición) %>% 
-            summarise(Máximo=max(ValorMedición)) %>%
-            select(!Medición)
-          ## Mergin
-          cbind(df.T,df_MM) %>% 
-            relocate(Medición,Máximo,Plantel,input$PlayerInput) %>%
-            rename(
-              "Valor Máximo" = Máximo,
-              "Promedio Plantel" = Plantel
-            ) %>%
-            rename_at(input$PlayerInput, list( ~paste0("Promedio ",input$PlayerInput))) 
-        }
-      }
-      
+      df <- df.Cl_t2() %>% t()
+      colnames(df) <- df["Categoría",1:3]
+      df <- df %>% as.data.frame() %>% filter(!Plantel %in% "Plantel")
+      ## Original DT
+      df.T <- 
+        df %>% 
+        as.data.frame() %>% 
+        tibble::rownames_to_column(var = "Medición") %>%
+        mutate_at(
+          c("Plantel",input$PlayerInput,"Jugador2"), 
+          as.numeric
+        )
+      ## Min & Max DT
+      df_MM <- 
+        df.PD.s() %>% 
+        group_by(Medición) %>% 
+        summarise(Máximo=max(ValorMedición)) %>%
+        select(!Medición)
+      ## Mergin
+      cbind(df.T,df_MM) %>% 
+        relocate(Medición,Máximo,Plantel,input$PlayerInput,Jugador2) %>%
+        rename(
+          "Valor Máximo" = Máximo,
+          "Promedio Plantel" = Plantel
+        ) %>%
+        rename_at(input$PlayerInput, list( ~paste0("Promedio ",input$PlayerInput, " 1"))) %>%
+        rename_at("Jugador2", list( ~paste0("Promedio ",input$PlayerInput, " 2")))
     } else {
-      
       ## Original DT
       df.T <- 
         df.Cl_t2() %>% 
@@ -2751,43 +2367,17 @@ server <- function(input, output, session) {
         columnDefs=list(list(className="dt-center", targets="_all")))
     ) 
   }) 
-  
   output$download_Table_tab1.2.2.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player) {
-        if (input$Player_tab1.2.2) {
-          paste(
-            "Tabla de Promedios Proporcionales del ", input$CategoryInput, 
-            " y del Jugador ", input$PlayerInput,
-            " con rango de fecha (1) desde ", input$timeFromInput, 
-            " hasta ", input$timeToInput,
-            " y (2) desde ", input$timeFromInput_tab1.2.2,
-            " hasta ", input$timeToInput_tab1.2.2,
-            ".xlsx", 
-            sep = ""
-          )
-        } else {
-          if (input$Player_tab1.2.2.2) {
-            paste(
-              "Tabla de Promedios Proporcionales del ", input$CategoryInput, 
-              ", del Jugador ", input$PlayerInput,
-              " y del Jugador ", input$PlayerInput_tab1.2.2.2,
-              " con rango de fecha desde ", input$timeFromInput, 
-              " hasta ", input$timeToInput,
-              ".xlsx", 
-              sep = ""
-            )
-          } else {
-            paste(
-              "Tabla de Promedios Proporcionales del ", input$CategoryInput, 
-              " y del Jugador ", input$PlayerInput,
-              " con rango de fecha desde ", input$timeFromInput, 
-              " hasta ", input$timeToInput,
-              ".xlsx", 
-              sep = ""
-            )
-          }
-        } 
+      if(input$Player){
+        paste(
+          "Tabla de Promedios Proporcionales del ", input$CategoryInput, 
+          " y del Jugador ", input$PlayerInput,
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".xlsx", 
+          sep = ""
+        )
       } else {
         paste(
           "Tabla de Promedios Proporcionales del ", input$CategoryInput, 
