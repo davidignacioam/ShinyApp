@@ -9,8 +9,8 @@ ui <- dashboardPagePlus(
   
   skin = "black",
   
-  enable_preloader = TRUE, 
-  loading_duration = 4,
+  # enable_preloader = TRUE,
+  # loading_duration = 4,
   
   collapse_sidebar = TRUE,
   sidebar_fullCollapse = FALSE,
@@ -977,11 +977,11 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Introduction/Presentation.html"),
         easyClose = FALSE,
-        footer = actionBttn(inputId="pres", 
-                            label="Acepto los Términos señalados", 
-                            icon = icon("exclamation-triangle"),
-                            style = "stretch",
-                            color = "danger")
+        footer = actionButton(
+          inputId = "pres", 
+          label = strong("Acepto los Términos señalados"), 
+          style = "color: white;  background: linear-gradient(60deg, #050505F2, #00C0EF);"
+        )
       )
     )
   }, once = TRUE)
@@ -990,12 +990,11 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Introduction/Basics.html"),
         easyClose = FALSE,
-        footer = actionBttn(inputId="intro", 
-                            label="Vamos a analizar los datos !", 
-                            icon = icon("thumbs-up"),
-                            size = "md",
-                            style =  "stretch",
-                            color = "primary")
+        footer = actionButton(
+          inputId = "intro", 
+          label = strong("Vamos a analizar los datos !"), 
+          style = "color: white;  background: linear-gradient(60deg, #050505F2, #00C0EF);"
+        )
       )
     )
   })
@@ -1067,7 +1066,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Input_tab1.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1094,7 +1093,7 @@ server <- function(input, output, session) {
           )
         ),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1122,7 +1121,7 @@ server <- function(input, output, session) {
           )
         ),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1340,7 +1339,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Table_tab1.1.2_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1410,7 +1409,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Plot_tab1.1.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1459,7 +1458,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Plot_tab1.1.2_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1512,7 +1511,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Plot_tab1.1.3_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1576,8 +1575,8 @@ server <- function(input, output, session) {
     showModal(
       modalDialog(
         includeHTML("Modals/Tab_1/Input_tab1.0_HELP.html"),
-        easyClose = TRUE,
-        size = "l",
+        easyClose = TRUE, 
+        size = "m",
         footer = ""
       )
     )
@@ -1711,7 +1710,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Table_tab1.1.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1769,7 +1768,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Input_tab1.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     ) 
@@ -1796,7 +1795,7 @@ server <- function(input, output, session) {
           )
         ),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1823,7 +1822,7 @@ server <- function(input, output, session) {
           )
         ),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1902,7 +1901,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Plot_tab1.2.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -1988,7 +1987,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Table_tab1.2.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2050,13 +2049,16 @@ server <- function(input, output, session) {
   
   df.tab1.1_PD_2 <- reactive({
     if(input$Player){
-      df_PD %>% filter(Categoría %in% input$CategoryInput,
-                       Dimensión %in% input$DimInput_tab1.2,
-                       TipoMedición %in% input$TypeMetInput_tap1.2,
-                       Medición %in% input$MetInput_tab1.2,
-                       FechaDimensión >= input$timeFromInput_tab1.2.2,
-                       FechaDimensión <= input$timeToInput_tab1.2.2,
-                       Jugador %in% input$PlayerInput)
+      df_PD %>% 
+        filter(
+          Categoría %in% input$CategoryInput,
+          Dimensión %in% input$DimInput_tab1.2,
+          TipoMedición %in% input$TypeMetInput_tap1.2,
+          Medición %in% input$MetInput_tab1.2,
+          FechaDimensión >= input$timeFromInput_tab1.2.2,
+          FechaDimensión <= input$timeToInput_tab1.2.2,
+          Jugador %in% input$PlayerInput
+        )
     }
   })
   
@@ -2157,8 +2159,8 @@ server <- function(input, output, session) {
           ),
           line = list(
             width = 4
-            )
-          ) %>%
+          )
+        ) %>%
         add_trace(
           r = c(as.numeric(df.Cl_t()[3,]), as.numeric(df.Cl_t()[3,])[1]),
           theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
@@ -2241,7 +2243,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Plot_tab1.2.2_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2249,10 +2251,7 @@ server <- function(input, output, session) {
   
   ####  TABLE_1.2.2  ####
   
-  df.Cl_t2 <- reactive({
-    # Input Validation
-    validate(need(!df.PD.s() %>% nrow() == 0, 
-                  message = na.time.med))
+  Table_tab1.2.2 <- reactive({
     if(input$Player){
       ## Promedio General
       df.G <- 
@@ -2279,30 +2278,13 @@ server <- function(input, output, session) {
         as.data.frame() %>% 
         tidyr::spread(Medición, Valor)
       ## DF Final
-      data <- 
+      df <- 
         rbind(df.G,df.J,df.J_2) %>% 
-        mutate(Categoría=c("Plantel", input$PlayerInput, "Jugador2")) 
-      data
-    } else {
-      ## DF Final
-      data <- 
-        df.tab1.2_PD() %>% 
-        group_by(Medición) %>% 
-        summarise(Valor=round(mean(ValorMedición),1)) %>% 
-        as.data.frame() %>% tidyr::spread(Medición, Valor) %>% 
-        mutate(Categoría=c("Plantel")) 
-      data
-    }
-  })
-  
-  Table_tab1.2.2 <- reactive({
-    if(input$Player){
-      df <- df.Cl_t2() %>% t()
+        mutate(Categoría=c("Plantel", input$PlayerInput, "Jugador2")) %>% 
+        t()
       colnames(df) <- df["Categoría",1:3]
-      df <- df %>% as.data.frame() %>% filter(!Plantel %in% "Plantel")
-      ## Original DT
       df.T <- 
-        df %>% 
+        df %>% as.data.frame() %>% filter(!Plantel %in% "Plantel") %>% 
         as.data.frame() %>% 
         tibble::rownames_to_column(var = "Medición") %>%
         mutate_at(
@@ -2325,9 +2307,14 @@ server <- function(input, output, session) {
         rename_at(input$PlayerInput, list( ~paste0("Promedio ",input$PlayerInput, " 1"))) %>%
         rename_at("Jugador2", list( ~paste0("Promedio ",input$PlayerInput, " 2")))
     } else {
-      ## Original DT
+      ## DF Final
       df.T <- 
-        df.Cl_t2() %>% 
+        df.tab1.2_PD() %>% 
+        group_by(Medición) %>% 
+        summarise(Valor=round(mean(ValorMedición),1)) %>% 
+        as.data.frame() %>% 
+        tidyr::spread(Medición, Valor) %>% 
+        mutate(Categoría=c("Plantel")) %>% 
         t() %>% 
         as.data.frame() %>% 
         rename("Plantel"=V1) %>% 
@@ -2423,7 +2410,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_1/Table_tab1.2.2_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2623,7 +2610,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_2/Table_tab2.0_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2635,7 +2622,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_2/Input_tab2.0_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2766,7 +2753,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_2/Table_tab2.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2778,7 +2765,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_2/Input_tab2.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2843,7 +2830,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_2/Plot_tab2.1_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
@@ -2855,7 +2842,7 @@ server <- function(input, output, session) {
       modalDialog(
         includeHTML("Modals/Tab_2/Input_tab2.2_HELP.html"),
         easyClose = TRUE,
-        size = "l",
+        size = "m",
         footer = ""
       )
     )
