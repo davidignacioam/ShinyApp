@@ -397,6 +397,18 @@ not5 <-
 ### CSS
 css <- "
 
+  /*     Error     */ 
+  
+  .shiny-output-error-validation {
+    visibility: hidden; 
+  }
+  .shiny-output-error:before { 
+    visibility: hidden; 
+  }
+  .shiny-output-error { 
+    visibility: hidden; 
+  }
+  
   /*     General     */ 
   
   .content-wrapper {
@@ -411,40 +423,40 @@ css <- "
     font-weight: bold;
   }
   .skin-black .main-header {
-    border-right: 1.3px solid #050505F2;
+    border-right: 1.3px solid #142c59;
   }
   .skin-black .main-header .navbar {
     background-color: #FFFFFF;
-    border-bottom: 1.3px solid #050505F2;
+    border-bottom: 1.3px solid #142c59;
   }
   .skin-black .main-header .logo {
     font-weight: bold;
     color: #FFFFFF;
-    background: #050505F2;
+    background: #142c59;
   }
   .skin-black .main-header .logo:hover {
     font-weight: bold;
     color: #FFFFFF;
-    background-color: #050505F2;
+    background-color: #142c59;
   }
   .skin-black .main-sidebar { 
-    background-color: #050505F2;
+    background-color: #142c59;
     /*  background: linear-gradient(30deg, #050505F2, #050505F2, #050505F2, #00C0EF); */ 
   }
   .navbar-custom-menu>.navbar-nav>li>.dropdown-menu {
-  color: black;
-  font-size: 14px;
-  background-color: #FFFFFF;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-  border-bottom: 1.3px solid #030303;
-  border-right: 1.3px solid #030303;
-  border-left: 1.3px solid #030303;
-}
-  #dropdownBlock_info li {
-  width: 500px;
+    color: black;
+    font-size: 14px;
+    background-color: #FFFFFF;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-bottom: 1.3px solid #030303;
+    border-right: 1.3px solid #030303;
+    border-left: 1.3px solid #030303;
+    }
+    #dropdownBlock_info li {
+    width: 500px;
   }
   
   /*     Box     */ 
@@ -462,7 +474,6 @@ css <- "
     font-size: 13px;
     box-shadow: 4px 4px 4px rgb(0 0 0 / 30%);
   }
-  
   .skin-black .box-primary:hover {
     box-shadow: 6px 6px 6px rgb(0 0 0 / 40%);
   }
@@ -474,20 +485,59 @@ css <- "
   }
   .skin-black .box.box-solid.box-primary>.box-header {
     color: #FFFFFF;
-    background: linear-gradient(35deg, #050505F2, #00C0EF);
+    background: linear-gradient(35deg, #142c59, #00C0EF);
+  }
+  .skin-black .box-success {
+    background: #142c59;
+    color: white;
+  }
+  .skin-black .box.box-solid.box-success>.box-header {
+    background: #142c59;
+  }
+  .skin-black .box.box-solid.box-success {
+    border-top: none; 
+    border-bottom: none; 
+    border-right: none; 
+    border-left: none; 
   }
   
-  /*     Others     */ 
+  /*     Modal     */ 
   
-  .shiny-output-error-validation {
-    visibility: hidden; 
+  .modal-body {
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
   }
-  .shiny-output-error { 
-    visibility: hidden; 
+  #btn-modal {
+    background-color: #050505F2;
+    color: white;
   }
-  .shiny-output-error:before { 
-    visibility: hidden; 
+  .modal-content {
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
   }
-  
+  body {
+    margin: 0px;
+    padding: 0px;
+  }
+  .modal {
+    font-family: arial, sans-serif , serif;
+    border-radius: 0px;
+    margin: 0px;
+  }
+  .modal-footer {
+    text-align:center;
+  }
+  .bg-header {
+    background: linear-gradient(60deg, #142c59, #00C0EF);
+    border-radius: 0px 0px 0px 0px;
+    padding: 20px;
+    margin: 0px;
+  hr{
+   width: 90%;
+   color: #ccc;
+  } 
   
   "
+
