@@ -1,7 +1,5 @@
 
-####  Importing Libraries and Data Frames 
-
-source("Libraries&DataFrames.R")
+####  Importing Libraries and Data Frames source("Libraries&DataFrames.R")
 
 #### UI ####
 
@@ -243,8 +241,9 @@ ui <- dashboardPagePlus(
                   ####  TITLE_1.1  ####
                   box(
                     width = 12,
-                    background = "black",
-                    HTML("<h4><center><b>MEDIDAS ESTADÍSTICAS</b></h4>"),
+                    solidHeader = TRUE,
+                    status = "success", 
+                    HTML("<h4><center><b>MEDIDAS ESTADÍSTICAS</b></h4>")
                   )
                 ),
                 column(
@@ -528,7 +527,8 @@ ui <- dashboardPagePlus(
                   ####  TITLE_1.2.1  ####
                   box(
                     width = 12, 
-                    background = "black",
+                    solidHeader = TRUE,
+                    status = "success", 
                     HTML("<h4><center><b>ANÁLISIS CLUSTER</b></h4>"),
                   )
                 ),
@@ -621,7 +621,8 @@ ui <- dashboardPagePlus(
                   ####  TITLE_1.2.2  ####
                   box(
                     width = 12, 
-                    background = "black",
+                    solidHeader = TRUE,
+                    status = "success", 
                     HTML("<h4><center><b>DESCRIPCIONES MULTIVARIABLES</b></h4>"),
                   )
                 ),
@@ -728,7 +729,8 @@ ui <- dashboardPagePlus(
                   ####  TITLE_2  ####
                   box(
                     width = 12,
-                    background = "navy",
+                    solidHeader = TRUE,
+                    status = "success", 
                     HTML("<h4><center><b>EVENTO CLÍNICO Y DIAGNÓSTICO</b></h4>"),
                   )
                 ),
@@ -976,11 +978,11 @@ server <- function(input, output, session) {
     showModal(
       modalDialog(
         includeHTML("Modals/Introduction/Presentation.html"),
-        easyClose = FALSE,
+        easyClose = TRUE,
         footer = actionButton(
           inputId = "pres", 
-          label = strong("Acepto los Términos señalados"), 
-          style = "color: white;  background: linear-gradient(60deg, #050505F2, #00C0EF);"
+          label = strong("Necesitas orientación?"), 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
         )
       )
     )
@@ -989,12 +991,12 @@ server <- function(input, output, session) {
     showModal(
       modalDialog(
         includeHTML("Modals/Introduction/Basics.html"),
-        easyClose = FALSE,
+        easyClose = TRUE,
         footer = actionButton(
           inputId = "intro", 
-          label = strong("Vamos a analizar los datos !"), 
-          style = "color: white;  background: linear-gradient(60deg, #050505F2, #00C0EF);"
-        )
+          label = strong("Ahopra sí, vamos a analizar los datos !"), 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+          )
       )
     )
   })
@@ -1067,9 +1069,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Input_tab1.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab1.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab1.1_Modal,{
+    removeModal()
   })
   observeEvent(input$Input_tab1.1.2_HELP, {
     showModal(
@@ -1094,9 +1104,17 @@ server <- function(input, output, session) {
         ),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab1.1.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab1.1.2_Modal,{
+    removeModal()
   })
   observeEvent(input$Input_tab1.1.3_HELP, {
     showModal(
@@ -1122,9 +1140,17 @@ server <- function(input, output, session) {
         ),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab1.1.3_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab1.1.3_Modal,{
+    removeModal()
   })
   
   ####  DF_1.1  #### 
@@ -1340,9 +1366,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Table_tab1.1.2_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer =  actionButton(
+          inputId = "Table_tab1.1.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Table_tab1.1.2_Modal,{
+    removeModal()
   })
   
   ####  TAB_1.1.1 #### 
@@ -1410,9 +1444,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Plot_tab1.1.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Plot_tab1.1.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Plot_tab1.1.1_Modal,{
+    removeModal()
   })
   
   ####  TAB_1.1.2  #### 
@@ -1459,9 +1501,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Plot_tab1.1.2_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Plot_tab1.1.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Plot_tab1.1.2_Modal,{
+    removeModal()
   })
   
   ####  TAB_1.1.3  #### 
@@ -1512,9 +1562,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Plot_tab1.1.3_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer =  actionButton(
+          inputId = "Plot_tab1.1.3_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Plot_tab1.1.3_Modal,{
+    removeModal()
   })
   
   ####  TABLE_1.1.0  #### 
@@ -1711,10 +1769,19 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Table_tab1.1.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Table_tab1.1.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
   })
+  observeEvent(input$Table_tab1.1.1_Modal,{
+    removeModal()
+  })
+  
   
   #### --------------------------- TAB_1_2 --------------------------- #### 
   
@@ -1769,11 +1836,19 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Input_tab1.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab1.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
-    ) 
+    )
   })
-  observeEvent(input$Input_tab1.2.2_HELP, {
+  observeEvent(input$Input_tab1.1_Modal,{
+    removeModal()
+  })
+  observeEvent(input$Input_tab1.1_Modal, {
     showModal(
       modalDialog(
         includeHTML(
@@ -1796,9 +1871,17 @@ server <- function(input, output, session) {
         ),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab1.2.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab1.2.2_Modal,{
+    removeModal()
   })
   observeEvent(input$Input_tab1.2.3_HELP, {
     showModal(
@@ -1823,9 +1906,17 @@ server <- function(input, output, session) {
         ),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab1.2.3_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab1.2.3_Modal,{
+    removeModal()
   })
   
   ####  TAB_1.2.1  ####
@@ -1902,9 +1993,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Plot_tab1.2.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Plot_tab1.2.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Plot_tab1.2.1_Modal,{
+    removeModal()
   })
   
   ####  TABLE_1.2.1  ####
@@ -1988,9 +2087,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Table_tab1.2.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Table_tab1.2.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Table_tab1.2.1_Modal,{
+    removeModal()
   })
   
   ####  DF_1.2 PD #### 
@@ -2058,7 +2165,7 @@ server <- function(input, output, session) {
           FechaDimensión >= input$timeFromInput_tab1.2.2,
           FechaDimensión <= input$timeToInput_tab1.2.2,
           Jugador %in% input$PlayerInput
-        )
+          )
     }
   })
   
@@ -2159,8 +2266,8 @@ server <- function(input, output, session) {
           ),
           line = list(
             width = 4
-          )
-        ) %>%
+            )
+          ) %>%
         add_trace(
           r = c(as.numeric(df.Cl_t()[3,]), as.numeric(df.Cl_t()[3,])[1]),
           theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
@@ -2244,9 +2351,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Plot_tab1.2.2_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Plot_tab1.2.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Plot_tab1.2.2_Modal,{
+    removeModal()
   })
   
   ####  TABLE_1.2.2  ####
@@ -2411,9 +2526,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_1/Table_tab1.2.2_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Table_tab1.2.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Table_tab1.2.2_Modal,{
+    removeModal()
   })
   
   #### --------------------------- TAB_2 --------------------------- #### 
@@ -2611,9 +2734,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_2/Table_tab2.0_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Table_tab2.0_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Table_tab2.0_Modal,{
+    removeModal()
   })
   
   ####  INPUT_2.0  #### 
@@ -2623,9 +2754,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_2/Input_tab2.0_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab2.0_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab2.0_Modal,{
+    removeModal()
   })
   
   
@@ -2754,9 +2893,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_2/Table_tab2.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Table_tab2.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Table_tab2.1_Modal,{
+    removeModal()
   })
   
   ####  INPUT_2.1  #### 
@@ -2766,9 +2913,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_2/Input_tab2.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab2.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab2.1_Modal,{
+    removeModal()
   })
   
   ####  TAB_2.1  #### 
@@ -2831,9 +2986,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_2/Plot_tab2.1_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Plot_tab2.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Plot_tab2.1_Modal,{
+    removeModal()
   })
   
   ####  INPUT_2.2  #### 
@@ -2843,9 +3006,17 @@ server <- function(input, output, session) {
         includeHTML("Modals/Tab_2/Input_tab2.2_HELP.html"),
         easyClose = TRUE,
         size = "m",
-        footer = ""
+        footer = actionButton(
+          inputId = "Input_tab2.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
       )
     )
+  })
+  observeEvent(input$Input_tab2.2_Modal,{
+    removeModal()
   })
   
   
