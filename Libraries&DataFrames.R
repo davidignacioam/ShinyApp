@@ -360,9 +360,9 @@ na.cl.com <-
 not1 <- 
   HTML('
   <center>
-  <i class="far fa-address-card fa-2x center" style="color:#00C0EF;"></i>
+  <i class="fas fa-users fa-2x center" style="color:#00C0EF;"></i>
   <i class="far fa-calendar-alt fa-2x center" style="color:#00C0EF;"></i>
-  <h5><strong>Selecciona el Plantel (o Jugador) e intervalo de Fecha de interés, ya que ambos filtros se aplicarán a todas las Visualizaciones.</strong></h5>
+  <h5><strong>Con estos símbolos selecciona el Plantel (o Jugador) e intervalo de Fecha de interés, ya que ambos filtros se aplicarán a todas las Visualizaciones.</strong></h5>
   </center>
        ')
 not2 <- 
@@ -391,6 +391,20 @@ not5 <-
   <center>
   <i class="fas fa-sliders-h fa-2x center" style="color:#00C0EF;"></i>
   <h5><strong>Este símbolo te permite acceder a la Selección de las Variables que forman la Visualización.</strong></h5>
+  </center>
+       ')
+not6 <- 
+  HTML('
+  <center>
+  <i class="fas fa-download fa-2x center" style="color:#00C0EF;"></i>
+  <h5><strong>Este símbolo te permite descargar las Tablas. El ".xlsx" descarga en formato Excel, mientras que el ".csv· descarga en formato CSV.</strong></h5>
+  </center>
+       ')
+not7 <- 
+  HTML('
+  <center>
+  <i class="fas fa-camera fa-2x center" style="color:#00C0EF;"></i>
+  <h5><strong>Este símbolo te permite descargar las Gráficas. Este se ubica en la parte superior derecha las Visualizaciones.</strong></h5>
   </center>
        ')
 

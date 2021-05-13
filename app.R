@@ -1,5 +1,7 @@
 
-####  Importing Libraries and Data Frames source("Libraries&DataFrames.R")
+####  Importing Libraries and Data Frames 
+
+source("Libraries&DataFrames.R")
 
 #### UI ####
 
@@ -15,7 +17,7 @@ ui <- dashboardPagePlus(
   
   footer = dashboardFooter(
     left = div(h4("Triceps MDA"),
-               h5("Providencia, Chile")),
+               h5("Providencia, Chile")), 
     right = div(h6("Desarrollador:"),
                 h6("davidignacioam@gmail.com")) 
   ),
@@ -84,13 +86,21 @@ ui <- dashboardPagePlus(
         id = "dropdownBlock_info",
         badgeStatus = NULL,
         icon = "info", 
-        br(), br(), 
+        br(),
         not1,
-        hr(), not2,
-        hr(), not3,
-        hr(), not4,
-        hr(), not5,
-        br(), br()
+        # hr(), not2,
+        # hr(), not3,
+        # hr(), not4,
+        # hr(), not5,
+        # hr(), not6,
+        # hr(), not7,
+        not2,
+        not3,
+        not4,
+        not5,
+        not6,
+        not7,
+        br()
       )
     )
   ),
@@ -115,6 +125,11 @@ ui <- dashboardPagePlus(
           "Multivariable", 
           tabName="tab_1_2", 
           icon=icon("project-diagram")
+        ),
+        menuSubItem(
+          "Auto-Reporte", 
+          tabName="tab_1_3", 
+          icon=icon("file-medical-alt")
         )
       ),
       menuItem(
@@ -304,8 +319,8 @@ ui <- dashboardPagePlus(
                         label = "",
                         icon = icon("question-circle")
                       ),
-                      downloadButton("download_Table_tab1.1.2.xlsx", ".xlsx"),
-                      downloadButton("download_Table_tab1.1.2.csv", ".csv")
+                      downloadButton("download_Table_tab1.1.2.xlsx", ".xlsx"), # icon = icon("file-excel)
+                      downloadButton("download_Table_tab1.1.2.csv", ".csv") # icon = icon("file-csv)
                     )
                   )
                 )
@@ -540,7 +555,7 @@ ui <- dashboardPagePlus(
               fluidRow(
                 ####  TAB_1.2.1  ####
                 boxPlus(
-                  width = 8,
+                  width = 9,
                   title = "Gráfica de Clusters", 
                   status = "primary", 
                   solidHeader = TRUE,
@@ -584,8 +599,8 @@ ui <- dashboardPagePlus(
                 ),
                 ####  TABLE_1.2.1  ####
                 boxPlus(
-                  width = 4,
-                  title = "Tabla Clusters", 
+                  width = 3,
+                  title = "", 
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
@@ -657,7 +672,6 @@ ui <- dashboardPagePlus(
                         icon = icon("question-circle")
                       )
                     ),
-                    
                     enable_sidebar = TRUE,
                     sidebar_width = 25,
                     sidebar_background = "#0A0A0AAD",
@@ -710,9 +724,179 @@ ui <- dashboardPagePlus(
                 ),
                 column(
                   width = 1
-                ),
+                )
               )
-      ),
+              ),
+              #### ----------------------------------- TAB_1_3 ----------------------------------- #### 
+              tabItem(tabName = "tab_1_3",
+                      br(),
+                      br(),
+                      br(),
+                      br(),
+                      fluidRow(
+                        column(
+                          width = 4
+                        ),
+                        column(
+                          width = 4,
+                          align = "center",
+                          ####  TITLE_1.3.1  ####
+                          box(
+                            width = 12,
+                            solidHeader = TRUE,
+                            status = "success", 
+                            HTML("<h4><center><b>PROMEDIOS SEMANALES</b></h4>")
+                          )
+                        ),
+                        column(
+                          width = 4
+                        )
+                      ),
+                      fluidRow(
+                        ####  TAB_1.3.1  #### 
+                        boxPlus(
+                          width = 8, 
+                          title = "Gráfica de Promedios de Autoreporte por Semana",
+                          status = "primary", 
+                          solidHeader = TRUE,
+                          withSpinner(
+                            plotlyOutput("Plot_tab1.3.1", height="400px"),
+                            type = 6,
+                            color = "#0D9AE0DA",
+                            size = 0.7
+                          ),
+                          collapsible = TRUE,
+                          closable = FALSE,
+                          enable_dropdown = TRUE,
+                          dropdown_icon = TRUE,
+                          dropdown_menu = list(
+                            actionButton(
+                              inputId = "Plot_tab1.3.1_HELP",
+                              label = "",
+                              icon = icon("question-circle")
+                            ),
+                            actionButton(
+                              inputId = "Input_tab1.3.1_HELP",
+                              label = "",
+                              icon = icon("file-alt")
+                            )
+                          ),
+                          enable_sidebar = TRUE,
+                          sidebar_width = 25,
+                          sidebar_background = "#0A0A0AAD",
+                          sidebar_start_open = TRUE,
+                          sidebar_icon = "sliders-h",
+                          sidebar_content = tagList(
+                            br(),
+                            uiOutput("metersOption_tab1.3")
+                          )
+                        ),
+                        boxPlus(
+                          width = 4,
+                          title = "", 
+                          status = "primary", 
+                          solidHeader = TRUE,
+                          ####  TABLE_1.3.1  #### 
+                          withSpinner(
+                            DT::dataTableOutput("Table_tab1.3.1"),
+                            type = 6,
+                            color = "#0D9AE0DA",
+                            size = 0.7
+                          ),
+                          collapsible = TRUE,
+                          closable = FALSE,
+                          enable_dropdown = TRUE,
+                          dropdown_icon = FALSE,
+                          dropdown_menu = list(
+                            actionButton(
+                              inputId = "Table_tab1.3.1_HELP",
+                              label = "",
+                              icon = icon("question-circle")
+                            ),
+                            downloadButton("download_Table_tab1.3.1.xlsx", ".xlsx"),
+                            downloadButton("download_Table_tab1.3.1.csv", ".csv")
+                          )
+                        )
+                      ),
+                      br(),
+                      br(),
+                      fluidRow(
+                        column(
+                          width = 4
+                        ),
+                        column(
+                          width = 4,
+                          align = "center",
+                          ####  TITLE_1.3.1  ####
+                          box(
+                            width = 12,
+                            solidHeader = TRUE,
+                            status = "success", 
+                            HTML("<h4><center><b>CARGA Y ESFUERZO</b></h4>")
+                          )
+                        ),
+                        column(
+                          width = 4
+                        )
+                      ),
+                      fluidRow(
+                        ####  TAB_1.3.2  #### 
+                        boxPlus(
+                          width = 8, 
+                          title = "Gráfica de Esfuerzo Semanal",
+                          status = "primary", 
+                          solidHeader = TRUE,
+                          withSpinner(
+                            plotlyOutput("Plot_tab1.3.2", height="500px"),
+                            type = 6,
+                            color = "#0D9AE0DA",
+                            size = 0.7
+                          ),
+                          collapsible = TRUE,
+                          closable = FALSE,
+                          enable_dropdown = TRUE,
+                          dropdown_icon = TRUE,
+                          dropdown_menu = list(
+                            actionButton(
+                              inputId = "Plot_tab1.3.2_HELP",
+                              label = "",
+                              icon = icon("question-circle")
+                            ),
+                            actionButton(
+                              inputId = "Input_tab1.3.2_HELP",
+                              label = "",
+                              icon = icon("file-alt")
+                            )
+                          )
+                        ),
+                        boxPlus(
+                          width = 4,
+                          title = "", 
+                          status = "primary", 
+                          solidHeader = TRUE,
+                          ####  TABLE_1.3.2  #### 
+                          withSpinner(
+                            DT::dataTableOutput("Table_tab1.3.2"),
+                            type = 6,
+                            color = "#0D9AE0DA",
+                            size = 0.7
+                          ),
+                          collapsible = TRUE,
+                          closable = FALSE,
+                          enable_dropdown = TRUE,
+                          dropdown_icon = FALSE,
+                          dropdown_menu = list(
+                            actionButton(
+                              inputId = "Table_tab1.3.2_HELP",
+                              label = "",
+                              icon = icon("question-circle")
+                            ),
+                            downloadButton("download_Table_tab1.3.2.xlsx", ".xlsx"),
+                            downloadButton("download_Table_tab1.3.2.csv", ".csv")
+                          )
+                        )
+                      )
+              ),
       #### ----------------------------------- TAB_2 ----------------------------------- #### 
       tabItem(tabName = "tab_2",
               br(),
@@ -1418,7 +1602,10 @@ server <- function(input, output, session) {
               panel.grid.minor=element_line(colour="#00000018"),
               panel.background=element_rect(fill="transparent",colour=NA))
     ) %>%
-      layout(showlegend = FALSE) %>%
+      layout(
+        hovermode = 'compare',
+        showlegend = FALSE
+      ) %>%
       config(
         displaylogo = FALSE,
         modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
@@ -2280,6 +2467,7 @@ server <- function(input, output, session) {
           )
         ) %>%
         layout(
+          hovermode = 'compare',
           showlegend = TRUE
         ) %>%
         config(
@@ -2324,6 +2512,7 @@ server <- function(input, output, session) {
           )
         ) %>%
         layout(
+          hovermode = 'compare',
           showlegend = TRUE
         ) %>%
         config(
@@ -2538,6 +2727,534 @@ server <- function(input, output, session) {
   observeEvent(input$Table_tab1.2.2_Modal,{
     removeModal()
   })
+  
+  #### --------------------------- TAB_1_3 --------------------------- #### 
+  
+  ####  UI  ####
+  levelsMeters_tab1.3 <- reactive({
+    df_PD %>% 
+      filter(
+        Dimensión %in% "Autoreporte",
+        !Medición %in% "Nivel de percepción del esfuerzo"
+      ) %>%
+      select(Medición) %>%
+      unique() %>% t()
+  })
+  output$metersOption_tab1.3 <- renderUI({
+    pickerInput(
+      inputId = 'MetInput_tab1.3',
+      label = '',
+      multiple = TRUE,
+      choices = levelsMeters_tab1.3(),
+      selected = levelsMeters_tab1.3()[1],
+      options = list(
+        #style = "btn-info",
+        `actions-box` = TRUE,
+        `selected-text-format` = "count > 2",
+        `count-selected-text` = "{0}/{1} Mediciones"
+      )
+    )
+  })
+  
+  ####  DF_1.3  #### 
+  df.tab1.3.1_PD <- reactive({
+    if(input$Player){
+      df_PD %>% 
+        filter(
+          Categoría %in% input$CategoryInput,
+          Jugador %in% input$PlayerInput,
+          Dimensión %in% "Autoreporte",
+          Medición %in% input$MetInput_tab1.3
+        ) %>% 
+        group_by(FechaDimensión) %>% 
+        summarise(
+          Suma = sum(ValorMedición)
+        ) %>% 
+        mutate("Semana" = lubridate::week(FechaDimensión) %>% as.factor(),
+               "Mes" = lubridate::month(FechaDimensión) %>% as.factor()) %>% 
+        group_by(Mes, Semana) %>% 
+        summarise(
+          Promedio = mean(Suma) %>% round(1)
+        ) %>% 
+        mutate(
+          Zscore = ( 
+            (Promedio  - mean(Promedio )) / sd(Promedio ) 
+          ) %>% round(2)
+        ) 
+    } else {
+      df_PD %>% 
+        filter(
+          Categoría %in% input$CategoryInput,
+          Dimensión %in% "Autoreporte",
+          Medición %in% input$MetInput_tab1.3
+        ) %>% 
+        group_by(FechaDimensión) %>% 
+        summarise(
+          Suma = sum(ValorMedición)
+        ) %>% 
+        mutate("Semana" = lubridate::week(FechaDimensión) %>% as.factor(),
+               "Mes" = lubridate::month(FechaDimensión) %>% as.factor()) %>% 
+        group_by(Mes, Semana) %>% 
+        summarise(
+          Promedio = mean(Suma) %>% round(1)
+        ) %>% 
+        mutate(
+          Zscore = ( 
+            (Promedio  - mean(Promedio )) / sd(Promedio ) 
+          ) %>% round(2)
+        ) 
+    }
+  })
+  df.tab1.3.2_PD <- reactive({
+    if(input$Player){
+      # Main DF
+      df.W <- 
+        left_join(
+          df_PD %>% 
+            filter(
+              Categoría %in% input$CategoryInput,
+              Jugador %in% input$PlayerInput,
+              Medición %in% "Minutos de Exposición"
+            ) %>% 
+            group_by(FechaDimensión) %>% 
+            summarise(
+              Suma.Min.Exp = sum(ValorMedición)
+            ) %>% 
+            mutate("Semana" = lubridate::week(FechaDimensión)), 
+          df_PD %>% 
+            filter(
+              Categoría %in% input$CategoryInput,
+              Medición %in% "Nivel de percepción del esfuerzo"
+            ) %>% 
+            group_by(FechaDimensión) %>% 
+            summarise(
+              Suma.D.Med = sum(ValorMedición) 
+            ) , 
+          by = "FechaDimensión"
+        ) %>%
+        mutate(
+          Suma.Diaria = Suma.Min.Exp*Suma.D.Med
+        ) %>% 
+        select(!FechaDimensión)  %>% 
+        group_by(Semana) %>% 
+        summarise(
+          Acute.Workload = sum(Suma.Diaria)
+        ) 
+      # New Object
+      Chronic.Workload <- 
+        data.frame(
+          "Chronic.Workload" = numeric()
+        )
+      # Defining new means
+      for (i in 5:nrow(df.W)) {
+        Chronic.Workload[i,1] <- 
+          round(sum(df.W[i-1,2]+df.W[i-2,2]+df.W[i-3,2]+df.W[i-4,2]) / 4 , 0)
+      }
+      # Final DF
+      cbind(df.W,Chronic.Workload) %>%
+        mutate(
+          Chronic.Workload.Ratio  = round(Acute.Workload / Chronic.Workload, 2),
+          Zscore = ( 
+            (Acute.Workload  - mean(Acute.Workload )) / sd(Acute.Workload ) 
+          ) %>% round(2)
+        ) %>%
+        rename(
+          "Agudo" = Acute.Workload,
+          "Crónico" = Chronic.Workload,
+          "ACWR" = Chronic.Workload.Ratio
+        ) %>% 
+        arrange(desc(Semana))
+    } else {
+      # Main DF
+      df.W <- 
+        left_join(
+          df_PD %>% 
+            filter(
+              Categoría %in% input$CategoryInput,
+              Medición %in% "Minutos de Exposición"
+              ) %>% 
+            group_by(FechaDimensión) %>% 
+            summarise(
+              Suma.Min.Exp = sum(ValorMedición)
+            ) %>% 
+            mutate("Semana" = lubridate::week(FechaDimensión)), 
+          df_PD %>% 
+            filter(
+              Categoría %in% input$CategoryInput,
+              Medición %in% "Nivel de percepción del esfuerzo"
+              ) %>% 
+            group_by(FechaDimensión) %>% 
+            summarise(
+              Suma.D.Med = sum(ValorMedición) 
+            ) , 
+          by = "FechaDimensión"
+        ) %>%
+        mutate(
+          Suma.Diaria = Suma.Min.Exp*Suma.D.Med
+        ) %>% 
+        select(!FechaDimensión)  %>% 
+        group_by(Semana) %>% 
+        summarise(
+          Acute.Workload = sum(Suma.Diaria)
+        ) 
+      # New Object
+      Chronic.Workload <- 
+        data.frame(
+          "Chronic.Workload" = numeric()
+        )
+      # Defining new means
+      for (i in 5:nrow(df.W)) {
+        Chronic.Workload[i,1] <- 
+          round(sum(df.W[i-1,2]+df.W[i-2,2]+df.W[i-3,2]+df.W[i-4,2]) / 4 , 0)
+      }
+      # Final DF
+      cbind(df.W,Chronic.Workload) %>%
+        mutate(
+          Chronic.Workload.Ratio  = round(Acute.Workload / Chronic.Workload, 2),
+          Zscore = ( 
+            (Acute.Workload  - mean(Acute.Workload )) / sd(Acute.Workload ) 
+          ) %>% round(2)
+        ) %>%
+        rename(
+          "Agudo" = Acute.Workload,
+          "Crónico" = Chronic.Workload,
+          "ACWR" = Chronic.Workload.Ratio
+        ) %>% 
+        arrange(desc(Semana))
+    }
+  })
+  
+  ####  TAB_1.3.1 #### 
+  output$Plot_tab1.3.1 <- renderPlotly({
+    # Selecting Rows
+    filtered <- 
+      df.tab1.3.1_PD()[3:nrow(df.tab1.3.1_PD()),] 
+    # Visualization
+    plot_ly() %>% 
+      add_trace(
+        type='bar', 
+        x=filtered$Semana, 
+        y=filtered$Promedio, 
+        color = I("#0077FFA5"),
+        name = "Promedio"
+      ) %>% 
+      add_trace(
+        type='scatter', 
+        x=filtered$Semana, 
+        y=filtered$Zscore, 
+        color = I("#1DDE64D1"), 
+        marker = list(
+          size = 8
+        ),
+        line = list(
+          width = 4
+        ),
+        yaxis = "y2",
+        name = "Zscore"
+      ) %>% 
+      layout(
+        hovermode = 'compare',
+        legend = list(
+          x = 36
+        ),
+        yaxis2 = list(
+          overlaying = "y",
+          side = "right"
+        )
+      ) %>%
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                   "zoomOut2d", "lasso2d", 
+                                   "toggleSpikelines"), 
+        toImageButtonOptions = list(
+          format = "jpeg",
+          filename = 
+            paste(
+              "Diagrama de Esfuerzo del ", input$CategoryInput,
+              sep = ""
+            ),
+          scale = 2
+        )
+      ) %>% toWebGL()
+  }) 
+  observeEvent(input$Plot_tab1.3.1_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_1/Plot_tab1.3.1_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Plot_tab1.3.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Plot_tab1.3.1_Modal,{
+    removeModal()
+  })
+  observeEvent(input$Input_tab1.3.1_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_1/Input_tab1.3.1_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Input_tab1.3.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Input_tab1.3.1_Modal,{
+    removeModal()
+  })
+  
+  ####  TABLE_1.3.1  ####
+  output$Table_tab1.3.1 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab1.3.1_PD() %>% arrange(desc(Semana)), 
+      style="bootstrap",
+      rownames=FALSE,
+      class="cell-border stripe",
+      width = "100%",
+      selection="multiple",
+      options=list(
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching=TRUE, info=FALSE,
+        scrollX='400px', scrollY="340px", 
+        scrollCollapse=TRUE, paging=FALSE,
+        columnDefs=list(list(className="dt-center", targets="_all"))
+      )
+    )
+  })
+  output$download_Table_tab1.3.1.xlsx <- downloadHandler(
+    filename = function() {
+      paste(
+        "Promedios de ", input$TypeMetInput_tap1.3, 
+        " del ", input$CategoryInput,
+        ".xlsx", 
+        sep = ""
+      )
+    },
+    content = function(file) {
+      write.xlsx(df.tab1.3.1_PD(), file, 
+                 col.names = TRUE, row.names = TRUE, append = FALSE)
+    }
+  )
+  output$download_Table_tab1.3.1.csv <- downloadHandler(
+    filename = function() {
+      paste(
+        "Promedios de ", input$TypeMetInput_tap1.3, 
+        " del ", input$CategoryInput,
+        ".csv", 
+        sep = ""
+      )
+    },
+    content = function(file) {
+      write.csv(df.tab1.3.1_PD(), file, row.names = FALSE)
+    }
+  )
+  observeEvent(input$Table_tab1.3.1_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_1/Table_tab1.3.1_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Table_tab1.3.1_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Table_tab1.3.1_Modal,{
+    removeModal()
+  })
+  
+  ####  TAB_1.3.2 #### 
+  output$Plot_tab1.3.2 <- renderPlotly({
+    # Selecting Rows
+    filtered <- 
+      df.tab1.3.2_PD() %>% 
+      arrange(Semana) %>%
+      slice((nrow(df.tab1.3.2_PD())-6):nrow(df.tab1.3.2_PD()))
+    # Visualization
+    plot_ly() %>% 
+      add_trace(
+        type='bar', 
+        x=filtered$Semana, 
+        y=filtered$Agudo, 
+        color = I("#0077FFA5"),
+        name = "Agudo"
+      ) %>% 
+      add_trace(
+        type='bar', 
+        x=filtered$Semana, 
+        y=filtered$Crónico, 
+        color = I("#1DDE64D1"), 
+        name = "Crónico"
+      ) %>% 
+      add_trace(
+        type='scatter', 
+        x=filtered$Semana, 
+        y=filtered$ACWR, 
+        color = I("#FF0900DF"), 
+        marker = list(
+          size = 8
+        ),
+        line = list(
+          width = 4
+        ),
+        yaxis = "y2",
+        name = "ACWR"
+      ) %>% 
+      layout(
+        hovermode = 'compare',
+        legend = list(
+          x = 36
+        ),
+        yaxis2 = list(
+          overlaying = "y",
+          side = "right"
+        )
+      )  %>%
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                   "zoomOut2d", "lasso2d", 
+                                   "toggleSpikelines"), 
+        toImageButtonOptions = list(
+          format = "jpeg",
+          filename = 
+            paste(
+              "Diagrama de Esfuerzo del ", input$CategoryInput,
+              sep = ""
+            ),
+          scale = 2
+        )
+      ) %>% toWebGL()
+  }) 
+  observeEvent(input$Plot_tab1.3.2_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_1/Plot_tab1.3.2_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Plot_tab1.3.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Plot_tab1.3.2_Modal,{
+    removeModal()
+  })
+  observeEvent(input$Input_tab1.3.2_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_1/Input_tab1.3.2_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Input_tab1.3.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Input_tab1.3.2_Modal,{
+    removeModal()
+  })
+  
+  ####  TABLE_1.3.2  ####
+  output$Table_tab1.3.2 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab1.3.2_PD(), 
+      style="bootstrap",
+      rownames=FALSE,
+      class="cell-border stripe",
+      width = "100%",
+      selection="multiple",
+      options=list(
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching=TRUE, info=FALSE,
+        scrollX='400px', scrollY="400px", 
+        scrollCollapse=TRUE, paging=FALSE,
+        columnDefs=list(list(className="dt-center", targets="_all"))
+      )
+    )
+  })
+  output$download_Table_tab1.3.2.xlsx <- downloadHandler(
+    filename = function() {
+      paste(
+        "Promedios de ", input$TypeMetInput_tap1.3, 
+        " del ", input$CategoryInput,
+        ".xlsx", 
+        sep = ""
+      )
+    },
+    content = function(file) {
+      write.xlsx(df.tab1.3.2_PD(), file, 
+                 col.names = TRUE, row.names = TRUE, append = FALSE)
+    }
+  )
+  output$download_Table_tab1.3.2.csv <- downloadHandler(
+    filename = function() {
+      paste(
+        "Promedios de ", input$TypeMetInput_tap1.3, 
+        " del ", input$CategoryInput,
+        ".csv", 
+        sep = ""
+      )
+    },
+    content = function(file) {
+      write.csv(df.tab1.3.2_PD(), file, row.names = FALSE)
+    }
+  )
+  observeEvent(input$Table_tab1.3.2_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_1/Table_tab1.3.2_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Table_tab1.3.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Table_tab1.3.2_Modal,{
+    removeModal()
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   #### --------------------------- TAB_2 --------------------------- #### 
   
@@ -2959,7 +3676,10 @@ server <- function(input, output, session) {
               panel.grid.major=element_line(colour="#00000018"),
               panel.grid.minor=element_line(colour="#00000018"),
               panel.background=element_rect(fill="transparent",colour=NA)) 
-    )  %>% 
+    ) %>% 
+      layout(
+        hovermode = 'compare'
+      ) %>% 
       config(
         displaylogo = FALSE,
         modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
