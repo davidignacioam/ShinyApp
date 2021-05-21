@@ -323,17 +323,30 @@ df_PD <-
   filter(Medición != "PCR") 
 # Removing NA
 df_PD <- df_PD %>% tidyr::drop_na() 
-# Defining Nature
+## Player Dimension Data Frames
+# Factor DF
+df_PD_Factor <- df_PD %>% filter(Dimensión %in% "Masoterapia")
+df_PD_Factor$Categoría <- df_PD_Factor$Categoría %>% as.factor()
+df_PD_Factor$Jugador <- df_PD_Factor$Jugador %>% as.factor()
+df_PD_Factor$FechaDimensión <- df_PD_Factor$FechaDimensión %>% as.Date()
+df_PD_Factor$TipoMedición <- df_PD_Factor$TipoMedición %>% as.factor()
+df_PD_Factor$Medición <- df_PD_Factor$Medición %>% as.factor()
+df_PD_Factor$ValorMedición <- df_PD_Factor$ValorMedición %>% as.factor()
+# Numeric DF
+df_PD <- df_PD %>% filter(!Dimensión %in% "Masoterapia")
+df_PD$ValorMedición <- df_PD$ValorMedición %>% as.numeric()
 df_PD$Categoría <- df_PD$Categoría %>% as.factor()
 df_PD$Jugador <- df_PD$Jugador %>% as.factor()
 df_PD$FechaDimensión <- df_PD$FechaDimensión %>% as.Date()
-df_PD$Dimensión <- df_PD$Dimensión %>% as.factor()
 df_PD$TipoMedición <- df_PD$TipoMedición %>% as.factor()
 df_PD$Medición <- df_PD$Medición %>% as.factor()
-df_PD$ValorMedición <- df_PD$ValorMedición %>% as.numeric()
+df_PD$Dimensión <- df_PD$Dimensión %>% as.factor()
+df_PD <- df_PD %>% tidyr::drop_na() 
+
 
 ## Defining specific Objects
 date.range <- seq.Date(from=Sys.Date()-60,to=Sys.Date(),by="day")
+
 
 ### Text
 ## Header Logo
@@ -408,6 +421,7 @@ not7 <-
   </center>
        ')
 
+
 ### CSS
 css <- "
 
@@ -470,7 +484,7 @@ css <- "
     border-left: 1.3px solid #030303;
     }
     #dropdownBlock_info li {
-    width: 500px;
+    width: 600px;
   }
   
   /*     Box     */ 
@@ -489,7 +503,7 @@ css <- "
     box-shadow: 4px 4px 4px rgb(0 0 0 / 30%);
   }
   .skin-black .box-primary:hover {
-    box-shadow: 6px 6px 6px rgb(0 0 0 / 40%);
+    box-shadow: 8px 8px 8px rgb(0 0 0 / 40%);
   }
   .skin-black .box.box-solid.box-primary {
     border-top: none; 
@@ -554,4 +568,43 @@ css <- "
   } 
   
   "
+
+
+#############################
+
+# /*     Table     */ 
+#   
+#   .dataTable tbody tr:hover {
+#     background: linear-gradient(35deg, #050505F2, #00C0EF);
+#                                 color: #FFFFFF;
+#   } 
+
+# .modal-sm{
+#   align-content:center;
+# }
+
+# .primary-box {
+#   padding-left: 0px; 
+# } 
+# .primary-box-icon {
+#   padding-left: 0px; 
+# } 
+# .primary-box-content {
+#   padding-left: -2px; 
+# } 
+
+# .navbar-nav > dropdownBlock  {
+#   background-color: black;
+#   box-shadow: 10px 10px 10px darkgrey;
+
+# .shiny-output-error-validation {
+#   color: #2FB4CC; 
+#     font-size: 15px; 
+#   font-weight: bold; 
+#   text-align: center
+# }
+
+#############################
+
+
 
