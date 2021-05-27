@@ -19,7 +19,7 @@ ui <- dashboardPagePlus(
     left = div(h4("Triceps MDA"),
                h5("Providencia, Chile")), 
     right = div(h6("Desarrollador:"),
-                h6("davidignacioam@gmail.com")) 
+                h6("davidignacioam@gmail.com"))
   ),
   
   header = dashboardHeaderPlus(
@@ -761,7 +761,7 @@ ui <- dashboardPagePlus(
               fluidRow(
                 ####  TAB_1.3.1  #### 
                 boxPlus(
-                  width = 8, 
+                  width = 9, 
                   title = "Gráfica de Promedios de Bienestar Semanal",
                   status = "primary", 
                   solidHeader = TRUE,
@@ -798,7 +798,7 @@ ui <- dashboardPagePlus(
                   )
                 ),
                 boxPlus(
-                  width = 4,
+                  width = 3,
                   title = "", 
                   status = "primary", 
                   solidHeader = TRUE,
@@ -1002,63 +1002,55 @@ ui <- dashboardPagePlus(
                 )
               ),
               br(),
+              ####  VB_2  ####
               fluidRow(
-                ####  VB_2  ####
                 column(
-                  width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.1"
-                  )
+                  width = 3
+                ),
+                valueBoxOutput(
+                  width = 3,
+                  "valuebox_tab2.0.1"
+                ),
+                valueBoxOutput(
+                  width = 3,
+                  "valuebox_tab2.0.2"
                 ),
                 column(
+                  width = 3
+                )
+              ),
+              fluidRow(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.2"
-                  )
+                  "valuebox_tab2.1"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.3"
-                  )
+                  "valuebox_tab2.2"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.4"
-                  )
+                  "valuebox_tab2.3"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.5"
-                  )
+                  "valuebox_tab2.4"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.6"
-                  )
+                  "valuebox_tab2.5"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.7"
-                  )
+                  "valuebox_tab2.6"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab2.8"
-                  )
+                  "valuebox_tab2.7"
+                ),
+                valueBoxOutput(
+                  width = 4,
+                  "valuebox_tab2.8"
                 )
               ),
               br(),
@@ -1265,61 +1257,37 @@ ui <- dashboardPagePlus(
               br(),
               fluidRow(
                 ####  VB_3  ####
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.1"
-                  )
+                  "valuebox_tab3.1"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.2"
-                  )
+                  "valuebox_tab3.2"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.3"
-                  )
+                  "valuebox_tab3.3"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.4"
-                  )
+                  "valuebox_tab3.4"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.5"
-                  )
+                  "valuebox_tab3.5"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.6"
-                  )
+                  "valuebox_tab3.6"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.7"
-                  )
+                  "valuebox_tab3.7"
                 ),
-                column(
+                valueBoxOutput(
                   width = 4,
-                  valueBoxOutput(
-                    width = 12,
-                    "valuebox_tab3.8"
-                  )
+                  "valuebox_tab3.8"
                 )
               ),
               br(),
@@ -1381,35 +1349,35 @@ ui <- dashboardPagePlus(
 server <- function(input, output, session) {
   
   ####  INTRO  #### 
-  observeEvent("", {
-    showModal(
-      modalDialog(
-        includeHTML("Modals/Introduction/Presentation.html"),
-        easyClose = TRUE,
-        footer = actionButton(
-          inputId = "pres", 
-          label = strong("Necesitas orientación?"), 
-          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
-        )
-      )
-    )
-  }, once = TRUE)
-  observeEvent(input$pres,{
-    showModal(
-      modalDialog(
-        includeHTML("Modals/Introduction/Basics.html"),
-        easyClose = TRUE,
-        footer = actionButton(
-          inputId = "intro", 
-          label = strong("Ahora sí, vamos a analizar los datos !"), 
-          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
-        )
-      )
-    )
-  })
-  observeEvent(input$intro,{
-    removeModal()
-  })
+  # observeEvent("", {
+  #   showModal(
+  #     modalDialog(
+  #       includeHTML("Modals/Introduction/Presentation.html"),
+  #       easyClose = TRUE,
+  #       footer = actionButton(
+  #         inputId = "pres", 
+  #         label = strong("Necesitas orientación?"), 
+  #         style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+  #       )
+  #     )
+  #   )
+  # }, once = TRUE)
+  # observeEvent(input$pres,{
+  #   showModal(
+  #     modalDialog(
+  #       includeHTML("Modals/Introduction/Basics.html"),
+  #       easyClose = TRUE,
+  #       footer = actionButton(
+  #         inputId = "intro", 
+  #         label = strong("Ahora sí, vamos a analizar los datos !"), 
+  #         style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+  #       )
+  #     )
+  #   )
+  # })
+  # observeEvent(input$intro,{
+  #   removeModal()
+  # })
   
   
   ####  UI  ####
@@ -1700,6 +1668,7 @@ server <- function(input, output, session) {
       #filter = 'top',
       selection="multiple",
       options=list(
+        ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE,
         scrollX='400px', scrollY="260px", 
@@ -2139,6 +2108,7 @@ server <- function(input, output, session) {
       filter = 'top',
       selection="multiple",
       options=list(
+        ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE,
         scrollX='400px', # scrollY="350px", 
@@ -3010,50 +2980,81 @@ server <- function(input, output, session) {
   })
   
   ####  DF_1.3  #### 
+  
+  df.tab1.3.0.1_PD <- reactive({
+    df_PD %>% 
+      mutate("Semana" = lubridate::week(FechaDimensión) %>% as.factor(),
+             "Mes" = lubridate::month(FechaDimensión) %>% as.factor()) %>% 
+      group_by(Mes, Semana) %>% 
+      summarise(n()) %>% 
+      select(Mes, Semana) %>%
+      mutate("Semana/Mes"=stringr::str_c(Semana," / ",Mes)) 
+  })
+  
+  df.tab1.3.0.2_PD <- reactive({
+    df_PD %>% 
+      mutate("Semana" = lubridate::week(FechaDimensión) ,
+             "Mes" = lubridate::month(FechaDimensión)) %>% 
+      group_by(Mes, Semana) %>% 
+      summarise(n()) %>% 
+      select(Mes, Semana) %>%
+      mutate("Semana/Mes"=stringr::str_c(Semana," / ",Mes)) 
+  })
+  
   df.tab1.3.1_PD <- reactive({
     if(input$Player){
-      df_PD %>% 
-        filter(
-          Categoría %in% input$CategoryInput,
-          Jugador %in% input$PlayerInput,
-          Dimensión %in% "Autoreporte",
-          Medición %in% input$MetInput_tab1.3
-        ) %>% 
-        group_by(FechaDimensión) %>% 
-        summarise(
-          Suma = sum(ValorMedición)
-        ) %>% 
-        mutate("Semana" = lubridate::week(FechaDimensión) %>% as.factor()) %>% 
-        group_by(Semana) %>% 
-        summarise(
-          Promedio = mean(Suma) %>% round(1)
-        ) %>% 
-        mutate(
-          Zscore = ( 
-            (Promedio  - mean(Promedio )) / sd(Promedio ) 
-          ) %>% round(2)
-        ) 
+      left_join(
+        df_PD %>% 
+          filter(
+            Categoría %in% input$CategoryInput,
+            Jugador %in% input$PlayerInput,
+            Dimensión %in% "Autoreporte",
+            Medición %in% input$MetInput_tab1.3
+          ) %>% 
+          group_by(FechaDimensión) %>% 
+          summarise(
+            Suma = sum(ValorMedición)
+          ) %>% 
+          mutate("Semana" = lubridate::week(FechaDimensión) %>% as.factor()) %>% 
+          group_by(Semana) %>% 
+          summarise(
+            Promedio = mean(Suma) %>% round(1)
+          ) %>% 
+          mutate(
+            Zscore = ( 
+              (Promedio  - mean(Promedio )) / sd(Promedio ) 
+            ) %>% round(2)
+          ) ,
+        df.tab1.3.0.1_PD(),
+        by = "Semana"
+      ) %>% 
+        relocate("Semana/Mes", .before = Semana) 
     } else {
-      df_PD %>% 
-        filter(
-          Categoría %in% input$CategoryInput,
-          Dimensión %in% "Autoreporte",
-          Medición %in% input$MetInput_tab1.3
-        ) %>% 
-        group_by(FechaDimensión) %>% 
-        summarise(
-          Suma = sum(ValorMedición)
-        ) %>% 
-        mutate("Semana" = lubridate::week(FechaDimensión) %>% as.factor()) %>% 
-        group_by(Semana) %>% 
-        summarise(
-          Promedio = mean(Suma) %>% round(1)
-        ) %>% 
-        mutate(
-          Zscore = ( 
-            (Promedio  - mean(Promedio )) / sd(Promedio ) 
-          ) %>% round(2)
-        ) 
+      left_join(
+        df_PD %>% 
+          filter(
+            Categoría %in% input$CategoryInput,
+            Dimensión %in% "Autoreporte",
+            Medición %in% input$MetInput_tab1.3
+          ) %>% 
+          group_by(FechaDimensión) %>% 
+          summarise(
+            Suma = sum(ValorMedición)
+          ) %>% 
+          mutate("Semana" = lubridate::week(FechaDimensión) %>% as.factor()) %>% 
+          group_by(Semana) %>% 
+          summarise(
+            Promedio = mean(Suma) %>% round(1)
+          ) %>% 
+          mutate(
+            Zscore = ( 
+              (Promedio  - mean(Promedio )) / sd(Promedio ) 
+            ) %>% round(2)
+          ) ,
+        df.tab1.3.0.1_PD(),
+        by = "Semana"
+      ) %>% 
+        relocate("Semana/Mes", .before = Semana) 
     }
   })
   df.tab1.3.2_PD <- reactive({
@@ -3067,7 +3068,7 @@ server <- function(input, output, session) {
               Jugador %in% input$PlayerInput,
               Medición %in% "Minutos de Exposición"
             ) %>% 
-            group_by(FechaDimensión) %>% 
+            group_by(Jugador, FechaDimensión) %>% 
             summarise(
               Suma.Min.Exp = sum(ValorMedición)
             ) %>% 
@@ -3075,21 +3076,30 @@ server <- function(input, output, session) {
           df_PD %>% 
             filter(
               Categoría %in% input$CategoryInput,
+              Jugador %in% input$PlayerInput,
               Medición %in% "Nivel de percepción del esfuerzo"
             ) %>% 
-            group_by(FechaDimensión) %>% 
+            group_by(Jugador, FechaDimensión) %>% 
             summarise(
               Suma.D.Med = sum(ValorMedición) 
-            ) , 
-          by = "FechaDimensión"
+            ), 
+          by = c(
+            "FechaDimensión" = "FechaDimensión", 
+            "Jugador" = "Jugador"
+          )
         ) %>%
         mutate(
           Suma.Diaria = Suma.Min.Exp*Suma.D.Med
         ) %>% 
+        group_by(FechaDimensión) %>% 
+        summarise(
+          Promedio.Diario = mean(Suma.Diaria)
+        ) %>% 
+        mutate("Semana" = lubridate::week(FechaDimensión)) %>% 
         select(!FechaDimensión)  %>% 
         group_by(Semana) %>% 
         summarise(
-          Acute.Workload = sum(Suma.Diaria)
+          Acute.Workload = sum(Promedio.Diario) %>% round(0)
         ) 
       # New Object
       Chronic.Workload <- 
@@ -3102,19 +3112,24 @@ server <- function(input, output, session) {
           round(sum(df.W[i-1,2]+df.W[i-2,2]+df.W[i-3,2]+df.W[i-4,2]) / 4 , 0)
       }
       # Final DF
-      cbind(df.W,Chronic.Workload) %>%
-        mutate(
-          Chronic.Workload.Ratio  = round(Acute.Workload / Chronic.Workload, 2),
-          Zscore = ( 
-            (Acute.Workload  - mean(Acute.Workload )) / sd(Acute.Workload ) 
-          ) %>% round(2)
-        ) %>%
-        rename(
-          "Agudo" = Acute.Workload,
-          "Crónico" = Chronic.Workload,
-          "ACWR" = Chronic.Workload.Ratio
-        ) %>% 
-        arrange(desc(Semana))
+      left_join(
+        cbind(df.W,Chronic.Workload) %>%
+          mutate(
+            Chronic.Workload.Ratio  = round(Acute.Workload / Chronic.Workload, 2),
+            Zscore = ( 
+              (Acute.Workload  - mean(Acute.Workload )) / sd(Acute.Workload ) 
+            ) %>% round(2)
+          ) %>%
+          rename(
+            "Agudo" = Acute.Workload,
+            "Crónico" = Chronic.Workload,
+            "ACWR" = Chronic.Workload.Ratio
+          ) %>% 
+          arrange(desc(Semana)),
+        df.tab1.3.0.2_PD(),
+        by = "Semana"
+      ) %>% 
+        relocate("Semana/Mes", .before = Semana) 
     } else {
       # Main DF
       df.W <- 
@@ -3124,7 +3139,7 @@ server <- function(input, output, session) {
               Categoría %in% input$CategoryInput,
               Medición %in% "Minutos de Exposición"
             ) %>% 
-            group_by(FechaDimensión) %>% 
+            group_by(Jugador, FechaDimensión) %>% 
             summarise(
               Suma.Min.Exp = sum(ValorMedición)
             ) %>% 
@@ -3134,19 +3149,27 @@ server <- function(input, output, session) {
               Categoría %in% input$CategoryInput,
               Medición %in% "Nivel de percepción del esfuerzo"
             ) %>% 
-            group_by(FechaDimensión) %>% 
+            group_by(Jugador, FechaDimensión) %>% 
             summarise(
               Suma.D.Med = sum(ValorMedición) 
-            ) , 
-          by = "FechaDimensión"
+            ), 
+          by = c(
+            "FechaDimensión" = "FechaDimensión", 
+            "Jugador" = "Jugador"
+          )
         ) %>%
         mutate(
           Suma.Diaria = Suma.Min.Exp*Suma.D.Med
         ) %>% 
+        group_by(FechaDimensión) %>% 
+        summarise(
+          Promedio.Diario = mean(Suma.Diaria)
+        ) %>% 
+        mutate("Semana" = lubridate::week(FechaDimensión)) %>% 
         select(!FechaDimensión)  %>% 
         group_by(Semana) %>% 
         summarise(
-          Acute.Workload = sum(Suma.Diaria)
+          Acute.Workload = sum(Promedio.Diario) %>% round(0)
         ) 
       # New Object
       Chronic.Workload <- 
@@ -3159,19 +3182,24 @@ server <- function(input, output, session) {
           round(sum(df.W[i-1,2]+df.W[i-2,2]+df.W[i-3,2]+df.W[i-4,2]) / 4 , 0)
       }
       # Final DF
-      cbind(df.W,Chronic.Workload) %>%
-        mutate(
-          Chronic.Workload.Ratio  = round(Acute.Workload / Chronic.Workload, 2),
-          Zscore = ( 
-            (Acute.Workload  - mean(Acute.Workload )) / sd(Acute.Workload ) 
-          ) %>% round(2)
-        ) %>%
-        rename(
-          "Agudo" = Acute.Workload,
-          "Crónico" = Chronic.Workload,
-          "ACWR" = Chronic.Workload.Ratio
-        ) %>% 
-        arrange(desc(Semana))
+      left_join(
+        cbind(df.W,Chronic.Workload) %>%
+          mutate(
+            Chronic.Workload.Ratio  = round(Acute.Workload / Chronic.Workload, 2),
+            Zscore = ( 
+              (Acute.Workload  - mean(Acute.Workload )) / sd(Acute.Workload ) 
+            ) %>% round(2)
+          ) %>%
+          rename(
+            "Agudo" = Acute.Workload,
+            "Crónico" = Chronic.Workload,
+            "ACWR" = Chronic.Workload.Ratio
+          ) %>% 
+          arrange(desc(Semana)),
+        df.tab1.3.0.2_PD(),
+        by = "Semana"
+      ) %>% 
+        relocate("Semana/Mes", .before = Semana)
     }
   })
   df.tab1.3.3_PD <- reactive({
@@ -3337,13 +3365,14 @@ server <- function(input, output, session) {
   ####  TABLE_1.3.1  ####
   output$Table_tab1.3.1 <- DT::renderDataTable({
     DT::datatable(
-      df.tab1.3.1_PD() %>% arrange(desc(Semana)), 
+      df.tab1.3.1_PD() %>% select(!c(Semana,Mes)), 
       style="bootstrap",
       rownames=FALSE,
       class="cell-border stripe",
       width = "100%",
       selection="multiple",
       options=list(
+        ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, info=FALSE,
         scrollX='400px', scrollY="340px", 
@@ -3501,13 +3530,14 @@ server <- function(input, output, session) {
   ####  TABLE_1.3.2  ####
   output$Table_tab1.3.2 <- DT::renderDataTable({
     DT::datatable(
-      df.tab1.3.2_PD(), 
+      df.tab1.3.2_PD() %>% select(!c(Semana,Mes)), 
       style="bootstrap",
       rownames=FALSE,
       class="cell-border stripe",
       width = "100%",
       selection="multiple",
       options=list(
+        ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, info=FALSE,
         scrollX='400px', scrollY="400px", 
@@ -3641,6 +3671,7 @@ server <- function(input, output, session) {
       width = "100%",
       selection="multiple",
       options=list(
+        ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, info=FALSE,
         scrollX='400px', scrollY="400px", 
@@ -3710,146 +3741,229 @@ server <- function(input, output, session) {
                FechaDiagnóstico <= input$timeToInput)
     }
   })
+  df.tab_CED_C <- reactive({
+    df_CED %>% 
+      filter(Categoría %in% input$CategoryInput,
+             FechaDiagnóstico >= input$timeFromInput,
+             FechaDiagnóstico <= input$timeToInput)
+  })
+  df.tab2_F <- reactive({
+    if(input$Player){
+      df_PD_Factor %>% 
+        filter(Categoría %in% input$CategoryInput,
+               FechaDimensión >= input$timeFromInput,
+               FechaDimensión <= input$timeToInput,
+               Jugador %in% input$PlayerInput)
+    } else {
+      df_PD_Factor %>% 
+        filter(Categoría %in% input$CategoryInput,
+               FechaDimensión >= input$timeFromInput,
+               FechaDimensión <= input$timeToInput)
+    }
+  })
+  
   
   ####  VB_2  #### 
+  # ValueBox 2.0.1
+  valuebox_tab2.0.1 <- reactive({
+    df.tab2_F() %>% 
+      filter(Medición %in% "PCR",
+             ValorMedición %in% "Negativo") %>%
+      nrow()
+  })
+  output$valuebox_tab2.0.1 <- renderValueBox({
+    valueBox(
+      valuebox_tab2.0.1(),
+      "PCR Negativos", 
+      icon = icon("virus-slash"),
+      color = "green"
+    )
+  })
+  # ValueBox 2.0.2
+  valuebox_tab2.0.2 <- reactive({
+    df.tab2_F() %>% 
+      filter(Medición %in% "PCR",
+             ValorMedición %in% "Positivo") %>%
+      nrow()
+  })
+  output$valuebox_tab2.0.2 <- renderValueBox({
+    valueBox(
+      valuebox_tab2.0.2(),
+      "PCR Positivos", 
+      icon = icon("virus"),
+      color = "red"
+    )
+  })
+  # ValueBox 2.1
+  valuebox_tab2.1 <- reactive({
+    table(
+      df.tab_CED_C() %>%
+        select(c("Categoría_I",Jugador)) %>%
+        filter(
+          Categoría_I %in% "Lesión"
+        )
+    ) %>% 
+      as.data.frame() %>%
+      filter(Freq != 0)%>%
+      select(Jugador) %>%
+      unique() %>% 
+      nrow()
+  })
   output$valuebox_tab2.1 <- renderValueBox({
     valueBox(
-      table(
-        df.tab1_CED() %>%
-          select(c("Categoría_I",Jugador)) %>%
-          filter(
-            Categoría_I %in% "Lesión"
-          )
-      ) %>% 
-        as.data.frame() %>%
-        select(Jugador) %>%
-        unique() %>% 
-        nrow(),
+      if (valuebox_tab2.1() == 0) { 0 } else { valuebox_tab2.1() },
       "Deportistas Lesionados", 
       icon = icon("crutch"),
       color = "aqua"
     )
   })
+  # ValueBox 2.2
+  valuebox_tab2.2 <- reactive({
+    table(
+      df.tab_CED_C() %>%
+        select(c("Categoría_I",Jugador)) %>%
+        filter(
+          Categoría_I %in% "Enfermedad"
+        )
+    ) %>% 
+      as.data.frame() %>%
+      filter(Freq != 0) %>%
+      select(Jugador) %>%
+      unique() %>% 
+      nrow()
+  })
   output$valuebox_tab2.2 <- renderValueBox({
     valueBox(
-      table(
-        df.tab1_CED() %>%
-          select(c("Categoría_I",Jugador)) %>%
-          filter(
-            Categoría_I %in% "Enfermedad"
-          )
-      ) %>% 
-        as.data.frame() %>%
-        select(Jugador) %>%
-        unique() %>% 
-        nrow(),
+      if (valuebox_tab2.2() == 0) { 0 } else { valuebox_tab2.2() },
       "Deportistas Enfermos", 
       icon = icon("stethoscope"),
       color = "aqua"
     )
   })
+  # ValueBox 2.3
+  valuebox_tab2.3 <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("Categoría_I")) %>%
+        filter(
+          Categoría_I %in% "Cirugía"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1)
+  })
   output$valuebox_tab2.3 <- renderValueBox({
     valueBox(
-      table(
-        df.tab1_CED() %>%
-          select(c("Categoría_I")) %>%
-          filter(
-            Categoría_I %in% "Cirugía"
-          )
-      ) %>% 
-        as.data.frame() %>% 
-        arrange(desc(Freq)) %>%
-        filter(
-          Freq != 0
-        ) %>%
-        select(Freq) %>%
-        slice(1),
+      if (nrow(valuebox_tab2.3()) == 0) { 0 } else { valuebox_tab2.3() },
       "Cirugías", 
       icon = icon("prescription-bottle"),
       color = "aqua"
     )
   })
+  # ValueBox 2.4
+  valuebox_tab2.4 <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("Categoría_I","Categoría_II")) %>%
+        filter(
+          Categoría_I %in% "Molestia",
+          Categoría_II %in% "Muscular Fascia"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1)
+  })
   output$valuebox_tab2.4 <- renderValueBox({
     valueBox(
-      table(
-        df.tab1_CED() %>%
-          select(c("Categoría_I","Categoría_II")) %>%
-          filter(
-            Categoría_I %in% "Molestia",
-            Categoría_II %in% "Muscular Fascia"
-          )
-      ) %>% 
-        as.data.frame() %>% 
-        arrange(desc(Freq)) %>%
-        filter(
-          Freq != 0
-        ) %>%
-        select(Freq) %>%
-        slice(1),
+      if (nrow(valuebox_tab2.4()) == 0) { 0 } else { valuebox_tab2.4() },
       "Molestias Musculares", 
       icon = icon("file-medical"),
       color = "aqua"
     )
   })
+  # ValueBox 2.5
+  valuebox_tab2.5 <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("Categoría_I","Categoría_II")) %>%
+        filter(
+          Categoría_I %in% "Lesión",
+          Categoría_II %in% "Muscular Fascia"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1)
+  })
   output$valuebox_tab2.5 <- renderValueBox({
     valueBox(
-      table(
-        df.tab1_CED() %>%
-          select(c("Categoría_I","Categoría_II")) %>%
-          filter(
-            Categoría_I %in% "Lesión",
-            Categoría_II %in% "Muscular Fascia"
-          )
-      ) %>% 
-        as.data.frame() %>% 
-        arrange(desc(Freq)) %>%
-        filter(
-          Freq != 0
-        ) %>%
-        select(Freq) %>%
-        slice(1),
+      if (nrow(valuebox_tab2.5()) == 0) { 0 } else { valuebox_tab2.5() },
       "Lesiones Musculares", 
       icon = icon("file-medical"),
       color = "aqua"
     )
   })
+  # ValueBox 2.6
+  valuebox_tab2.6.A <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("Categoría_I","Categoría_II")) %>%
+        filter(
+          Categoría_I %in% "Molestia",
+          Categoría_II %in% "Tendones"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1) %>% 
+      as.numeric() 
+  })
+  valuebox_tab2.6.B <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("Categoría_I","Categoría_II")) %>%
+        filter(
+          Categoría_I %in% "Lesión",
+          Categoría_II %in% "Tendones"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1) %>% 
+      as.numeric()
+  })
   output$valuebox_tab2.6 <- renderValueBox({
     valueBox(
-      table(
-        df_CED %>%
-          select(c("Categoría_I","Categoría_II")) %>%
-          filter(
-            Categoría_I %in% "Molestia",
-            Categoría_II %in% "Tendones"
-          )
-      ) %>% 
-        as.data.frame() %>% 
-        arrange(desc(Freq)) %>%
-        filter(
-          Freq != 0
-        ) %>%
-        select(Freq) %>%
-        slice(1) + 
-        table(
-          df_CED %>%
-            select(c("Categoría_I","Categoría_II")) %>%
-            filter(
-              Categoría_I %in% "Lesión",
-              Categoría_II %in% "Tendones"
-            )
-        ) %>% 
-        as.data.frame() %>% 
-        arrange(desc(Freq)) %>%
-        filter(
-          Freq != 0
-        ) %>%
-        select(Freq) %>%
-        slice(1),
+      if (is.na(valuebox_tab2.6.A()) == TRUE) { 0 } else { valuebox_tab2.6.A() } + 
+        if (is.na(valuebox_tab2.6.B()) == TRUE) { 0 } else { valuebox_tab2.6.B() },
       "Lesiones/Molestias Tendón", 
       icon = icon("file-medical"),
       color = "aqua"
     )
   })
+  # ValueBox 2.7
   Injury <- reactive({
     df.tab1_CED() %>%
       select("Categoría_I") %>%
@@ -3860,11 +3974,13 @@ server <- function(input, output, session) {
       as.data.frame() %>%
       arrange(desc(Freq)) %>%
       select(Freq) %>%
-      slice(1)
+      slice(1) %>% 
+      as.numeric()
   })
   output$valuebox_tab2.7 <- renderValueBox({
     valueBox(
-      round(((Injury()/(Min_Exp()/60))),2),
+      if (is.na(Min_Exp()) == TRUE || Min_Exp() == 0 || Injury() == 0) { 0 } 
+      else { round(((Injury()/(Min_Exp()/60))),2) },
       "Incidencia Lesión Total", 
       icon = icon("hospital-user"),
       color = "aqua"
@@ -3872,24 +3988,31 @@ server <- function(input, output, session) {
   })
   output$valuebox_tab2.8 <- renderValueBox({
     valueBox(
-      (
+      if (
+        df.tab_CED_C() %>% 
+        select(Jugador) %>%
+        unique() %>% 
+        nrow() == 0
+      ) {
+        0
+      } else {
         (
           (
-            df_CED %>% 
-              filter(Categoría %in% input$CategoryInput) %>% 
-              group_by(Jugador, Categoría_I) %>% 
-              tally() %>% 
-              filter(Categoría_I %in% "Lesión") %>% 
-              nrow()
-          ) / (
-            df_CED %>% 
-              filter(Categoría %in% input$CategoryInput) %>%
-              select(Jugador) %>%
-              unique() %>% 
-              nrow()
-          )
-        ) * 100
-      ) %>% round(1),
+            (
+              df.tab_CED_C() %>% 
+                group_by(Jugador, Categoría_I) %>% 
+                tally() %>% 
+                filter(Categoría_I %in% "Lesión") %>% 
+                nrow()
+            ) / (
+              df.tab_CED_C() %>% 
+                select(Jugador) %>%
+                unique() %>% 
+                nrow()
+            )
+          ) * 100
+        ) %>% round(1)
+      },
       "Índice Lesión Jugador", 
       icon = icon("user-injured"),
       color = "aqua"
@@ -3897,13 +4020,18 @@ server <- function(input, output, session) {
   })
   
   ####  TABLE_2.0  #### 
-  
-  Min_Exp <- reactive({
+  Min_Exp.DF <- reactive({
     df.tab1.1_PD() %>% 
       filter(TipoMedición %in% input$mInput_tab2.0,
              Medición %in% "Minutos de Exposición") %>%
-      select(ValorMedición) %>%
-      sum()
+      select(ValorMedición) 
+  })
+  Min_Exp <- reactive({
+    if (nrow(Min_Exp.DF()) == 0) {
+      0
+    } else {
+      Min_Exp.DF() %>% sum()
+    }
   })
   
   Table_tab2.0 <- reactive({
@@ -4377,19 +4505,23 @@ server <- function(input, output, session) {
   })
   output$valuebox_tab3.3 <- renderValueBox({
     valueBox(
-      df.tab3_F() %>% 
-        filter(Dimensión %in% "Masoterapia") %>% 
-        group_by(Jugador, FechaDimensión) %>% 
-        summarise(
-          Cantidad_1=n_distinct(Medición)
-        ) %>%
-        rename(Fecha=FechaDimensión) %>%
-        group_by(Fecha) %>% 
-        summarise(
-          Cantidad=sum(Cantidad_1)
-        ) %>% 
-        select(Cantidad) %>% 
-        sum(),
+      if (df.tab3_F() %>% filter(Dimensión %in% "Masoterapia") %>% nrow() == 0) {
+        0
+      } else {
+        df.tab3_F() %>% 
+          filter(Dimensión %in% "Masoterapia") %>% 
+          group_by(Jugador, FechaDimensión) %>% 
+          summarise(
+            Cantidad_1=n_distinct(Medición)
+          ) %>%
+          rename(Fecha=FechaDimensión) %>%
+          group_by(Fecha) %>% 
+          summarise(
+            Cantidad=sum(Cantidad_1)
+          ) %>% 
+          select(Cantidad) %>% 
+          sum()
+      },
       "Masajes", 
       icon = icon("hand-holding-medical"),
       color = "aqua"
@@ -4441,14 +4573,14 @@ server <- function(input, output, session) {
           summarise(
             Cantidad=n_distinct(ID_EventoClínico)
           ) %>% 
-          mutate(Grupo="Eventos") %>%
+          mutate(Grupo="Eventos Clínicos") %>%
           rename(Fecha=FechaDiagnóstico),
         df.tab3_KT() %>% 
           group_by(FechaTratamientoKinésico) %>% 
           summarise(
             Cantidad=n_distinct(ID_TratamientoKinésico)
           ) %>% 
-          mutate(Grupo="Tratamientos") %>%
+          mutate(Grupo="KTR") %>%
           rename(Fecha=FechaTratamientoKinésico),
         df.tab3_F() %>% 
           filter(Dimensión %in% "Masoterapia") %>% 
@@ -4473,7 +4605,7 @@ server <- function(input, output, session) {
                    linetype="dashed", color="#E31414", size=.3, alpha=0.5) +
         # Variables
         geom_line(aes(colour=Grupo), alpha=0.3, size=0.9) +
-        scale_colour_manual(values=c(Tratamientos="#10B534", Eventos="#1348C2", Masajes="#C916C0")) + 
+        scale_colour_manual(values=c('KTR'="#10B534", 'Eventos Clínicos'="#1348C2", 'Masajes'="#C916C0")) + 
         geom_point(aes(colour=Grupo), alpha=0.9, size=1) +
         # Graph
         scale_x_date(date_labels="%b-%d", date_breaks="1 week") +
@@ -4574,7 +4706,7 @@ server <- function(input, output, session) {
     # Final DF
     df.T[-1,] %>% 
       mutate(
-        "Variable/Fecha" = c("Eventos Clínicos","Tratamientos Kinésicos","Masajes")
+        "Variable/Fecha" = c("Eventos Clínicos","KTR","Masajes")
       ) %>% 
       relocate("Variable/Fecha", .before = colnames(df.T)[1])
   })
@@ -4586,6 +4718,7 @@ server <- function(input, output, session) {
       class="cell-border stripe",
       selection="multiple",
       options=list(
+        ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE, 
         scrollX='400px',
