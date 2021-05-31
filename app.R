@@ -10,7 +10,7 @@ ui <- dashboardPagePlus(
   skin = "black",
   
   enable_preloader = TRUE,
-  loading_duration = 6,
+  loading_duration = 5,
   
   collapse_sidebar = TRUE,
   sidebar_fullCollapse = FALSE,
@@ -125,12 +125,13 @@ ui <- dashboardPagePlus(
           "Multivariable", 
           tabName="tab_1_2", 
           icon=icon("project-diagram")
-        ),
-        menuSubItem(
-          "Auto-Reporte", 
-          tabName="tab_1_3", 
-          icon=icon("file-medical-alt")
         )
+        # ,
+        # menuSubItem(
+        #   "Auto-Reporte", 
+        #   tabName="tab_1_3", 
+        #   icon=icon("file-medical-alt")
+        # )
       ),
       menuItem(
         selected = TRUE,
@@ -145,11 +146,18 @@ ui <- dashboardPagePlus(
       )
     )
   ),
-  # linear-gradient(#FFFFFF, #E0E0E0)
   
   body = dashboardBody(
     
     tags$head(tags$style(HTML(css))),
+    
+    # fresh::use_theme(
+    #   fresh::create_theme(
+    #     fresh::adminlte_color(
+    #       green = "#0B3B0B",
+    #       aqua = "#142c59"
+    #   )
+    # )),
     
     tabItems(
       #### ----------------------------------- TAB_1_1 ----------------------------------- #### 
@@ -250,97 +258,36 @@ ui <- dashboardPagePlus(
                   )
                 )
               ),
-              br(),
-              br(),
-              fluidRow(
-                column(
-                  width = 4
-                ),
-                column(
-                  width = 4,
-                  align = "center",
-                  ####  TITLE_1.1  ####
-                  box(
-                    width = 12,
-                    solidHeader = TRUE,
-                    status = "success", 
-                    HTML("<h4><center><b>MEDIDAS ESTADÍSTICAS</b></h4>")
-                  )
-                ),
-                column(
-                  width = 4
-                )
-              ),
-              br(),
-              fluidRow(
-                ####  VB_1.1  ####
-                column(
-                  width = 7,
-                  valueBoxOutput(
-                    width = 6,
-                    "valuebox_tab1.1.1"
-                  ),
-                  valueBoxOutput(
-                    width = 6,
-                    "valuebox_tab1.1.2"
-                  ),
-                  valueBoxOutput(
-                    width = 6,
-                    "valuebox_tab1.1.3"
-                  ),
-                  valueBoxOutput(
-                    width = 6,
-                    "valuebox_tab1.1.4"
-                  ),
-                  valueBoxOutput(
-                    width = 6,
-                    "valuebox_tab1.1.5"
-                  ),
-                  valueBoxOutput(
-                    width = 6,
-                    "valuebox_tab1.1.6"
-                  )
-                ),
-                column(
-                  width = 5,
-                  boxPlus(
-                    width = 12,
-                    title = "Tabla de Z-Score", 
-                    status = "primary", 
-                    solidHeader = TRUE,
-                    ####  TABLE_1.1.2  #### 
-                    withSpinner(
-                      DT::dataTableOutput("Table_tab1.1.2", height="310px"),
-                      type = 6,
-                      color = "#0D9AE0DA",
-                      size = 0.7
-                    ),
-                    collapsible = TRUE,
-                    closable = FALSE,
-                    enable_dropdown = TRUE,
-                    dropdown_icon = FALSE,
-                    dropdown_menu = list(
-                      actionButton(
-                        inputId = "Table_tab1.1.2_HELP",
-                        label = "",
-                        icon = icon("question-circle")
-                      ),
-                      downloadButton("download_Table_tab1.1.2.xlsx", ".xlsx"), # icon = icon("file-excel)
-                      downloadButton("download_Table_tab1.1.2.csv", ".csv") # icon = icon("file-csv)
-                    )
-                  )
-                )
-              ),
+              # br(),
+              # fluidRow(
+              #   column(
+              #     width = 4
+              #   ),
+              #   column(
+              #     width = 4,
+              #     align = "center",
+              #     ####  TITLE_1.1  ####
+              #     box(
+              #       width = 12,
+              #       solidHeader = TRUE,
+              #       status = "success", 
+              #       HTML("<h4><center><b>MEDIDAS ESTADÍSTICAS</b></h4>")
+              #     )
+              #   ),
+              #   column(
+              #     width = 4
+              #   )
+              # ),
               br(),
               fluidRow(
                 ####  TAB_1.1.1  ####
                 boxPlus(
                   width = 3,
-                  title = "Error del Promedio", 
+                  title = "Gráfica de Error", 
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    plotlyOutput("Plot_tab1.1.1", height="350px"),
+                    plotlyOutput("Plot_tab1.1.1", height="280px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -355,6 +302,12 @@ ui <- dashboardPagePlus(
                       label = "",
                       icon = icon("question-circle")
                     )
+                  ),
+                  footer = fluidRow(
+                    column(
+                      width = 12,
+                      uiOutput("Plot_tab1.1.1_Footer")
+                    )
                   )
                 ),
                 ####  TAB_1.1.2  ####
@@ -364,7 +317,7 @@ ui <- dashboardPagePlus(
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    plotlyOutput("Plot_tab1.1.2", height="350px"),
+                    plotlyOutput("Plot_tab1.1.2", height="280px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -379,16 +332,26 @@ ui <- dashboardPagePlus(
                       label = "",
                       icon = icon("question-circle")
                     )
+                  ),
+                  footer = fluidRow(
+                    column(
+                      width = 6,
+                      uiOutput("Plot_tab1.1.2_Footer_A")
+                    ),
+                    column(
+                      width = 6,
+                      uiOutput("Plot_tab1.1.2_Footer_B")
+                    )
                   )
                 ),
                 ####  TAB_1.1.3  ####
                 boxPlus(
                   width = 4,
-                  title = "Diagrama de Caja ", 
+                  title = "Gráfica de Caja ", 
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    plotlyOutput("Plot_tab1.1.3", height="350px"),
+                    plotlyOutput("Plot_tab1.1.3", height="280px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -405,6 +368,12 @@ ui <- dashboardPagePlus(
                     ),
                     ####  TABLE_1.1.0  #### 
                     downloadButton("download_Table_tab1.1.0.xlsx", ".xlsx")
+                  ),
+                  footer = fluidRow(
+                    column(
+                      width = 12,
+                      uiOutput("Plot_tab1.1.3_Footer")
+                    )
                   )
                 )
               ),
@@ -436,7 +405,56 @@ ui <- dashboardPagePlus(
                     downloadButton("download_Table_tab1.1.1.csv", ".csv")
                   )
                 )
-              )
+              ),
+              br(),
+              fluidRow(
+                ####  VB_1  ####
+                column(
+                  width = 4,
+                  valueBoxOutput(
+                    width = 12,
+                    "valuebox_tab1.1.1"
+                  ),
+                  valueBoxOutput(
+                    width = 12,
+                    "valuebox_tab1.1.2"
+                  ),
+                  valueBox(
+                    width = 12,
+                    "Z-score",
+                    paste("(Valor - Promedio) / Desv.Est."),
+                    icon = icon("divide"),
+                    color = "yellow"
+                  )
+                ),
+                boxPlus(
+                  width = 8,
+                  title = "Tabla de Z-Score", 
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  ####  TABLE_1.1.2  #### 
+                  withSpinner(
+                    DT::dataTableOutput("Table_tab1.1.2", height="350px"),
+                    type = 6,
+                    color = "#0D9AE0DA",
+                    size = 0.7
+                  ),
+                  collapsible = TRUE,
+                  closable = FALSE,
+                  enable_dropdown = TRUE,
+                  dropdown_icon = FALSE,
+                  dropdown_menu = list(
+                    actionButton(
+                      inputId = "Table_tab1.1.2_HELP",
+                      label = "",
+                      icon = icon("question-circle")
+                    ),
+                    downloadButton("download_Table_tab1.1.2.xlsx", ".xlsx"), # icon = icon("file-excel)
+                    downloadButton("download_Table_tab1.1.2.csv", ".csv") # icon = icon("file-csv)
+                  )
+                )
+              ),
+              br()
       ),
       #### ----------------------------------- TAB_1_2 ----------------------------------- #### 
       tabItem(tabName = "tab_1_2",
@@ -731,7 +749,8 @@ ui <- dashboardPagePlus(
                 column(
                   width = 1
                 )
-              )
+              ),
+              br()
       ),
       #### ----------------------------------- TAB_1_3 ----------------------------------- #### 
       tabItem(tabName = "tab_1_3",
@@ -974,33 +993,34 @@ ui <- dashboardPagePlus(
                     downloadButton("download_Table_tab1.3.3.csv", ".csv")
                   )
                 )
-              )
+              ),
+              br()
       ),
       #### ----------------------------------- TAB_2 ----------------------------------- #### 
       tabItem(tabName = "tab_2",
               br(),
               br(),
               br(),
-              br(),
-              fluidRow(
-                column(
-                  width = 4
-                ),
-                column(
-                  width = 4,
-                  align = "center",
-                  ####  TITLE_2  ####
-                  box(
-                    width = 12,
-                    solidHeader = TRUE,
-                    status = "success", 
-                    HTML("<h4><center><b>EVENTO CLÍNICO</b></h4>"),
-                  )
-                ),
-                column(
-                  width = 4
-                )
-              ),
+              # br(),
+              # fluidRow(
+              #   column(
+              #     width = 4
+              #   ),
+              #   column(
+              #     width = 4,
+              #     align = "center",
+              #     ####  TITLE_2  ####
+              #     box(
+              #       width = 12,
+              #       solidHeader = TRUE,
+              #       status = "success", 
+              #       HTML("<h4><center><b>EVENTO CLÍNICO</b></h4>"),
+              #     )
+              #   ),
+              #   column(
+              #     width = 4
+              #   )
+              # ),
               br(),
               ####  VB_2  ####
               fluidRow(
@@ -1021,36 +1041,89 @@ ui <- dashboardPagePlus(
               ),
               fluidRow(
                 valueBoxOutput(
-                  width = 4,
+                  width = 3,
                   "valuebox_tab2.1"
                 ),
                 valueBoxOutput(
-                  width = 4,
+                  width = 3,
                   "valuebox_tab2.2"
                 ),
                 valueBoxOutput(
-                  width = 4,
+                  width = 3,
                   "valuebox_tab2.3"
                 ),
                 valueBoxOutput(
-                  width = 4,
+                  width = 3,
                   "valuebox_tab2.4"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab2.5"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab2.6"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab2.7"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab2.8"
+                )
+              ),
+              br(),
+              fluidRow(
+                ####  TABLE_2.1  #### 
+                boxPlus(
+                  width = 12, 
+                  title = "Tabla de Frecuencia Combinadas", 
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  withSpinner(
+                    DT::dataTableOutput("Table_tab2.1", height="350px"),
+                    type = 6,
+                    color = "#0D9AE0DA",
+                    size = 0.7
+                  ),
+                  collapsible = TRUE,
+                  closable = FALSE,
+                  enable_dropdown = TRUE,
+                  dropdown_icon = FALSE,
+                  dropdown_menu = list(
+                    actionButton(
+                      inputId = "Table_tab2.1_HELP",
+                      label = "",
+                      icon = icon("question-circle")
+                    ),
+                    actionButton(
+                      inputId = "Input_tab2.1_HELP",
+                      label = "",
+                      icon = icon("file-alt")
+                    ),
+                    downloadButton("download_Table_tab2.1.xlsx", ".xlsx"),
+                    downloadButton("download_Table_tab2.1.csv", ".csv")
+                  ),
+                  enable_sidebar = TRUE,
+                  sidebar_width = 25,
+                  sidebar_background = "#0A0A0AAD",
+                  sidebar_start_open = TRUE,
+                  sidebar_icon = "sliders-h",
+                  sidebar_content = tagList(
+                    ####  INPUT_2.1  #### 
+                    br(),
+                    pickerInput(
+                      inputId = 'cInput_tab1.1',
+                      label = 'Variables Cruzadas',
+                      multiple = TRUE,
+                      choices = df.S.2,
+                      selected = c("Categoría_I","Categoría_II"),
+                      options = list(`actions-box`=TRUE)
+                    )
+                  ),
+                  footer = fluidRow(
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab2.1_Footer_A")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab2.1_Footer_B")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab2.1_Footer_C")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab2.1_Footer_D")
+                    )
+                  )
                 )
               ),
               br(),
@@ -1062,7 +1135,7 @@ ui <- dashboardPagePlus(
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    DT::dataTableOutput("Table_tab2.0"),
+                    DT::dataTableOutput("Table_tab2.0", height="350px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -1122,57 +1195,6 @@ ui <- dashboardPagePlus(
               ),
               br(),
               fluidRow(
-                ####  TABLE_2.1  #### 
-                boxPlus(
-                  width = 12, 
-                  title = "Tabla de Frecuencia Combinadas", 
-                  status = "primary", 
-                  solidHeader = TRUE,
-                  withSpinner(
-                    DT::dataTableOutput("Table_tab2.1"),
-                    type = 6,
-                    color = "#0D9AE0DA",
-                    size = 0.7
-                  ),
-                  collapsible = TRUE,
-                  closable = FALSE,
-                  enable_dropdown = TRUE,
-                  dropdown_icon = FALSE,
-                  dropdown_menu = list(
-                    actionButton(
-                      inputId = "Table_tab2.1_HELP",
-                      label = "",
-                      icon = icon("question-circle")
-                    ),
-                    actionButton(
-                      inputId = "Input_tab2.1_HELP",
-                      label = "",
-                      icon = icon("file-alt")
-                    ),
-                    downloadButton("download_Table_tab2.1.xlsx", ".xlsx"),
-                    downloadButton("download_Table_tab2.1.csv", ".csv")
-                  ),
-                  enable_sidebar = TRUE,
-                  sidebar_width = 25,
-                  sidebar_background = "#0A0A0AAD",
-                  sidebar_start_open = TRUE,
-                  sidebar_icon = "sliders-h",
-                  sidebar_content = tagList(
-                    ####  INPUT_2.1  #### 
-                    br(),
-                    pickerInput(
-                      inputId = 'cInput_tab1.1',
-                      label = 'Variables Cruzadas',
-                      multiple = TRUE,
-                      choices = df.S.2,
-                      selected = c("Diagnóstico","Complemento_II"),
-                      options = list(`actions-box`=TRUE)
-                    )
-                  )
-                )
-              ),
-              br(),
-              fluidRow(
                 ####  TAB_2.1  #### 
                 boxPlus(
                   width = 12, 
@@ -1180,7 +1202,7 @@ ui <- dashboardPagePlus(
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    plotlyOutput("Plot_tab2.1", height="700px"),
+                    plotlyOutput("Plot_tab2.1", height="600px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -1215,7 +1237,7 @@ ui <- dashboardPagePlus(
                       data = df.S.1,
                       multiple = FALSE,
                       selectize = TRUE,
-                      selected="Complemento_II"
+                      selected="Categoría_I"
                     ),
                     varSelectInput(
                       inputId = 'cInput_tab1.3',
@@ -1223,73 +1245,54 @@ ui <- dashboardPagePlus(
                       data = df.S.1,
                       multiple = FALSE,
                       selectize = TRUE,
-                      selected="MecanismoGeneral"
+                      selected="Categoría_II"
                     )
                   )
                 )
-              )
+              ),
+              br()
       ),
       #### ----------------------------------- TAB_3 ----------------------------------- #### 
       tabItem(tabName = "tab_3",
               br(),
               br(),
               br(),
-              br(),
-              fluidRow(
-                column(
-                  width = 4
-                ),
-                column(
-                  width = 4,
-                  align = "center",
-                  ####  TITLE_3  ####
-                  box(
-                    width = 12,
-                    solidHeader = TRUE,
-                    status = "success", 
-                    HTML("<h4><center><b>GESTIÓN MÉDICA</b></h4>"),
-                  )
-                ),
-                column(
-                  width = 4
-                )
-              ),
-              br(),
-              fluidRow(
-                ####  VB_3  ####
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.1"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.2"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.3"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.4"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.5"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.6"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.7"
-                ),
-                valueBoxOutput(
-                  width = 4,
-                  "valuebox_tab3.8"
-                )
-              ),
+              # br(),
+              # fluidRow(
+              #   column(
+              #     width = 4
+              #   ),
+              #   column(
+              #     width = 4,
+              #     align = "center",
+              #     ####  TITLE_3  ####
+              #     box(
+              #       width = 12,
+              #       solidHeader = TRUE,
+              #       status = "success", 
+              #       HTML("<h4><center><b>GESTIÓN MÉDICA</b></h4>"),
+              #     )
+              #   ),
+              #   column(
+              #     width = 4
+              #   )
+              # ),
+              # br(),
+              # fluidRow(
+              #   ####  VB_3  ####
+              #   valueBoxOutput(
+              #     width = 4,
+              #     "valuebox_tab3.1"
+              #   ),
+              #   valueBoxOutput(
+              #     width = 4,
+              #     "valuebox_tab3.2"
+              #   ),
+              #   valueBoxOutput(
+              #     width = 4,
+              #     "valuebox_tab3.3"
+              #   )
+              # ), 
               br(),
               fluidRow(
                 ####  TAB_3.1  #### 
@@ -1299,7 +1302,7 @@ ui <- dashboardPagePlus(
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    plotlyOutput("Plot_tab3.1", height="550px"),
+                    plotlyOutput("Plot_tab3.1", height="400px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -1313,6 +1316,32 @@ ui <- dashboardPagePlus(
                       inputId = "Plot_tab3.1_HELP",
                       label = "",
                       icon = icon("question-circle")
+                    )
+                  ),
+                  footer = fluidRow(
+                    column(
+                      width = 4,
+                      uiOutput("Plot_tab3.1_Footer_A")
+                    ),
+                    column(
+                      width = 4,
+                      uiOutput("Plot_tab3.1_Footer_B")
+                    ),
+                    column(
+                      width = 4,
+                      uiOutput("Plot_tab3.1_Footer_C")
+                    ),
+                    column(
+                      width = 4,
+                      uiOutput("Plot_tab3.1_Footer_D")
+                    ),
+                    column(
+                      width = 4,
+                      uiOutput("Plot_tab3.1_Footer_E")
+                    ),
+                    column(
+                      width = 4,
+                      uiOutput("Plot_tab3.1_Footer_F")
                     )
                   )
                 )
@@ -1339,7 +1368,8 @@ ui <- dashboardPagePlus(
                     downloadButton("download_Table_tab3.1.csv", ".csv")
                   )
                 )
-              )
+              ),
+              br()
       )
     )
   )
@@ -1382,10 +1412,12 @@ server <- function(input, output, session) {
   
   ####  UI  ####
   levelsPlayers <- reactive({
-    df_PD %>% 
+    df_CED %>% 
       filter(Categoría %in% input$CategoryInput) %>%
       select(Jugador) %>%
-      unique() %>% t()
+      unique() %>% 
+      drop_na() %>%
+      t()
   })
   output$playerOption <- renderUI({
     if(input$Player){
@@ -1407,7 +1439,9 @@ server <- function(input, output, session) {
         Dimensión %in% input$DimInput_tab1.1
       ) %>%
       select(TipoMedición) %>%
-      unique() %>% t()
+      unique() %>% 
+      drop_na() %>%
+      t()
   })
   output$typeMetersOption_tab1.1 <- renderUI({
     selectInput(
@@ -1426,7 +1460,9 @@ server <- function(input, output, session) {
         TipoMedición %in% input$TypeMetInput_tap1.1
       ) %>%
       select(Medición) %>%
-      unique() %>% t()
+      unique() %>% 
+      drop_na() %>%
+      t()
   })
   output$metersOption_tab1.1 <- renderUI({
     selectInput(
@@ -1590,171 +1626,6 @@ server <- function(input, output, session) {
     )
   })
   
-  SD_tab1.1 <- reactive({
-    df <- 
-      Stat.DF_tab1.1.1() %>% 
-      filter(Medición %in% input$MetInput_tab1.1) %>%
-      select(Promedio,Desv.)
-    df$Promedio <- ifelse(df$Promedio > 100,df$Promedio %>% round(0),df$Promedio %>% round(1))
-    df$Desv. <- ifelse(df$Desv. > 100,df$Desv. %>% round(0),df$Desv. %>% round(1))
-    paste0("[", df$Promedio-df$Desv. , "-" , df$Promedio+df$Desv., "]")
-  })
-  
-  output$valuebox_tab1.1.3 <- renderValueBox({
-    valueBox(
-      SD_tab1.1(),
-      "Intervalo de Confianza", 
-      icon = icon("less-than-equal"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab1.1.4 <- renderValueBox({
-    valueBox(
-      Stat.DF_tab1.1.1() %>% 
-        filter(Medición %in% input$MetInput_tab1.1) %>%
-        select(Outliers) %>%
-        round(0) %>%
-        slice(1),
-      "Cantidad de Outliers", 
-      icon = icon("exclamation-triangle"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab1.1.5 <- renderValueBox({
-    valueBox(
-      Stat.DF_tab1.1.1() %>% 
-        filter(Medición %in% input$MetInput_tab1.1) %>%
-        select(Skew) %>%
-        round(1) %>%
-        slice(1),
-      "Índice Skew", 
-      icon = icon("chart-area"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab1.1.6 <- renderValueBox({
-    valueBox(
-      Stat.DF_tab1.1.1() %>% 
-        filter(Medición %in% input$MetInput_tab1.1) %>%
-        select(Kurtosis) %>%
-        round(1) %>%
-        slice(1),
-      "Índice Kurtosis", 
-      icon = icon("chart-line"),
-      color = "aqua"
-    )
-  })
-  
-  ####  TABLE_1.1.2  #### 
-  Table_tab1.1.2 <- reactive({
-    filtered_tab1.1() %>%
-      mutate(
-        Zscore = ( 
-          (ValorMedición - mean(ValorMedición)) / sd(ValorMedición) 
-        ) %>% round(2)
-      ) %>%
-      select(Jugador,
-             Fecha = FechaDimensión,
-             Valor = ValorMedición,
-             Zscore) %>%
-      arrange(desc(Fecha))
-  })
-  output$Table_tab1.1.2 <- DT::renderDataTable({
-    DT::datatable(
-      Table_tab1.1.2(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",    
-      #filter = 'top',
-      selection="multiple",
-      options=list(
-        ordering=F,
-        sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, scrollCollapse=TRUE,
-        scrollX='400px', scrollY="260px", 
-        paging=FALSE, info=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
-      )
-    ) %>% 
-      formatStyle(
-        'Zscore', #fontWeight = 'bold',
-        color = styleInterval(-1.99, c('red', 'black'))
-      ) %>% 
-      formatStyle(
-        'Zscore', #fontWeight = 'bold',
-        color = styleInterval(1.99, c('black', 'red'))
-      ) 
-  })
-  output$download_Table_tab1.1.2.xlsx <- downloadHandler(
-    filename = function() {
-      if(input$Player){
-        paste(
-          "Tabla Zscore de ", input$PlayerInput, 
-          " del ", input$CategoryInput, 
-          " en ", input$cInput_tab1.0,
-          " con rango de fecha desde ", input$timeFromInput, 
-          " hasta ", input$timeToInput,
-          ".xlsx", sep = ""
-        )
-      } else {
-        paste(
-          "Tabla Zscore de ", input$CategoryInput, 
-          " en ", input$cInput_tab1.0,
-          " con rango de fecha desde ", input$timeFromInput, 
-          " hasta ", input$timeToInput,
-          ".xlsx", sep = ""
-        )
-      }
-    },
-    content = function(file) {
-      write.xlsx(Table_tab1.1.2(), file, col.names = TRUE, 
-                 row.names = TRUE, append = FALSE)
-    }
-  )
-  output$download_Table_tab1.1.2.csv <- downloadHandler(
-    filename = function() {
-      if(input$Player){
-        paste(
-          "Tabla Zscore de ", input$PlayerInput, 
-          " del ", input$CategoryInput, 
-          " en ", input$cInput_tab1.0,
-          " con rango de fecha desde ", input$timeFromInput, 
-          " hasta ", input$timeToInput,
-          ".csv", sep = ""
-        )
-      } else {
-        paste(
-          "Tabla Zscore de ", input$CategoryInput, 
-          " en ", input$cInput_tab1.0,
-          " con rango de fecha desde ", input$timeFromInput, 
-          " hasta ", input$timeToInput,
-          ".csv", sep = ""
-        )
-      }
-    },
-    content = function(file) {
-      write.csv(Table_tab1.1.2(), file, row.names = FALSE)
-    }
-  )
-  observeEvent(input$Table_tab1.1.2_HELP, {
-    showModal(
-      modalDialog(
-        includeHTML("Modals/Tab_1/Table_tab1.1.2_HELP.html"),
-        easyClose = TRUE,
-        size = "m",
-        footer =  actionButton(
-          inputId = "Table_tab1.1.2_Modal", 
-          icon = icon("times-circle"),
-          label = "Cerrar", 
-          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
-        )
-      )
-    )
-  })
-  observeEvent(input$Table_tab1.1.2_Modal,{
-    removeModal()
-  })
-  
   ####  TAB_1.1.1 #### 
   output$Plot_tab1.1.1 <- renderPlotly({
     # Input Validation
@@ -1827,6 +1698,36 @@ server <- function(input, output, session) {
         )
       ) %>% toWebGL()
   }) 
+  SD_tab1.1 <- reactive({
+    df <-
+      Stat.DF_tab1.1.1() %>%
+      filter(Medición %in% input$MetInput_tab1.1) %>%
+      select(Promedio,Desv.)
+    df$Promedio <- 
+      ifelse(df$Promedio > 100,df$Promedio %>% round(0),df$Promedio %>% round(1))
+    df$Desv. <- 
+      ifelse(df$Desv. > 100,df$Desv. %>% round(0),df$Desv. %>% round(1))
+    paste0("[ ", df$Promedio-df$Desv. , " - " , df$Promedio+df$Desv., " ]")
+  })
+  SD_tab1.1_color <- reactive({
+    Stat.DF_tab1.1.1() %>%
+      filter(Medición %in% input$MetInput_tab1.1) %>%
+      select(Promedio,Desv.)
+  })
+  output$Plot_tab1.1.1_Footer <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "less-than-equal",
+      numberColor = ifelse(
+        SD_tab1.1_color()$Promedio > 2*SD_tab1.1_color()$Desv.,
+        "green","red"
+      ),
+      header = SD_tab1.1(),
+      text = "Intervalo Confianza"
+    )
+  })
   observeEvent(input$Plot_tab1.1.1_HELP, {
     showModal(
       modalDialog(
@@ -1893,6 +1794,36 @@ server <- function(input, output, session) {
           scale = 2
         )
       ) %>% toWebGL()
+  })
+  output$Plot_tab1.1.2_Footer_A <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "chart-bar",
+      numberColor = "aqua", 
+      header = Stat.DF_tab1.1.1() %>% 
+        filter(Medición %in% input$MetInput_tab1.1) %>%
+        select(Skew) %>%
+        round(1) %>%
+        slice(1),
+      text = "Índice Skew"
+    )
+  })
+  output$Plot_tab1.1.2_Footer_B <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "chart-area",
+      numberColor = "aqua", 
+      header = Stat.DF_tab1.1.1() %>% 
+        filter(Medición %in% input$MetInput_tab1.1) %>%
+        select(Kurtosis) %>%
+        round(1) %>%
+        slice(1),
+      text = "Índice Kurtosis"
+    )
   })
   observeEvent(input$Plot_tab1.1.2_HELP, {
     showModal(
@@ -1964,6 +1895,21 @@ server <- function(input, output, session) {
           scale = 2
         )
       ) %>% toWebGL()
+  })
+  output$Plot_tab1.1.3_Footer <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "exclamation-triangle",
+      numberColor = "red", 
+      header =  Stat.DF_tab1.1.1() %>% 
+        filter(Medición %in% input$MetInput_tab1.1) %>%
+        select(Outliers) %>%
+        round(0) %>%
+        slice(1),
+      text = "Cantidad Outliers"
+    )
   })
   observeEvent(input$Plot_tab1.1.3_HELP, {
     showModal(
@@ -2116,15 +2062,6 @@ server <- function(input, output, session) {
         columnDefs=list(list(className="dt-center", targets="_all"))
       )
     ) 
-    # %>% 
-    #   formatStyle(
-    #     'Skew', #fontWeight = 'bold',
-    #     color = styleInterval(0, c('blue', 'red'))
-    #   ) %>% 
-    #   formatStyle(
-    #     'Kurtosis', #fontWeight = 'bold',
-    #     color = styleInterval(0, c('red', 'blue'))
-    #   ) 
   })
   output$download_Table_tab1.1.1.xlsx <- downloadHandler(
     filename = function() {
@@ -2192,6 +2129,118 @@ server <- function(input, output, session) {
     removeModal()
   })
   
+  ####  TABLE_1.1.2  #### 
+  Table_tab1.1.2 <- reactive({
+    filtered_tab1.1() %>%
+      mutate(
+        Medición = input$MetInput_tab1.1,
+        Zscore = ( 
+          (ValorMedición - mean(ValorMedición)) / sd(ValorMedición) 
+        ) %>% round(2)
+      ) %>%
+      select(Jugador,
+             Fecha = FechaDimensión,
+             Medición,
+             Valor = ValorMedición,
+             Zscore) %>%
+      arrange(desc(Fecha))
+  })
+  output$Table_tab1.1.2 <- DT::renderDataTable({
+    DT::datatable(
+      Table_tab1.1.2(),
+      style="bootstrap",
+      rownames=FALSE,
+      class="cell-border stripe",    
+      #filter = 'top',
+      selection="multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching=TRUE, scrollCollapse=TRUE,
+        scrollX='400px', scrollY="300px", 
+        paging=FALSE, info=FALSE,
+        columnDefs=list(list(className="dt-center", targets="_all"))
+      )
+    ) %>% 
+      formatStyle(
+        'Zscore', #fontWeight = 'bold',
+        color = styleInterval(-1.99, c('red', 'black'))
+      ) %>% 
+      formatStyle(
+        'Zscore', #fontWeight = 'bold',
+        color = styleInterval(1.99, c('black', 'red'))
+      ) 
+  })
+  output$download_Table_tab1.1.2.xlsx <- downloadHandler(
+    filename = function() {
+      if(input$Player){
+        paste(
+          "Tabla Zscore de ", input$PlayerInput, 
+          " del ", input$CategoryInput, 
+          " en ", input$cInput_tab1.0,
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".xlsx", sep = ""
+        )
+      } else {
+        paste(
+          "Tabla Zscore de ", input$CategoryInput, 
+          " en ", input$cInput_tab1.0,
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".xlsx", sep = ""
+        )
+      }
+    },
+    content = function(file) {
+      write.xlsx(Table_tab1.1.2(), file, col.names = TRUE, 
+                 row.names = TRUE, append = FALSE)
+    }
+  )
+  output$download_Table_tab1.1.2.csv <- downloadHandler(
+    filename = function() {
+      if(input$Player){
+        paste(
+          "Tabla Zscore de ", input$PlayerInput, 
+          " del ", input$CategoryInput, 
+          " en ", input$cInput_tab1.0,
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".csv", sep = ""
+        )
+      } else {
+        paste(
+          "Tabla Zscore de ", input$CategoryInput, 
+          " en ", input$cInput_tab1.0,
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".csv", sep = ""
+        )
+      }
+    },
+    content = function(file) {
+      write.csv(Table_tab1.1.2(), file, row.names = FALSE)
+    }
+  )
+  observeEvent(input$Table_tab1.1.2_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_1/Table_tab1.1.2_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer =  actionButton(
+          inputId = "Table_tab1.1.2_Modal", 
+          icon = icon("times-circle"),
+          label = "Cerrar", 
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Table_tab1.1.2_Modal,{
+    removeModal()
+  })
+  
   
   #### --------------------------- TAB_1_2 --------------------------- #### 
   
@@ -2202,7 +2251,9 @@ server <- function(input, output, session) {
         Dimensión %in% input$DimInput_tab1.2
       ) %>%
       select(TipoMedición) %>%
-      unique() %>% t()
+      unique() %>% 
+      drop_na() %>%
+      t()
   })
   output$typeMetersOption_tab1.2 <- renderUI({
     selectInput(
@@ -2597,7 +2648,7 @@ server <- function(input, output, session) {
           round(df.P_g[i,2] / max(filter(df_PD, Medición %in% df.P_g[i,1])
                                   [,"ValorMedición"]) * 100, 1)
       }
-      df.G <- df.P_g %>% tidyr::spread(Medición, Valor)  
+      df.G <- df.P_g %>% spread(Medición, Valor)  
       ## Promedio Jugador capa Principal
       df.P_j <- 
         df.tab1.2_PD() %>% 
@@ -2609,7 +2660,7 @@ server <- function(input, output, session) {
           round(df.P_j[i,2] / max(filter(df_PD, Medición %in% df.P_j[i,1])
                                   [,"ValorMedición"]) * 100, 1)
       }
-      df.J <- df.P_j %>% tidyr::spread(Medición, Valor)
+      df.J <- df.P_j %>% spread(Medición, Valor)
       ## Internal Validation
       validate(need(ncol(df.J) == ncol(df.G), 
                     message = na.cl.com))
@@ -2624,7 +2675,7 @@ server <- function(input, output, session) {
           round(df.P_j_2[i,2] / max(filter(df_PD, Medición %in% df.P_j_2[i,1])
                                     [,"ValorMedición"]) * 100, 1)
       }
-      df.P_j_2 <- df.P_j_2 %>% tidyr::spread(Medición, Valor)
+      df.P_j_2 <- df.P_j_2 %>% spread(Medición, Valor)
       ## DF Final
       rbind(df.G, df.J, df.P_j_2)
     } else {
@@ -2640,7 +2691,7 @@ server <- function(input, output, session) {
                                   [,"ValorMedición"]) * 100, 1)
       }
       ## DF Final
-      df.P_g %>% tidyr::spread(Medición, Valor)
+      df.P_g %>% spread(Medición, Valor)
     }
   })
   
@@ -2786,14 +2837,14 @@ server <- function(input, output, session) {
         group_by(Medición) %>% 
         summarise(Valor=round(mean(ValorMedición),1)) %>% 
         as.data.frame() %>% 
-        tidyr::spread(Medición, Valor)  
+        spread(Medición, Valor)  
       ## Promedio Jugador
       df.J <- 
         df.tab1.2_PD() %>% 
         group_by(Medición) %>% 
         summarise(Valor=round(mean(ValorMedición),1)) %>% 
         as.data.frame() %>% 
-        tidyr::spread(Medición, Valor)
+        spread(Medición, Valor)
       ## Internal Validation
       validate(need(ncol(df.J) == ncol(df.G), 
                     message = na.cl.com))
@@ -2803,7 +2854,7 @@ server <- function(input, output, session) {
         group_by(Medición) %>% 
         summarise(Valor=round(mean(ValorMedición),1)) %>% 
         as.data.frame() %>% 
-        tidyr::spread(Medición, Valor)
+        spread(Medición, Valor)
       ## DF Final
       df <- 
         rbind(df.G,df.J,df.J_2) %>% 
@@ -2840,7 +2891,7 @@ server <- function(input, output, session) {
         group_by(Medición) %>% 
         summarise(Valor=round(mean(ValorMedición),1)) %>% 
         as.data.frame() %>% 
-        tidyr::spread(Medición, Valor) %>% 
+        spread(Medición, Valor) %>% 
         mutate(Categoría=c("Plantel")) %>% 
         t() %>% 
         as.data.frame() %>% 
@@ -2961,7 +3012,9 @@ server <- function(input, output, session) {
         !Medición %in% "Nivel de percepción del esfuerzo"
       ) %>%
       select(Medición) %>%
-      unique() %>% t()
+      unique() %>% 
+      drop_na() %>%
+      t()
   })
   output$metersOption_tab1.3 <- renderUI({
     pickerInput(
@@ -3268,7 +3321,7 @@ server <- function(input, output, session) {
         tally(),
       by = "Semana") %>% 
       rename("Frequencia" = n) %>% 
-      tidyr::drop_na()
+      drop_na()
   })
   
   ####  TAB_1.3.1 #### 
@@ -3798,7 +3851,9 @@ server <- function(input, output, session) {
   valuebox_tab2.1 <- reactive({
     table(
       df.tab_CED_C() %>%
-        select(c("Categoría_I",Jugador)) %>%
+        select(c("ID_Diagnóstico","Categoría_I","Jugador")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
         filter(
           Categoría_I %in% "Lesión"
         )
@@ -3806,7 +3861,8 @@ server <- function(input, output, session) {
       as.data.frame() %>%
       filter(Freq != 0)%>%
       select(Jugador) %>%
-      unique() %>% 
+      unique() %>%
+      drop_na() %>% 
       nrow()
   })
   output$valuebox_tab2.1 <- renderValueBox({
@@ -3821,7 +3877,9 @@ server <- function(input, output, session) {
   valuebox_tab2.2 <- reactive({
     table(
       df.tab_CED_C() %>%
-        select(c("Categoría_I",Jugador)) %>%
+        select(c("ID_Diagnóstico","Categoría_I","Jugador")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
         filter(
           Categoría_I %in% "Enfermedad"
         )
@@ -3829,7 +3887,8 @@ server <- function(input, output, session) {
       as.data.frame() %>%
       filter(Freq != 0) %>%
       select(Jugador) %>%
-      unique() %>% 
+      unique() %>%
+      drop_na() %>% 
       nrow()
   })
   output$valuebox_tab2.2 <- renderValueBox({
@@ -3841,132 +3900,11 @@ server <- function(input, output, session) {
     )
   })
   # ValueBox 2.3
-  valuebox_tab2.3 <- reactive({
-    table(
-      df.tab1_CED() %>%
-        select(c("Categoría_I")) %>%
-        filter(
-          Categoría_I %in% "Cirugía"
-        )
-    ) %>% 
-      as.data.frame() %>% 
-      arrange(desc(Freq)) %>%
-      filter(
-        Freq != 0
-      ) %>%
-      select(Freq) %>%
-      slice(1)
-  })
-  output$valuebox_tab2.3 <- renderValueBox({
-    valueBox(
-      if (nrow(valuebox_tab2.3()) == 0) { 0 } else { valuebox_tab2.3() },
-      "Cirugías", 
-      icon = icon("prescription-bottle"),
-      color = "aqua"
-    )
-  })
-  # ValueBox 2.4
-  valuebox_tab2.4 <- reactive({
-    table(
-      df.tab1_CED() %>%
-        select(c("Categoría_I","Categoría_II")) %>%
-        filter(
-          Categoría_I %in% "Molestia",
-          Categoría_II %in% "Muscular Fascia"
-        )
-    ) %>% 
-      as.data.frame() %>% 
-      arrange(desc(Freq)) %>%
-      filter(
-        Freq != 0
-      ) %>%
-      select(Freq) %>%
-      slice(1)
-  })
-  output$valuebox_tab2.4 <- renderValueBox({
-    valueBox(
-      if (nrow(valuebox_tab2.4()) == 0) { 0 } else { valuebox_tab2.4() },
-      "Molestias Musculares", 
-      icon = icon("file-medical"),
-      color = "aqua"
-    )
-  })
-  # ValueBox 2.5
-  valuebox_tab2.5 <- reactive({
-    table(
-      df.tab1_CED() %>%
-        select(c("Categoría_I","Categoría_II")) %>%
-        filter(
-          Categoría_I %in% "Lesión",
-          Categoría_II %in% "Muscular Fascia"
-        )
-    ) %>% 
-      as.data.frame() %>% 
-      arrange(desc(Freq)) %>%
-      filter(
-        Freq != 0
-      ) %>%
-      select(Freq) %>%
-      slice(1)
-  })
-  output$valuebox_tab2.5 <- renderValueBox({
-    valueBox(
-      if (nrow(valuebox_tab2.5()) == 0) { 0 } else { valuebox_tab2.5() },
-      "Lesiones Musculares", 
-      icon = icon("file-medical"),
-      color = "aqua"
-    )
-  })
-  # ValueBox 2.6
-  valuebox_tab2.6.A <- reactive({
-    table(
-      df.tab1_CED() %>%
-        select(c("Categoría_I","Categoría_II")) %>%
-        filter(
-          Categoría_I %in% "Molestia",
-          Categoría_II %in% "Tendones"
-        )
-    ) %>% 
-      as.data.frame() %>% 
-      arrange(desc(Freq)) %>%
-      filter(
-        Freq != 0
-      ) %>%
-      select(Freq) %>%
-      slice(1) %>% 
-      as.numeric() 
-  })
-  valuebox_tab2.6.B <- reactive({
-    table(
-      df.tab1_CED() %>%
-        select(c("Categoría_I","Categoría_II")) %>%
-        filter(
-          Categoría_I %in% "Lesión",
-          Categoría_II %in% "Tendones"
-        )
-    ) %>% 
-      as.data.frame() %>% 
-      arrange(desc(Freq)) %>%
-      filter(
-        Freq != 0
-      ) %>%
-      select(Freq) %>%
-      slice(1) %>% 
-      as.numeric()
-  })
-  output$valuebox_tab2.6 <- renderValueBox({
-    valueBox(
-      if (is.na(valuebox_tab2.6.A()) == TRUE) { 0 } else { valuebox_tab2.6.A() } + 
-        if (is.na(valuebox_tab2.6.B()) == TRUE) { 0 } else { valuebox_tab2.6.B() },
-      "Lesiones/Molestias Tendón", 
-      icon = icon("file-medical"),
-      color = "aqua"
-    )
-  })
-  # ValueBox 2.7
   Injury <- reactive({
     df.tab1_CED() %>%
-      select("Categoría_I") %>%
+      select(c("ID_Diagnóstico","Categoría_I")) %>% 
+      distinct() %>% 
+      select(!ID_Diagnóstico) %>%
       filter(
         Categoría_I %in% "Lesión"
       ) %>%
@@ -3977,7 +3915,7 @@ server <- function(input, output, session) {
       slice(1) %>% 
       as.numeric()
   })
-  output$valuebox_tab2.7 <- renderValueBox({
+  output$valuebox_tab2.3 <- renderValueBox({
     valueBox(
       if (is.na(Min_Exp()) == TRUE || Min_Exp() == 0 || Injury() == 0) { 0 } 
       else { round(((Injury()/(Min_Exp()/60))),2) },
@@ -3986,12 +3924,13 @@ server <- function(input, output, session) {
       color = "aqua"
     )
   })
-  output$valuebox_tab2.8 <- renderValueBox({
+  output$valuebox_tab2.4 <- renderValueBox({
     valueBox(
       if (
         df.tab_CED_C() %>% 
         select(Jugador) %>%
-        unique() %>% 
+        unique() %>%
+        drop_na() %>%
         nrow() == 0
       ) {
         0
@@ -3999,15 +3938,21 @@ server <- function(input, output, session) {
         (
           (
             (
-              df.tab_CED_C() %>% 
+              df.tab_CED_C() %>%
+                select(c("ID_Diagnóstico","Categoría_I","Jugador")) %>% 
+                distinct() %>% 
+                select(!ID_Diagnóstico) %>%
                 group_by(Jugador, Categoría_I) %>% 
                 tally() %>% 
                 filter(Categoría_I %in% "Lesión") %>% 
                 nrow()
             ) / (
-              df.tab_CED_C() %>% 
+              df.tab_CED_C() %>%
+                select(c("ID_Diagnóstico","Categoría_I","Jugador")) %>% 
+                distinct() %>% 
                 select(Jugador) %>%
-                unique() %>% 
+                unique() %>%
+                drop_na() %>% 
                 nrow()
             )
           ) * 100
@@ -4022,8 +3967,10 @@ server <- function(input, output, session) {
   ####  TABLE_2.0  #### 
   Min_Exp.DF <- reactive({
     df.tab1.1_PD() %>% 
-      filter(TipoMedición %in% input$mInput_tab2.0,
-             Medición %in% "Minutos de Exposición") %>%
+      filter(
+        TipoMedición %in% input$mInput_tab2.0,
+        Medición %in% "Minutos de Exposición"
+      ) %>%
       select(ValorMedición) 
   })
   Min_Exp <- reactive({
@@ -4037,15 +3984,25 @@ server <- function(input, output, session) {
   Table_tab2.0 <- reactive({
     # Creating Df Object
     if (input$mInput_tab2.0 == "Partido") {
-      Categoría_I <- df.tab1_CED() %>% 
+      Categoría_I <- 
+        df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Instancia",as.character(input$cInput_tab1.0))) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
         filter(Categoría_I %in% input$cInput_tab2.0,
                Instancia %in% c("Partido","Calentamiento partido")) %>%
-        select(Categoría_I,as.character(input$cInput_tab1.0))
+        select(Categoría_I,as.character(input$cInput_tab1.0)) %>%
+        drop_na()
     } else {
-      Categoría_I <- df.tab1_CED() %>% 
+      Categoría_I <- 
+        df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Instancia",as.character(input$cInput_tab1.0))) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
         filter(Categoría_I %in% input$cInput_tab2.0,
                Instancia %in% c("Entrenamiento","Acumulación de cargas físicas")) %>%
-        select(Categoría_I,as.character(input$cInput_tab1.0)) 
+        select(Categoría_I,as.character(input$cInput_tab1.0)) %>%
+        drop_na()
     }
     # Internal Validation
     validate(need(!nrow(Categoría_I) == 0, 
@@ -4063,7 +4020,7 @@ server <- function(input, output, session) {
     }
     # Final table
     table.DF %>% 
-      tidyr::drop_na() %>% 
+      drop_na() %>% 
       mutate(
         Porcentage=round(Frecuencia/sum(Frecuencia),2),
         "Índice" = round(((Frecuencia/(Min_Exp()/60))*1000),2)
@@ -4194,7 +4151,13 @@ server <- function(input, output, session) {
                   na.cat))
     # Creating Df Object
     filtered <- df.tab1_CED() %>%
-      select(as.character(input$cInput_tab1.1))
+      select(
+        "ID_Diagnóstico", 
+        as.character(input$cInput_tab1.1)
+      ) %>% 
+      distinct() %>% 
+      select(!ID_Diagnóstico) %>%
+      drop_na()
     # Internal Validation
     validate(need(!nrow(filtered) == 0, 
                   na.time))
@@ -4213,7 +4176,7 @@ server <- function(input, output, session) {
     }
     # Final table
     table.DF %>% 
-      tidyr::drop_na() %>% 
+      drop_na() %>% 
       mutate(
         Porcentage=round(Frecuencia/sum(Frecuencia),2)
       )
@@ -4290,6 +4253,171 @@ server <- function(input, output, session) {
       write.csv(Table_tab2.1(), file, row.names = FALSE)
     }
   )
+  Plot_tab2.1_Footer_A <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Jugador")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
+        filter(
+          Categoría_I %in% "Cirugía"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1)
+  })
+  output$Plot_tab2.1_Footer_A <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "prescription-bottle",
+      numberColor = "aqua", 
+      header =  
+        if (nrow(Plot_tab2.1_Footer_A()) == 0) { 0 } else { Plot_tab2.1_Footer_A() },
+      text = " Cirugías"
+    )
+  })
+  Plot_tab2.1_Footer_B <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Categoría_II")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
+        filter(
+          Categoría_I %in% "Molestia",
+          Categoría_II %in% "Muscular Fascia"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1)
+  })
+  output$Plot_tab2.1_Footer_B <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "file-medical",
+      numberColor = "aqua", 
+      header =  
+        if (nrow(Plot_tab2.1_Footer_B()) == 0) { 0 } else { Plot_tab2.1_Footer_B() },
+      text = "Molestias Musculares"
+    )
+  })
+  Plot_tab2.1_Footer_C <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Categoría_II")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
+        filter(
+          Categoría_I %in% "Lesión",
+          Categoría_II %in% "Muscular Fascia"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1)
+  })
+  output$Plot_tab2.1_Footer_C <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "file-medical",
+      numberColor = "aqua", 
+      header =  
+        if (nrow(Plot_tab2.1_Footer_C()) == 0) { 0 } else { Plot_tab2.1_Footer_C() },
+      text = "Lesiones Musculares"
+    )
+  })
+  Plot_tab2.1_Footer_D <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Categoría_II")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
+        filter(
+          Categoría_I %in% "Lesión",
+          Categoría_II %in% "Tendones"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1) %>% 
+      as.numeric()
+  })
+  Plot_tab2.1_Footer_D_A <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Categoría_II")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
+        filter(
+          Categoría_I %in% "Molestia",
+          Categoría_II %in% "Tendones"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1) %>% 
+      as.numeric() 
+  })
+  Plot_tab2.1_Footer_D_B <- reactive({
+    table(
+      df.tab1_CED() %>%
+        select(c("ID_Diagnóstico","Categoría_I","Categoría_II")) %>% 
+        distinct() %>% 
+        select(!ID_Diagnóstico) %>%
+        filter(
+          Categoría_I %in% "Lesión",
+          Categoría_II %in% "Tendones"
+        )
+    ) %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(
+        Freq != 0
+      ) %>%
+      select(Freq) %>%
+      slice(1) %>% 
+      as.numeric()
+  })
+  output$Plot_tab2.1_Footer_D <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "file-medical",
+      numberColor = "aqua", 
+      header =  
+        if (is.na(Plot_tab2.1_Footer_D_A()) == TRUE) { 0 } else { Plot_tab2.1_Footer_D_A() } + 
+        if (is.na(Plot_tab2.1_Footer_D_B()) == TRUE) { 0 } else { Plot_tab2.1_Footer_D_B() },      
+      text = "Lesiones/Molestias Musculares"
+    )
+  })
   observeEvent(input$Table_tab2.1_HELP, {
     showModal(
       modalDialog(
@@ -4336,9 +4464,15 @@ server <- function(input, output, session) {
                   na.time))
     # Creating Df Object
     filtered <- df.tab1_CED() %>%
-      select(input$cInput_tab1.2,input$cInput_tab1.3)
+      select(
+        "ID_Diagnóstico",
+        input$cInput_tab1.2,
+        input$cInput_tab1.3
+      ) %>% 
+      distinct() %>% 
+      select(!ID_Diagnóstico) 
     filtered[filtered == "NULL"] <- NA
-    filtered <- filtered %>% tidyr::drop_na()
+    filtered <- filtered %>% drop_na()
     # Internal Validation
     validate(
       need(nrow(filtered) != 0, 
@@ -4361,7 +4495,8 @@ server <- function(input, output, session) {
               axis.text.x=element_text(angle=45, hjust=1),
               panel.grid.major=element_line(colour="#00000018"),
               panel.grid.minor=element_line(colour="#00000018"),
-              panel.background=element_rect(fill="transparent",colour=NA)) 
+              panel.background=element_rect(fill="transparent",colour=NA)),
+      tooltip = c(input$cInput_tab1.2, input$cInput_tab1.3, "y")
     ) %>% 
       layout(
         hovermode = 'compare' # = "x unified"
@@ -4475,93 +4610,53 @@ server <- function(input, output, session) {
       df.tab1.1_PD() %>% 
       filter(TipoMedición %in% "Partido") %>%
       select(FechaDimensión) %>%
-      unique()
+      unique() %>%
+      drop_na()
     matchs$FechaDimensión
   })
   
   ####  VB_3  #### 
-  output$valuebox_tab3.1 <- renderValueBox({
-    valueBox(
-      df.tab1_CED() %>% 
-        filter(!ID_TratamientoKinésico %in% "NULL") %>%
-        select(Jugador) %>%
-        unique() %>%
-        nrow(),
-      "Deportistas Atención Kinésica", 
-      icon = icon("user-injured"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab3.2 <- renderValueBox({
-    valueBox(
-      df.tab1_CED() %>% 
-        select(ID_TratamientoKinésico) %>% 
-        unique() %>% 
-        nrow(),
-      "Atenciones Kinésicas", 
-      icon = icon("file-medical-alt"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab3.3 <- renderValueBox({
-    valueBox(
-      if (df.tab3_F() %>% filter(Dimensión %in% "Masoterapia") %>% nrow() == 0) {
-        0
-      } else {
-        df.tab3_F() %>% 
-          filter(Dimensión %in% "Masoterapia") %>% 
-          group_by(Jugador, FechaDimensión) %>% 
-          summarise(
-            Cantidad_1=n_distinct(Medición)
-          ) %>%
-          rename(Fecha=FechaDimensión) %>%
-          group_by(Fecha) %>% 
-          summarise(
-            Cantidad=sum(Cantidad_1)
-          ) %>% 
-          select(Cantidad) %>% 
-          sum()
-      },
-      "Masajes", 
-      icon = icon("hand-holding-medical"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab3.4 <- renderValueBox({
-    valueBox(
-      df.tab1_CED() %>% 
-        select(ID_EventoClínico) %>% 
-        unique() %>% 
-        nrow(),
-      "Eventos Clínicos", 
-      icon = icon("notes-medical"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab3.5 <- renderValueBox({
-    valueBox(
-      df.tab1.1_PD() %>% 
-        filter(TipoMedición %in% "Entrenamiento") %>%
-        select(FechaDimensión) %>%
-        unique() %>%
-        nrow(),
-      "Entrenamientos", 
-      icon = icon("futbol"),
-      color = "aqua"
-    )
-  })
-  output$valuebox_tab3.6 <- renderValueBox({
-    valueBox(
-      df.tab1.1_PD() %>% 
-        filter(TipoMedición %in% "Partido") %>%
-        select(FechaDimensión) %>%
-        unique() %>%
-        nrow(),
-      "Partidos/Competencias", 
-      icon = icon("trophy"),
-      color = "aqua"
-    )
-  })
+  # output$valuebox_tab3.1 <- renderValueBox({
+  #   valueBox(
+  #     df.tab1_CED() %>% 
+  #       filter(!ID_TratamientoKinésico %in% "NULL") %>%
+  #       select(c("ID_Diagnóstico","Categoría_I","Jugador")) %>% 
+  #       distinct() %>% 
+  #       select(Jugador) %>%
+  #       unique() %>%
+  #       drop_na() %>%
+  #       nrow(),
+  #     "Deportistas Atención Kinésica", 
+  #     icon = icon("user-injured"),
+  #     color = "aqua"
+  #   )
+  # })
+  # output$valuebox_tab3.2 <- renderValueBox({
+  #   valueBox(
+  #     df.tab1.1_PD() %>% 
+  #       filter(TipoMedición %in% "Entrenamiento") %>%
+  #       select(FechaDimensión) %>%
+  #       unique() %>%
+  #       drop_na() %>%
+  #       nrow(),
+  #     "Entrenamientos", 
+  #     icon = icon("futbol"),
+  #     color = "aqua"
+  #   )
+  # })
+  # output$valuebox_tab3.3 <- renderValueBox({
+  #   valueBox(
+  #     df.tab1.1_PD() %>% 
+  #       filter(TipoMedición %in% "Partido") %>%
+  #       select(FechaDimensión) %>%
+  #       unique() %>%
+  #       drop_na() %>%
+  #       nrow(),
+  #     "Partidos/Competencias", 
+  #     icon = icon("trophy"),
+  #     color = "aqua"
+  #   )
+  # })
   
   ####  TAB_3.1  #### 
   output$Plot_tab3.1 <- renderPlotly({
@@ -4601,14 +4696,29 @@ server <- function(input, output, session) {
     ggplotly(
       ggplot(df.ID, aes(x=Fecha, y=Cantidad)) +
         # Vertical Lines
-        geom_vline(xintercept=as.numeric(as.Date(df.tab3_Matchs())), 
-                   linetype="dashed", color="#E31414", size=.3, alpha=0.5) +
+        # geom_vline(xintercept=as.numeric(as.Date(df.tab3_Matchs())), 
+        #            linetype="dashed", color="#E31414", size=.3, alpha=0.5) +
         # Variables
-        geom_line(aes(colour=Grupo), alpha=0.3, size=0.9) +
-        scale_colour_manual(values=c('KTR'="#10B534", 'Eventos Clínicos'="#1348C2", 'Masajes'="#C916C0")) + 
-        geom_point(aes(colour=Grupo), alpha=0.9, size=1) +
-        # Graph
-        scale_x_date(date_labels="%b-%d", date_breaks="1 week") +
+        geom_line(aes(colour=Grupo), alpha=0.8, size=0.7) +
+        scale_colour_manual(values=c('KTR'="#10B534", 
+                                     'Eventos Clínicos'="#1348C2", 
+                                     'Masajes'="#C916C0")) + 
+        geom_point(aes(colour=Grupo), alpha=1, size=1) +
+        # Graph & Axis
+        scale_y_continuous(
+          breaks = seq(1,max(df.ID$Cantidad),
+                       ifelse(max(df.ID$Cantidad) > 28, 3,
+                              ifelse(max(df.ID$Cantidad) > 15, 2, 1)))
+        ) +
+        scale_x_date(
+          date_labels="%b-%d", 
+          date_breaks= ifelse(difftime(max(df.ID$Fecha), min(df.ID$Fecha), units = "days") %>% 
+                                as.numeric() > 150, 
+                              "month",
+                              ifelse(difftime(max(df.ID$Fecha), min(df.ID$Fecha), units = "days") %>% 
+                                       as.numeric() > 31, 
+                                     "week", "day"))
+        ) +
         labs(y=NULL, x=NULL, colour=NULL) +
         theme(axis.text.x = element_text(angle = 45),
               panel.grid.major=element_line(colour="#00000018"),
@@ -4616,7 +4726,8 @@ server <- function(input, output, session) {
               panel.background=element_rect(fill="transparent",colour=NA))
     ) %>% 
       layout(
-        legend = list(orientation = 'h')
+        legend = list(orientation = 'h'),
+        hovermode = 'compare' # = "x unified"
       ) %>% 
       config( 
         displaylogo = FALSE,
@@ -4645,6 +4756,116 @@ server <- function(input, output, session) {
           scale = 2
         )
       ) %>% toWebGL()
+  })
+  output$Plot_tab3.1_Footer_A <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "stethoscope",
+      numberColor = "aqua", 
+      header =  df.tab1_CED() %>% 
+        select(ID_TratamientoKinésico) %>% 
+        unique() %>% 
+        drop_na() %>%
+        nrow(),
+      text = "Total de KTR"
+    )
+  })
+  output$Plot_tab3.1_Footer_B <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "hand-holding-medical",
+      numberColor = "aqua", 
+      header = 
+        if (df.tab3_F() %>% filter(Dimensión %in% "Masoterapia") %>% nrow() == 0) {
+          0
+        } else {
+          df.tab3_F() %>% 
+            filter(Dimensión %in% "Masoterapia") %>% 
+            group_by(Jugador, FechaDimensión) %>% 
+            summarise(
+              Cantidad_1=n_distinct(Medición)
+            ) %>%
+            rename(Fecha=FechaDimensión) %>%
+            group_by(Fecha) %>% 
+            summarise(
+              Cantidad=sum(Cantidad_1)
+            ) %>% 
+            select(Cantidad) %>% 
+            sum()
+        },
+      text = "Total de Masajes"
+    )
+  })
+  output$Plot_tab3.1_Footer_C <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "", 
+      numberIcon = "notes-medical",
+      numberColor = "aqua", 
+      header =  
+        df.tab1_CED() %>% 
+        select(ID_EventoClínico) %>% 
+        unique() %>% 
+        drop_na() %>%
+        nrow(),
+      text = "Total de Eventos Clínicos"
+    )
+  })
+  output$Plot_tab3.1_Footer_D <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "",
+      numberIcon = "user-friends",
+      numberColor = "aqua",
+      header =
+        df.tab1_CED() %>%
+        filter(!ID_TratamientoKinésico %in% "NULL") %>%
+        select(Jugador) %>%
+        unique() %>%
+        drop_na() %>%
+        nrow(),
+      text = "Total de Deportistas con KTR"
+    )
+  })
+  output$Plot_tab3.1_Footer_E <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "",
+      numberIcon = "futbol",
+      numberColor = "aqua",
+      header =
+        df.tab1.1_PD() %>%
+        filter(TipoMedición %in% "Entrenamiento") %>%
+        select(FechaDimensión) %>%
+        unique() %>%
+        drop_na() %>%
+        nrow(),
+      text = "Cantidad de Entrenamientos"
+    )
+  })
+  output$Plot_tab3.1_Footer_F <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = TRUE,
+      number = "",
+      numberIcon = "trophy",
+      numberColor = "aqua",
+      header =
+        df.tab1.1_PD() %>%
+        filter(TipoMedición %in% "Partido") %>%
+        select(FechaDimensión) %>%
+        unique() %>%
+        drop_na() %>%
+        nrow(),
+      text = "Cantidad de Partidos"
+    )
   })
   observeEvent(input$Plot_tab3.1_HELP, {
     showModal(
@@ -4781,9 +5002,4 @@ server <- function(input, output, session) {
 ####  INTERFACE  #### 
 
 shinyApp(ui = ui, server = server)
-
-
-
-
-
 
