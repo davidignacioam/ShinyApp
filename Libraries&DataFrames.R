@@ -1,8 +1,7 @@
 
 
-####  Importing Libraries and Data Frames source("Libraries&DataFrames.R")
+####  LIBRARIES  #### 
 
-## Importing Libraries
 # SQL
 library(DBI)
 library(RMySQL)
@@ -10,7 +9,7 @@ library(RMySQL)
 library(shiny) # General interface
 library(shinyWidgets) # Some Widgets
 library(shinycssloaders) # For withSpinner()
-library(fresh) # Fro modifu shiny colors
+library(fresh) # For shiny colors
 library(shinydashboard) # For the general Structure
 library(dashboardthemes) # For customized logo
 library(shinymanager) # For Login
@@ -26,37 +25,34 @@ library(factoextra)
 # Statistics
 library(EnvStats) # For cv()
 library(stats) # For describe()
-library(psych)
-library(ppcor) # For partical correlation pcor()
-library(Hmisc) # For normal correlarion rcorr()
 # Visualization
 library(ggplot2) # General Graphics
 library(plotly) # For interactive interfaces
-library(ggpubr) # For cor()
-library(psych) # For pairs.panels()
-library(viridis) # For Colors
-library(corrr) # For Networks
-library(PerformanceAnalytics) # For chart.Correlation()
+library(DT) # For datatable()
 # Data Manipulation
+library(janitor) # For rownames_to_column()
 library(tidyr) # For drop NA & Spread
 library(dplyr) # For select, arrange, filter and many others
-library(DT) # For datatable()
-library(janitor) # For rownames_to_column()
+# Others
+library(xlsx) # For write.xlsx()
 
 
-## SQL 
+####  SQL  #### 
+ 
 # Connection
-con <- dbConnect(
-  drv = ,
+con <- DBI::dbConnect(
+  drv = RMySQL::MySQL(),
   user = "",
   password = "",
   dbname = "",
-  host = "",
-  Trusted_Connection = "True"
+  host = ""
 )
 # Encodin UTF-8 in SQL
 dbSendQuery(con, "SET NAMES utf8")
-# Creating the Data Frame
+
+####  QUERIES  #### 
+
+####  df_CED  #### 
 df_CED <- 
   dbGetQuery(
     con,
@@ -65,15 +61,17 @@ df_CED <-
   
     SELECT 
     # Jugador
-    concat(us.name,' ',us.last_name) AS Jugador,
+    CONCAT(us.name,' ',us.last_name) AS Jugador,
     pl.birthday AS FechaNacimiento,
-    if (pl.side=1,'Diestro','Zurdo') AS Lateralidad,
+    IF (pl.side = 1, 'Diestro', 'Zurdo') AS Lateralidad,
     pl.height AS Estatura,
     pl.initial_weight AS Peso,
     ct.name_category AS Categoría,
     pt.name_position AS Posición,
     # Evento Clínico
     ce.id AS ID_EventoClínico,
+    DATE(ce.created) AS FechaEventoClínico,
+    SUBSTRING(DATE(dg.created),1,4) AS AñoEventoClínico,
     ins.name AS Instancia,
     mm.name AS InstanciaPartido,
     sev.name AS Presentación,
@@ -81,7 +79,13 @@ df_CED <-
     gmc.name AS MecanismoGeneral,
     # Diagnóstico
     dg.id AS ID_Diagnóstico,
-    dg.side AS Lado,
+    DATE(dg.created) AS FechaDiagnóstico,
+    CASE dg.side 
+      WHEN '1' THEN 'Derecha'
+      WHEN '2' THEN 'Izquierda'
+      WHEN '3' THEN 'Derecha y Izquierda'
+      WHEN '4' THEN 'No aplica'
+    END AS Lado,
     dgt.name AS Categoría_I,
     sdg.name AS Categoría_II,
     pa.name AS Diagnóstico,
@@ -91,20 +95,7 @@ df_CED <-
     sm.name AS Complemento_II,
     gr.name AS Agrupación,
     bz.name AS ZonaCorporal,
-    br.name AS RegiónCorporal,
-    dg.created AS FechaDiagnóstico,
-    # Medicina
-    med.id AS ID_Medicamento,
-    med.name AS Medicamento,
-    medc.name AS ClasificaciónMed,
-    # Tratamiento Kinésico 
-    kt.id AS ID_TratamientoKinésico,
-    kt.text AS TratamientoKinésico,
-    kt.date AS FechaTratamientoKinésico,
-    # Objetivo Evaluación
-    eo.id AS ID_ObjetivoEvaluación,
-    eo.text AS ObjetivoEvaluación,
-    eo.date AS FechaObjetivoEvaluación
+    br.name AS RegiónCorporal
       
     FROM player pl 
     
@@ -146,27 +137,61 @@ df_CED <-
     LEFT JOIN grouper gr ON gr.id = sm.id_grouper
     LEFT JOIN body_zone bz ON bz.id = sm.id_body_zone
     LEFT JOIN body_region br ON br.id = bz.id_body_region
-    # Medicina
-    LEFT JOIN diagnostic_medicine dgm ON dgm.id_diagnostic = dg.id 
-      AND dgm.deleted = 0
-      AND dgm.tenant_code = 'ANFP'
-    LEFT JOIN medicine med ON med.id = dgm.id_medicine
-    LEFT JOIN medicine_classification medc ON medc.id = dgm.id_medicine_classification
-    LEFT JOIN medicine_via medv ON medv.id = dgm.id_medicine_via
-    # Otros
-    LEFT JOIN kinesic_treatment kt ON kt.id_diagnostic = dg.id 
-      AND kt.deleted = 0
-      AND kt.tenant_code = 'ANFP'
-    LEFT JOIN evaluation_objective eo ON eo.id_diagnostic = dg.id 
-      AND eo.deleted = 0
-      AND eo.tenant_code = 'ANFP'
     
     WHERE pl.deleted = 0 
       AND pl.tenant_code = 'ANFP'
     ;
     "
   ) %>% as.data.frame() 
-# Creating General PlayerDimension Data Frame
+####  df_KT  #### 
+df_KT <- 
+  dbGetQuery(
+    con,
+    "
+    ##############  TRATAMIENTO KINÉSICO  ##############
+
+    SELECT DISTINCT
+    # Jugador
+    concat(us.name,' ',us.last_name) AS Jugador,
+    ct.name_category AS Categoría,
+    # Evento Clínico
+    ce.id AS ID_EventoClínico,
+    # Diagnóstico
+    dg.id AS ID_Diagnóstico,
+    # Tratamiento Kinésico 
+    kt.id AS ID_TratamientoKinésico,
+    kt.date AS FechaTratamientoKinésico,
+    kt.text AS TratamientoKinésico
+    
+    FROM player pl 
+    
+    # Jugador
+    LEFT JOIN user us ON us.id = pl.id_user 
+      AND us.deleted = 0
+      AND us.id_user_type = 12
+      AND us.tenant_code = 'ANFP' # COLOCOLO
+    LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+    LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+    # Evento Clínico
+    LEFT JOIN clinical_event ce ON pl.id = ce.id_player 
+      AND ce.deleted = 0 
+      AND ce.tenant_code = 'ANFP'
+    # Diagnóstico
+    LEFT JOIN diagnostic dg ON ce.id = dg.id_clinical_event 
+      AND dg.deleted = 0
+      AND dg.tenant_code = 'ANFP'
+    # Tratamiento Kinésico
+    LEFT JOIN kinesic_treatment kt ON kt.id_diagnostic = dg.id 
+      AND kt.deleted = 0
+      AND kt.tenant_code = 'ANFP'
+    
+    WHERE pl.deleted = 0 
+      AND pl.tenant_code = 'ANFP'
+      
+    ;
+    "
+  ) %>% as.data.frame() 
+####  df_PD_G  #### 
 df_PD_G <- 
   dbGetQuery(
     con,
@@ -197,7 +222,7 @@ df_PD_G <-
       AND pldm.deleted = 0
       AND us.tenant_code = 'ANFP'
     LEFT JOIN dimension dm ON dm.id = pldm.id_dimension
-      AND dm.tenant_code = 'ANFP'
+      #AND dm.tenant_code = 'ANFP'
       
     WHERE pl.deleted = 0 
       AND pl.tenant_code = 'ANFP'
@@ -205,13 +230,14 @@ df_PD_G <-
     ;
     "
   )
+####  df_DM  #### 
 df_DM <- 
   dbGetQuery(
     con,
     "
     ##############  MEDICIONES DIARIAS  ##############
     
-    SELECT 
+    SELECT DISTINCT
     # Jugador
     concat(us.name,' ',us.last_name) AS Jugador,
     if (pl.side=1,'Diestro','Zurdo') AS Lateralidad,
@@ -249,14 +275,72 @@ df_DM <-
     ;
     
     "
-  )
+  ) %>% as.data.frame() 
+####  df_MED  #### 
+df_MED <- 
+  dbGetQuery(
+    con,
+    "
+    ##############  MEDICINA  ##############
+
+    SELECT DISTINCT
+    # Jugador
+    concat(us.name,' ',us.last_name) AS Jugador,
+    ct.name_category AS Categoría,
+    # Diagnóstico
+    dg.id AS ID_Diagnóstico,
+    DATE(dg.created) AS FechaDiagnóstico,
+    # Medicina
+    med.id AS ID_Medicamento,
+    med.name AS Medicamento,
+    medc.name AS ClasificaciónMed,
+    medv.name AS Vía,
+    dgm.dose AS Dosis
+    
+    FROM player pl 
+    
+    # Jugador
+    LEFT JOIN user us ON us.id = pl.id_user 
+    AND us.deleted = 0
+    AND us.id_user_type = 12
+    AND us.tenant_code = 'ANFP' # COLOCOLO
+    LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+    LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+    # Evento Clínico
+    LEFT JOIN clinical_event ce ON pl.id = ce.id_player 
+    AND ce.deleted = 0 
+    AND ce.tenant_code = 'ANFP'
+    # Diagnóstico
+    LEFT JOIN diagnostic dg ON ce.id = dg.id_clinical_event 
+    AND dg.deleted = 0
+    AND dg.tenant_code = 'ANFP'
+    # Medicina
+    LEFT JOIN diagnostic_medicine dgm ON dgm.id_diagnostic = dg.id 
+    AND dgm.deleted = 0
+    AND dgm.tenant_code = 'ANFP'
+    LEFT JOIN medicine med ON med.id = dgm.id_medicine
+    LEFT JOIN medicine_classification medc ON medc.id = dgm.id_medicine_classification
+    LEFT JOIN medicine_via medv ON medv.id = dgm.id_medicine_via
+    
+    WHERE pl.deleted = 0 
+    AND pl.tenant_code = 'ANFP'
+    
+    ;
+    "
+  ) %>% as.data.frame() %>% drop_na()
+
 # Disconnection
 dbDisconnect(con)
 
+### Importing xlsx
+df_TL <- xlsx::read.xlsx(
+  "Data/Excel/TimeLoss.xlsx", sheetIndex = 1, header=TRUE, encoding="UTF-8"
+) %>% as.data.frame() 
 
-### Data Transformation
 
-## DF_CED
+####  DATA WRANGLING  #### 
+
+####  DF_CED  #### 
 # Previous Events
 df_CED$Instancia <- 
   df_CED$Instancia %>% replace_na("Evento Clínico desde club de procedencia")
@@ -271,11 +355,8 @@ df_CED <-
            as.Date() %>% 
            eeptools::age_calc(units='years') %>% 
            round(0)) 
-df_CED$FechaDiagnóstico <- 
-  df_CED$FechaDiagnóstico %>% as.Date()
-df_CED$FechaTratamientoKinésico [df_CED$FechaTratamientoKinésico  == "NULL"] <- NA
-df_CED$FechaTratamientoKinésico <- 
-  df_CED$FechaTratamientoKinésico %>% as.Date()
+df_CED$FechaEvento <- df_CED$FechaEvento %>% as.Date()
+df_CED$FechaDiagnóstico <- df_CED$FechaDiagnóstico %>% as.Date()
 # Others
 df_CED$Complemento_II <- 
   gsub("\\s*\\([^\\)]+\\)","",
@@ -293,10 +374,10 @@ df_CED$Presentación <-
   gsub("\\s*\\([^\\)]+\\)","",
        as.character(df_CED$Presentación)) %>% as.factor()
 # Changing Some Values
-df_CED$Lado <- plyr::revalue(df_CED$Lado, c("1"="Derecha")) 
-df_CED$Lado <- plyr::revalue(df_CED$Lado, c("2"="Izquierda"))
-df_CED$Lado <- plyr::revalue(df_CED$Lado, c("3"="Derecha y Izquierda"))
-df_CED$Lado <- plyr::revalue(df_CED$Lado, c("4"="No aplica"))
+# df_CED$Lado <- plyr::revalue(df_CED$Lado, c("1"="Derecha")) 
+# df_CED$Lado <- plyr::revalue(df_CED$Lado, c("2"="Izquierda"))
+# df_CED$Lado <- plyr::revalue(df_CED$Lado, c("3"="Derecha y Izquierda"))
+# df_CED$Lado <- plyr::revalue(df_CED$Lado, c("4"="No aplica"))
 # Selecting Variables
 df.S.0 <- 
   c(
@@ -338,29 +419,19 @@ df.S.2 <-
     # Distribución Lesiones
     "ZonaCorporal","RegiónCorporal","Agrupación"
   )
-df.S.3 <- 
-  select(
-    df_CED,
-    # Jugador
-    "Edad","Posición","Lateralidad","Estatura",
-    # Formulario Diagnóstico
-    "Categoría_I","Categoría_II","Lado",
-    "Disponibilidad","Material_Proc_Refl",
-    # Mecanismo Lesión
-    "Instancia","InstanciaPartido","Presentación",
-    "MecanismoEspecífico","MecanismoGeneral",
-    # Distribución Lesiones
-    "ZonaCorporal","RegiónCorporal","Agrupación"
-  )
 
+####  DF_CED  #### 
+df_KT$FechaTratamientoKinésico[df_KT$FechaTratamientoKinésico  == "NULL"] <- NA
+df_KT$FechaTratamientoKinésico <- 
+  df_KT$FechaTratamientoKinésico %>% as.Date()
 
-## DF_PD
+####  DF_PD I  #### 
 # Defining Specific PlayerDimension Data Frame
 df_PD <- 
-  df_PD_G %>% select(-Medición)
+  df_PD_G %>% drop_na() %>% select(-Medición)
 # Defining Specific Json's Meters Data Frame
 df_Json <- 
-  df_PD_G %>% select(Medición)
+  df_PD_G %>% drop_na() %>% select(Medición)
 # Condition for NA values
 json <- 
   df_Json$Medición #[-which(sapply(df_Json$Medición, is.na))]
@@ -376,25 +447,31 @@ df <-
     "Dimensión" = character(),             
     "FechaDimensión" = character()     
   )
-# # Triple Loop for Building the whole DT
-# for (i in (1:length(json))) {
-#   json_n <- 
-#     json[i] %>% 
-#     jsonlite::fromJSON() 
-#   for (j in (1:length(json_n))) {
-#     json_df <- json_n[[j]]
-#     for (k in (1:length(json_df$meters))) {
-#       json_m <- json_df$meters[[k]] %>% 
-#         as.data.frame() %>% 
-#         mutate("TipoMedición"=json_df$name)
-#       json_df_c <- 
-#         cbind(json_m, 
-#               df_PD[i,] %>% 
-#                 slice(rep(1:n(), each = nrow(json_m))))
-#       df <- rbind(df,json_df_c) 
-#     }
-#   }
-# }
+# Triple Loop for Building the whole DT
+for (i in (1:length(json))) {
+  json_n <-
+    json[i] %>%
+    jsonlite::fromJSON()
+  for (j in (1:length(json_n))) {
+    json_df_b <- json_n[[j]] %>%
+      jsonlite::fromJSON()
+    json_df <- json_df_b[[j]]
+    for (k in (1:length(json_df$meters))) {
+      json_m <- json_df$meters[[k]] %>%
+        as.data.frame() %>%
+        mutate("TipoMedición"=json_df$name)
+      if (df_PD[i,"Dimensión"] %in% "Masoterápea") { 
+        json_m <- json_m %>%
+          mutate("value" = 0)
+      }
+      json_df_c <-
+        cbind(json_m,
+              df_PD[i,] %>%
+                slice(rep(1:n(), each = nrow(json_m))))
+      df <- rbind(df,json_df_c)
+    }
+  }
+}
 # Renaming, Relocating and Filtering
 df_PD <- 
   df %>% 
@@ -413,7 +490,7 @@ df_PD <-
     "ValorMedición"
   )  
 # Removing NA
-# df_PD <- df_PD %>% drop_na() 
+df_PD <- df_PD %>% filter(!ValorMedición == "")
 # Merging DFs
 df_PD <- 
   df_PD %>% 
@@ -436,12 +513,12 @@ df_PD <-
       ) %>%
       select(!c(Posición,Peso,Estatura,Lateralidad))
   )
-# Factor DF
+####  df_PD_Factor  #### 
 df_PD_Factor <- 
   rbind(
     df_PD %>% 
       filter(
-        Dimensión %in% "Masoterapia"
+        Dimensión %in% "Masoterápea"
       ),
     df_PD %>% 
       filter(
@@ -465,13 +542,16 @@ df_PD_Factor$Categoría <- df_PD_Factor$Categoría %>% as.factor()
 df_PD_Factor$Jugador <- df_PD_Factor$Jugador %>% as.factor()
 df_PD_Factor$FechaDimensión <- df_PD_Factor$FechaDimensión %>% as.Date()
 df_PD_Factor$TipoMedición <- df_PD_Factor$TipoMedición %>% as.factor()
+df_PD_Factor$Medición <- 
+  gsub("\\s*\\([^\\)]+\\)","",
+       as.character(df_PD_Factor$Medición)) %>% as.factor()
 df_PD_Factor$Medición <- df_PD_Factor$Medición %>% as.factor()
 df_PD_Factor$ValorMedición <- df_PD_Factor$ValorMedición %>% as.factor()
-# Numeric DF
+####  DF_PD II  #### 
 df_PD <- 
   df_PD %>% 
   filter(
-    !Dimensión %in% "Masoterapia",
+    !Dimensión %in% c("Masoterápea"),
     !Medición %in% "PCR"
   )
 df_PD$ValorMedición <- df_PD$ValorMedición %>% as.numeric()
@@ -480,15 +560,56 @@ df_PD$Jugador <- df_PD$Jugador %>% as.factor()
 df_PD$FechaDimensión <- df_PD$FechaDimensión %>% as.Date()
 df_PD$TipoMedición <- df_PD$TipoMedición %>% as.factor()
 df_PD$Medición <- df_PD$Medición %>% as.factor()
+df_PD$Medición <- 
+  gsub("\\s*\\([^\\)]+\\)","",
+       as.character(df_PD$Medición)) %>% as.factor()
 df_PD$Dimensión <- df_PD$Dimensión %>% as.factor()
-df_PD <- df_PD %>% drop_na() 
+df_PD <- df_PD %>% drop_na() %>% filter(ValorMedición >= 0)
+
+####  DF_TL  #### 
+# Deifning Nature
+df_TL$TimeLoss <- df_TL$TimeLoss %>% as.numeric()
+df_TL$Jugador <- df_TL$Jugador %>% as.factor()
+df_TL$Categoría <- df_TL$Categoría %>% as.factor()
+df_TL$FechaTérmino_TimeLoss <- df_TL$FechaTérmino_TimeLoss %>% as.Date()
+# Final DF
+df_TL <- 
+  df_TL %>% 
+  drop_na() %>% 
+  mutate(
+    Severidad = case_when(
+      TimeLoss > 28 ~ "Severa",
+      TimeLoss >= 8 & TimeLoss <= 28 ~ "Moderada",
+      TimeLoss >= 4 & TimeLoss < 8 ~ "Leve",
+      TimeLoss >= 1 & TimeLoss < 4 ~ "Mínima",
+      TimeLoss == 0 ~ "Sin ausencia"
+      )
+    ) 
+# # Severity Loop
+# for (i in seq(1,nrow(df_TL))) {
+#   if (df_TL[i,"TimeLoss"] > 28) {
+#     df_TL[i,"Severidad"] <- "Severa"
+#   } else if (df_TL[i,"TimeLoss"] >= 8) {
+#     df_TL[i,"Severidad"] <- "Moderada"
+#   } else if (df_TL[i,"TimeLoss"] >= 4) {
+#     df_TL[i,"Severidad"] <- "Leve"
+#   } else if (df_TL[i,"TimeLoss"] >= 1) {
+#     df_TL[i,"Severidad"] <- "Mínima"
+#   } else {
+#     df_TL[i,"Severidad"] <- "Sin ausencia"
+#   }
+# }
 
 
 ## Defining specific Objects
-date.range <- seq.Date(from=Sys.Date()-60,to=Sys.Date(),by="day")
+date.range <- 
+  seq.Date(
+    from = Sys.Date() - 60,
+    to = Sys.Date(),
+    by = "day"
+    )
 
-
-### Text
+####  TEXTS  #### 
 ## Header Logo
 customLogo <- shinyDashboardLogoDIY(
   boldText = "RA"
@@ -506,7 +627,8 @@ na.cat <-
 na.time <- 
   "ERROR: No existen suficientes registros en este rango de Tiempo para poder generar la Visualización."
 na.time.med <- 
-  "ERROR: No existen suficientes registros de esta Medición en este rango de Tiempo para poder generar la Visualización"
+  "ERROR: 
+No existen suficientes registros de esta Medición en este rango de Tiempo para poder generar la Visualización"
 na.cl.com <- 
   "ERROR: No hay suficientes mediciones de este jugador para poder generar la comparación."
 ## Notifications
@@ -515,54 +637,62 @@ not1 <-
   <center>
   <i class="fas fa-users fa center" style="color:#00C0EF;"></i>
   <i class="far fa-calendar-alt fa center" style="color:#00C0EF;"></i>
-  <h5><strong>Con estos símbolos seleccionas el Plantel e intervalo de Fecha de interés: ambos filtros se aplicarán a todas las Visualizaciones.</strong></h5>
+  <h5><strong>Con estos símbolos seleccionas el Plantel e intervalo de Fecha de interés: 
+  ambos filtros se aplicarán a todas las Visualizaciones.</strong></h5>
   </center>
        ')
 not2 <- 
   HTML('
   <center>
   <i class="fas fa-mouse-pointer fa center" style="color:#00C0EF;"></i>
-  <h5><strong>Selecciona la Pestaña y las Variables o Atributos de interés que te permitirán sacar el máximo potencial a los datos.</strong></h5>
+  <h5><strong>Selecciona la Pestaña y las Variables o Atributos de interés 
+  que te permitirán sacar el máximo potencial a los datos.</strong></h5>
   </center>
        ')
 not3 <- 
   HTML('
   <center>
   <i class="fas fa-question-circle fa center" style="color:#00C0EF;"></i>
-  <h5><strong>Este símbolo te permite acceder a información sobre la Descripción, Utilidad y Ejemplo de la Visualización en el cual se ubica el botón.</strong></h5>
+  <h5><strong>Este símbolo te permite acceder a información sobre la Descripción, 
+  Utilidad y Ejemplo de la Visualización en el cual se ubica el botón.</strong></h5>
   </center>
        ')
 not4 <- 
   HTML('
   <center>
   <i class="fas fa-file-alt fa center" style="color:#00C0EF;"></i>
-  <h5><strong>Este símbolo te permite acceder a información sobre las Variables que componen la Selección en el cual se ubica el botón.</strong></h5>
+  <h5><strong>Este símbolo te permite acceder a información sobre 
+  las Variables que componen la Selección en el cual se ubica el botón.</strong></h5>
   </center>
        ')
 not5 <- 
   HTML('
   <center>
   <i class="fas fa-sliders-h fa center" style="color:#00C0EF;"></i>
-  <h5><strong>Este símbolo te permite acceder a la Selección de las Variables que forman la Visualización.</strong></h5>
+  <h5><strong>Este símbolo te permite acceder a la Selección de 
+  las Variables que forman la Visualización.</strong></h5>
   </center>
        ')
 not6 <- 
   HTML('
   <center>
   <i class="fas fa-download fa center" style="color:#00C0EF;"></i>
-  <h5><strong>Este símbolo te permite descargar las Tablas. El ".xlsx" descarga en formato Excel, mientras que el ".csv· descarga en formato CSV.</strong></h5>
+  <h5><strong>Este símbolo te permite descargar las Tablas. 
+  El ".xlsx" descarga en formato Excel, 
+  mientras que el ".csv· descarga en formato CSV.</strong></h5>
   </center>
        ')
 not7 <- 
   HTML('
   <center>
   <i class="fas fa-camera fa center" style="color:#00C0EF;"></i>
-  <h5><strong>Este símbolo te permite descargar las Gráficas. Este se ubica en la parte superior derecha las Visualizaciones.</strong></h5>
+  <h5><strong>Este símbolo te permite descargar las Gráficas. 
+  Este se ubica en la parte superior derecha las Visualizaciones.</strong></h5>
   </center>
        ')
 
 
-### CSS
+####  CSS  #### 
 css <- "
 
   /*     Error     */ 
@@ -709,3 +839,6 @@ css <- "
   } 
   
   "
+
+####  DELETE  #### 
+rm(con,df,json,json_n,df_Json,json_df,json_m,json_df_b,json_df_c,df_PD_G,df_DM)
