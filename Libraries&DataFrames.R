@@ -45,7 +45,8 @@ con <- DBI::dbConnect(
   user = "",
   password = "",
   dbname = "",
-  host = ""
+  host = "",
+  Trusted_Connection = ""
 )
 # Encodin UTF-8 in SQL
 dbSendQuery(con, "SET NAMES utf8")
@@ -59,7 +60,7 @@ df_CED <-
     "
     ##############  DIAGNÓSTICOS Y EVENTO CLÍNICO  ##############
   
-    SELECT 
+    SELECT DISTINCT
     # Jugador
     CONCAT(us.name,' ',us.last_name) AS Jugador,
     pl.birthday AS FechaNacimiento,
@@ -154,17 +155,14 @@ df_KT <-
     # Jugador
     concat(us.name,' ',us.last_name) AS Jugador,
     ct.name_category AS Categoría,
-    # Evento Clínico
-    ce.id AS ID_EventoClínico,
-    # Diagnóstico
-    dg.id AS ID_Diagnóstico,
-    # Tratamiento Kinésico 
+    # Tratamiento Kinésico
+    kt.id_diagnostic AS ID_Diagnóstico,
     kt.id AS ID_TratamientoKinésico,
     kt.date AS FechaTratamientoKinésico,
     kt.text AS TratamientoKinésico
-    
+        
     FROM player pl 
-    
+        
     # Jugador
     LEFT JOIN user us ON us.id = pl.id_user 
       AND us.deleted = 0
@@ -184,10 +182,55 @@ df_KT <-
     LEFT JOIN kinesic_treatment kt ON kt.id_diagnostic = dg.id 
       AND kt.deleted = 0
       AND kt.tenant_code = 'ANFP'
-    
+        
     WHERE pl.deleted = 0 
       AND pl.tenant_code = 'ANFP'
-      
+    
+    ;
+    "
+  ) %>% as.data.frame() 
+####  df_KA  #### 
+df_KA <- 
+  dbGetQuery(
+    con,
+    "
+    ##############  ACCIÓN KINÉSICA  ##############
+
+    SELECT DISTINCT
+    # Jugador
+    concat(us.name,' ',us.last_name) AS Jugador,
+    ct.name_category AS Categoría,
+    # Tratamiento Kinésico
+    kt.id_diagnostic AS ID_Diagnóstico,
+    kt.id AS ID_AcciónKinésica,
+    kt.date AS FechaAcciónKinésica,
+    kt.text AS AcciónKinésica
+        
+    FROM player pl 
+        
+    # Jugador
+    LEFT JOIN user us ON us.id = pl.id_user 
+      AND us.deleted = 0
+      AND us.id_user_type = 12
+      AND us.tenant_code = 'ANFP' # COLOCOLO
+    LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+    LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+    # Evento Clínico
+    LEFT JOIN clinical_event ce ON pl.id = ce.id_player 
+      AND ce.deleted = 0 
+      AND ce.tenant_code = 'ANFP'
+    # Diagnóstico
+    LEFT JOIN diagnostic dg ON ce.id = dg.id_clinical_event 
+      AND dg.deleted = 0
+      AND dg.tenant_code = 'ANFP'
+    # Tratamiento Kinésico
+    LEFT JOIN kinesic_treatment kt ON pl.id = kt.id_player 
+      AND kt.deleted = 0
+      AND kt.tenant_code = 'ANFP'
+        
+    WHERE pl.deleted = 0 
+      AND pl.tenant_code = 'ANFP'
+    
     ;
     "
   ) %>% as.data.frame() 
@@ -328,11 +371,106 @@ df_MED <-
     ;
     "
   ) %>% as.data.frame() %>% drop_na()
+####  df_AC  #### 
+df_AC <- 
+  dbGetQuery(
+    con,
+    "
+    ##############  CONDICIÓN DE DISPONIBILIDAD  ##############
+
+    SELECT DISTINCT
+    # Jugador
+    concat(us.name,' ',us.last_name) AS Jugador,
+    ct.name_category AS Categoría,
+    pt.name_position AS Posición,
+    # Condición de Disponibilidad
+    act.name_availability_condition_type AS CondiciónDisponibilidad,
+    DATE(max(ac.created)) AS FechaCondición
+    
+    FROM player pl 
+    
+    # Jugador
+    LEFT JOIN user us ON us.id = pl.id_user 
+      AND us.deleted = 0
+      AND us.id_user_type = 12
+      AND us.tenant_code = 'ANFP'
+    LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+    LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+    LEFT JOIN position_type pt ON pl.id_position_type = pt.id
+    # Condición de Disponibilidad
+    LEFT JOIN availability_condition ac ON pl.id = ac.id_player 
+      And ac.deleted = 0
+      AND ac.tenant_code = 'ANFP'
+    LEFT JOIN availability_condition_type act 
+        ON ac.id_availability_condition_type = act.id
+    
+    WHERE pl.deleted = 0 
+      AND pl.tenant_code = 'ANFP'
+    
+    GROUP BY DATE(ac.created), pl.id
+    
+    ORDER BY pl.id asc, DATE(max(ac.created)) desc
+    
+    ;
+    "
+  ) %>% as.data.frame()
+####  df_MED  #### 
+df_MED <- 
+  dbGetQuery(
+    con,
+    "
+    ##############  MEDICINA  ##############
+
+    SELECT DISTINCT
+    # Jugador
+    concat(us.name,' ',us.last_name) AS Jugador,
+    ct.name_category AS Categoría,
+    # Diagnóstico
+    dg.id AS ID_Diagnóstico,
+    DATE(dg.created) AS FechaDiagnóstico,
+    # Medicina
+    med.id AS ID_Medicamento,
+    med.name AS Medicamento,
+    medc.name AS ClasificaciónMed,
+    medv.name AS Vía,
+    dgm.dose AS Dosis
+    
+    FROM player pl 
+    
+    # Jugador
+    LEFT JOIN user us ON us.id = pl.id_user 
+    AND us.deleted = 0
+    AND us.id_user_type = 12
+    AND us.tenant_code = 'ANFP' # COLOCOLO
+    LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+    LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+    # Evento Clínico
+    LEFT JOIN clinical_event ce ON pl.id = ce.id_player 
+    AND ce.deleted = 0 
+    AND ce.tenant_code = 'ANFP'
+    # Diagnóstico
+    LEFT JOIN diagnostic dg ON ce.id = dg.id_clinical_event 
+    AND dg.deleted = 0
+    AND dg.tenant_code = 'ANFP'
+    # Medicina
+    LEFT JOIN diagnostic_medicine dgm ON dgm.id_diagnostic = dg.id 
+    AND dgm.deleted = 0
+    AND dgm.tenant_code = 'ANFP'
+    LEFT JOIN medicine med ON med.id = dgm.id_medicine
+    LEFT JOIN medicine_classification medc ON medc.id = dgm.id_medicine_classification
+    LEFT JOIN medicine_via medv ON medv.id = dgm.id_medicine_via
+    
+    WHERE pl.deleted = 0 
+    AND pl.tenant_code = 'ANFP'
+    
+    ;
+    "
+  ) %>% as.data.frame() %>% drop_na()
 
 # Disconnection
 dbDisconnect(con)
 
-### Importing xlsx
+####  DF_TL  #### 
 df_TL <- xlsx::read.xlsx(
   "Data/Excel/TimeLoss.xlsx", sheetIndex = 1, header=TRUE, encoding="UTF-8"
 ) %>% as.data.frame() 
@@ -355,6 +493,7 @@ df_CED <-
            as.Date() %>% 
            eeptools::age_calc(units='years') %>% 
            round(0)) 
+df_CED$FechaEventoClínico <- df_CED$FechaEventoClínico %>% as.Date()
 df_CED$FechaEvento <- df_CED$FechaEvento %>% as.Date()
 df_CED$FechaDiagnóstico <- df_CED$FechaDiagnóstico %>% as.Date()
 # Others
@@ -419,11 +558,6 @@ df.S.2 <-
     # Distribución Lesiones
     "ZonaCorporal","RegiónCorporal","Agrupación"
   )
-
-####  DF_CED  #### 
-df_KT$FechaTratamientoKinésico[df_KT$FechaTratamientoKinésico  == "NULL"] <- NA
-df_KT$FechaTratamientoKinésico <- 
-  df_KT$FechaTratamientoKinésico %>% as.Date()
 
 ####  DF_PD I  #### 
 # Defining Specific PlayerDimension Data Frame
@@ -513,8 +647,8 @@ df_PD <-
       ) %>%
       select(!c(Posición,Peso,Estatura,Lateralidad))
   )
-####  df_PD_Factor  #### 
-df_PD_Factor <- 
+####  df_PD_F  #### 
+df_PD_F <- 
   rbind(
     df_PD %>% 
       filter(
@@ -538,20 +672,20 @@ df_PD_Factor <-
       select(!ValorMedición) %>%
       rename(ValorMedición=PCR)
   )
-df_PD_Factor$Categoría <- df_PD_Factor$Categoría %>% as.factor()
-df_PD_Factor$Jugador <- df_PD_Factor$Jugador %>% as.factor()
-df_PD_Factor$FechaDimensión <- df_PD_Factor$FechaDimensión %>% as.Date()
-df_PD_Factor$TipoMedición <- df_PD_Factor$TipoMedición %>% as.factor()
-df_PD_Factor$Medición <- 
+df_PD_F$Categoría <- df_PD_F$Categoría %>% as.factor()
+df_PD_F$Jugador <- df_PD_F$Jugador %>% as.factor()
+df_PD_F$FechaDimensión <- df_PD_F$FechaDimensión %>% as.Date()
+df_PD_F$TipoMedición <- df_PD_F$TipoMedición %>% as.factor()
+df_PD_F$Medición <- 
   gsub("\\s*\\([^\\)]+\\)","",
-       as.character(df_PD_Factor$Medición)) %>% as.factor()
-df_PD_Factor$Medición <- df_PD_Factor$Medición %>% as.factor()
-df_PD_Factor$ValorMedición <- df_PD_Factor$ValorMedición %>% as.factor()
+       as.character(df_PD_F$Medición)) %>% as.factor()
+df_PD_F$Medición <- df_PD_F$Medición %>% as.factor()
+df_PD_F$ValorMedición <- df_PD_F$ValorMedición %>% as.factor()
 ####  DF_PD II  #### 
 df_PD <- 
   df_PD %>% 
   filter(
-    !Dimensión %in% c("Masoterápea"),
+    !Dimensión %in% "Masoterápea",
     !Medición %in% "PCR"
   )
 df_PD$ValorMedición <- df_PD$ValorMedición %>% as.numeric()
@@ -571,6 +705,8 @@ df_PD <- df_PD %>% drop_na() %>% filter(ValorMedición >= 0)
 df_TL$TimeLoss <- df_TL$TimeLoss %>% as.numeric()
 df_TL$Jugador <- df_TL$Jugador %>% as.factor()
 df_TL$Categoría <- df_TL$Categoría %>% as.factor()
+df_TL$Diagnóstico <- df_TL$Diagnóstico %>% as.factor()
+df_TL$Momento <- df_TL$Momento %>% as.factor()
 df_TL$FechaTérmino_TimeLoss <- df_TL$FechaTérmino_TimeLoss %>% as.Date()
 # Final DF
 df_TL <- 
@@ -599,6 +735,89 @@ df_TL <-
 #     df_TL[i,"Severidad"] <- "Sin ausencia"
 #   }
 # }
+
+####  DF_KT  #### 
+# Deifning Nature
+df_KT$FechaTratamientoKinésico[df_KT$FechaTratamientoKinésico  == "NULL"] <- NA
+df_KT$Jugador <- df_KT$Jugador %>% as.factor()
+df_KT$Categoría <- df_KT$Categoría %>% as.factor()
+df_KT$FechaTratamientoKinésico <- df_KT$FechaTratamientoKinésico %>% as.Date()
+df_KT <- 
+  df_KT %>%
+  mutate(
+    TratamientoKinésico = case_when(
+      stringr::str_detect(TratamientoKinésico, "fria") ~ "Inmersión Agua Fría",
+      stringr::str_detect(TratamientoKinésico, "fría") ~ "Inmersión Agua Fría",
+      stringr::str_detect(TratamientoKinésico, "hielo") ~ "Inmersión Agua Fría",
+      stringr::str_detect(df_KT$TratamientoKinésico, "Quiropraxia")  ~ "Quiropraxia",
+      stringr::str_detect(df_KT$TratamientoKinésico, "quiropraxia")  ~ "Quiropraxia",
+      stringr::str_detect(df_KT$TratamientoKinésico, "quiropráctico")  ~ "Quiropraxia",
+      stringr::str_detect(df_KT$TratamientoKinésico, "quiropractico")  ~ "Quiropraxia",
+      stringr::str_detect(df_KT$TratamientoKinésico, "Vendaje")  ~ "Taping",
+      stringr::str_detect(df_KT$TratamientoKinésico, "Taping")  ~ "Taping",
+      stringr::str_detect(df_KT$TratamientoKinésico, "taping")  ~ "Taping",
+      stringr::str_detect(df_KT$TratamientoKinésico, "Lib")  ~ "Lib Miofascial",
+      stringr::str_detect(df_KT$TratamientoKinésico, "lib")  ~ "Lib Miofascial",
+      stringr::str_detect(TratamientoKinésico, "Activación") ~ "Activación",
+      stringr::str_detect(TratamientoKinésico, "activación") ~ "Activación",
+      stringr::str_detect(df_KT$TratamientoKinésico, "Vacuna")  ~ "Vacuna",
+      stringr::str_detect(TratamientoKinésico, "Podología") ~ "Podología"
+    ) %>% 
+      as.factor()
+  ) %>%
+  filter(!is.na(ID_TratamientoKinésico)) %>%
+  select(!ID_Diagnóstico)
+
+####  DF_KA  #### 
+# Deifning Nature
+df_KA$FechaAcciónKinésica[df_KA$FechaAcciónKinésica  == "NULL"] <- NA
+df_KA$Jugador <- df_KA$Jugador %>% as.factor()
+df_KA$Categoría <- df_KA$Categoría %>% as.factor()
+df_KA$FechaAcciónKinésica <- df_KA$FechaAcciónKinésica %>% as.Date()
+df_KA <- 
+  df_KA %>%
+  mutate(
+    AcciónKinésica = case_when(
+      stringr::str_detect(AcciónKinésica, "fria") ~ "Inmersión Agua Fría",
+      stringr::str_detect(AcciónKinésica, "fría") ~ "Inmersión Agua Fría",
+      stringr::str_detect(AcciónKinésica, "hielo") ~ "Inmersión Agua Fría",
+      stringr::str_detect(df_KA$AcciónKinésica, "Quiropraxia")  ~ "Quiropraxia",
+      stringr::str_detect(df_KA$AcciónKinésica, "quiropraxia")  ~ "Quiropraxia",
+      stringr::str_detect(df_KA$AcciónKinésica, "quiropráctico")  ~ "Quiropraxia",
+      stringr::str_detect(df_KA$AcciónKinésica, "quiropractico")  ~ "Quiropraxia",
+      stringr::str_detect(df_KA$AcciónKinésica, "Vendaje")  ~ "Taping",
+      stringr::str_detect(df_KA$AcciónKinésica, "Taping")  ~ "Taping",
+      stringr::str_detect(df_KA$AcciónKinésica, "taping")  ~ "Taping",
+      stringr::str_detect(df_KA$AcciónKinésica, "Lib")  ~ "Lib Miofascial",
+      stringr::str_detect(df_KA$AcciónKinésica, "lib")  ~ "Lib Miofascial",
+      stringr::str_detect(AcciónKinésica, "Activación") ~ "Activación",
+      stringr::str_detect(AcciónKinésica, "activación") ~ "Activación",
+      stringr::str_detect(df_KA$AcciónKinésica, "Vacuna")  ~ "Vacuna",
+      stringr::str_detect(AcciónKinésica, "Podología") ~ "Podología"
+    ) %>% 
+      as.factor()
+  ) %>%
+  filter(!is.na(ID_AcciónKinésica)) %>%
+  select(!ID_Diagnóstico)
+
+####  DF_AC  #### 
+# Deifning Nature
+df_AC$CondiciónDisponibilidad <- df_AC$CondiciónDisponibilidad %>% as.factor()
+df_AC$Posición <- df_AC$Posición %>% as.factor()
+df_AC$Jugador <- df_AC$Jugador %>% as.factor()
+df_AC$Categoría <- df_AC$Categoría %>% as.factor()
+df_AC$FechaCondición <- df_AC$FechaCondición %>% as.Date()
+
+####  DF_MED  #### 
+# Deifning Nature
+df_MED$ClasificaciónMed <- df_MED$ClasificaciónMed %>% as.factor()
+df_MED$Vía <- df_MED$Vía %>% as.factor()
+df_MED$Dosis <- df_MED$Dosis %>% as.numeric()
+df_MED$Medicamento <- df_MED$Medicamento %>% as.factor()
+df_MED$Jugador <- df_MED$Jugador %>% as.factor()
+df_MED$Categoría <- df_MED$Categoría %>% as.factor()
+df_MED$FechaDiagnóstico <- df_MED$FechaDiagnóstico %>% as.Date()
+
 
 
 ## Defining specific Objects
