@@ -43,10 +43,10 @@ library(rdrop2) # For Dropbox connection
 # Connection
 con <- DBI::dbConnect(
   drv = RMySQL::MySQL(),
-  user = "reconquer-api-prod",
-  password = "024C18f18683A8bed5ec",
-  dbname = "reconquerdb_prod",
-  host = "triceps-reconquer-rds-qa.cbubsie7wfl3.us-east-1.rds.amazonaws.com",
+  user = ,
+  password = ,
+  dbname = ,
+  host = ,
   Trusted_Connection = "True"
 )
 # Encodin UTF-8 in SQL
