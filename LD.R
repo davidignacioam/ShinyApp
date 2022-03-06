@@ -61,15 +61,7 @@ drop_auth(rdstoken = "dropbox_token.rds")
 
 ####  TENANT  #### 
 ## Value
-tenant <- "TRICEPS"
-## URLS
-## fun::random_password(56, replace = FALSE, extended = FALSE)
-## ANFP : ANFP9QJApXoyx0cDj4kgbwU6HCqIasOe2LuKnvSMrtV1hZENP3iF8d7GflBW
-## ANTOFAGASTA : ANTOFAGASTAp7nh3zeSx0a6XdJfIPLCM51uQ4rHWGR9EqDsBjvitVFKw8NAyc
-## COQUIMBO : COQUIMBOWd7iHRgSFMpNXI8LJuZz53b0nK4cBmwarQAol8VO1yUfCGjtsPvhYe
-## FEBACHILE : FEBACHILEMsXmx5HqW786p4lIk2wrBTEay1oRGQgeODYinbFZtNK3zh
-## UNIONESPANOLA: UNIONESPANOLAWAYEhwgkBGScHdKJUvqDxu9L3Fi15TznNsylOa8P4e
-## TRICEPS
+tenant <- "some_tenant"
 
 ####  DATE  #### 
 
@@ -83,7 +75,7 @@ date_filter <-
 
 ## Selector
 # Team
-if (tenant == "ANFP") {
+if (tenant == "some_tenant") {
   date_range <- 
     seq.Date(
       from = Sys.Date() - 15,
@@ -364,32 +356,11 @@ not7 <-
 ####  Connection  #### 
 # Types
 dbi_PROD <- 
-  list(
-    drv = RMySQL::MySQL(),
-    user = "reconquer-api-prod",
-    password = "024C18f18683A8bed5ec",
-    dbname = "reconquerdb_prod",
-    host = "triceps-reconquer-rds-qa.cbubsie7wfl3.us-east-1.rds.amazonaws.com",
-    Trusted_Connection = "True"
-  )
+  list()
 dbi_QA <- 
-  list(
-    drv = RMySQL::MySQL(),
-    user = "reconquer-api-qa",
-    password = "024C18f18683A8bed5ec",
-    dbname = "reconquerdb_qa",
-    host = "triceps-reconquer-rds-qa.cbubsie7wfl3.us-east-1.rds.amazonaws.com",
-    Trusted_Connection = "True"
-  )
+  list()
 dbi_SAMPLE <- 
-  list(
-    drv = RMySQL::MySQL(),
-    user = "b6e1470534b97a",
-    password = "ad2d900e",
-    dbname = "heroku_325548b099f391e",
-    host = "us-cdbr-east-04.cleardb.com",
-    Trusted_Connection = "True"
-  )
+  list()
 # Current Connection
 con <- 
   do.call(
@@ -1746,7 +1717,7 @@ df_MED$Categoría <- df_MED$Categoría %>% as.factor()
 df_MED$FechaDiagnóstico <- df_MED$FechaDiagnóstico %>% as.Date()
 
 ####  df_TL  #### 
-if (tenant == "ANFP") {
+if (tenant == "some_tenant") {
   
   ####  Old
   

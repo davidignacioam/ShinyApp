@@ -17,7 +17,7 @@ ui <- dashboardPagePlus(
   sidebar_fullCollapse = FALSE,
   
   footer = dashboardFooter(
-    left = div(h4("Triceps MDA"),
+    left = div(h4(""),
                h5("Providencia, Chile")), 
     right = div(h6("Desarrollador:"),
                 h6("davidignacioam@gmail.com"))
@@ -13577,8 +13577,8 @@ server <- function(input, output, session) {
       # Client
       client <- 
         ifelse(
-          tenant == "ANFP", 
-          "ANFP", 
+          tenant == "some_tenant", 
+          "some_tenant", 
           stringr::str_to_title(tenant)
         )
       # Category
