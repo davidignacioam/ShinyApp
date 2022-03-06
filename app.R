@@ -3,6 +3,7 @@
 
 source("LD.R")
 
+
 #### UI ####
 
 ui <- dashboardPagePlus(
@@ -11,7 +12,7 @@ ui <- dashboardPagePlus(
   
   enable_preloader = TRUE,
   loading_duration = 3,
-  
+
   collapse_sidebar = TRUE,
   sidebar_fullCollapse = FALSE,
   
@@ -27,19 +28,28 @@ ui <- dashboardPagePlus(
     title = customLogo,
     ####  INPUT_0  ####
     left_menu = tagList(
+      uiOutput("categoryOption"),
+      dropdownBlock(
+        #title = "Orientaciones",
+        id = "dropdownBlock_info",
+        badgeStatus = NULL,
+        icon = "info",
+        br(),
+        not1,
+        not2,
+        not3,
+        not4,
+        not5,
+        not6,
+        not7,
+        br()
+      ),
       dropdownBlock(
         id = 1,
         title = "Filtro por Jugadores",
         badgeStatus = NULL,
         icon = "users",
         br(),
-        selectInput(
-          width = "210px",
-          inputId = 'CategoryInput', 
-          label = "Selección del Plantel",
-          choices = levels(df_CED$Categoría),
-          selected = "Plantel Adulto Masculino"
-        ),
         materialSwitch(
           inputId = "Player", 
           label = strong("Análisis por Jugador"),
@@ -49,6 +59,13 @@ ui <- dashboardPagePlus(
         conditionalPanel(
           condition = "input.Player == true",
           uiOutput("playerOption")
+        ),
+        hr(),
+        materialSwitch(
+          inputId = "ExternalData", 
+          label = strong("Incluir clubes externos"),
+          status = "primary",
+          right = TRUE
         ),
         br()
       ),
@@ -62,7 +79,7 @@ ui <- dashboardPagePlus(
           width = "150px",
           inputId = "timeFromInput", 
           label = "desde:",
-          value = min(date.range),
+          value = min(date_range),
           min = NULL,
           max = NULL,
           startview = "month",
@@ -72,34 +89,12 @@ ui <- dashboardPagePlus(
           width = "150px",
           inputId = "timeToInput", 
           label = "hasta:",
-          value = max(date.range),
+          value = max(date_range),
           min = NULL,
           max = NULL,
           startview = "month",
           language = "es"
         ),
-        br()
-      ),
-      ####  INFO  ####
-      dropdownBlock(
-        #title = "Orientaciones",
-        id = "dropdownBlock_info",
-        badgeStatus = NULL,
-        icon = "info", 
-        br(),
-        not1,
-        # hr(), not2,
-        # hr(), not3,
-        # hr(), not4,
-        # hr(), not5,
-        # hr(), not6,
-        # hr(), not7,
-        not2,
-        not3,
-        not4,
-        not5,
-        not6,
-        not7,
         br()
       )
     )
@@ -122,7 +117,7 @@ ui <- dashboardPagePlus(
           icon=icon("chart-bar")
         ),
         menuSubItem(
-          "Multivariable", 
+          "Multivariada", 
           tabName="tab_1_2", 
           icon=icon("project-diagram")
         )
@@ -154,24 +149,41 @@ ui <- dashboardPagePlus(
         icon=icon("weight")
       ),
       menuItem(
+        "Biomecánica",
+        tabName="tab_7",
+        icon=icon("prescription-bottle")
+      ),
+      menuItem(
         "Tablas Base de Datos",
         tabName="tab_API",
         icon=icon("table")
+      ),
+      menuItem(
+        "Reporte y Actualización",
+        tabName="tab_RELOAD_REPORT",
+        icon=icon("file-invoice") #database
       )
     )
   ),
   
   body = dashboardBody(
     
+    ## Loading Spinner
+    use_busy_spinner(
+      spin = "double-bounce",
+      color = "#142c59",
+      position = "full-page",
+      margins = c(20, 20),
+      spin_id = NULL,
+      height = "200px",
+      width = "200px"
+    ),
+    
+    ## CSS
     tags$head(tags$style(HTML(css))),
     
-    # fresh::use_theme(
-    #   fresh::create_theme(
-    #     fresh::adminlte_color(
-    #       green = "#0B3B0B",
-    #       aqua = "#142c59"
-    #   )
-    # )),
+    ## Shiny JS
+    shinyjs::useShinyjs(),
     
     tabItems(
       #### ----------------------------------- TAB_1_1 ----------------------------------- #### 
@@ -218,7 +230,9 @@ ui <- dashboardPagePlus(
                         label = "",
                         inputId = "DimInput_tab1.1", 
                         multiple = FALSE,
-                        choices = levels(df_PD$Dimensión %>% droplevels(exclude=c("Masoterápea"))) ,
+                        choices = df_PD$Dimensión %>% 
+                          droplevels(exclude=c("Masoterápea")) %>% 
+                          levels(),
                         selected = levels(df_PD$Dimensión)[1]
                       )
                     ),
@@ -236,11 +250,11 @@ ui <- dashboardPagePlus(
                     )
                   )
                 ),
-                column(
-                  width = 1
-                ),
+                # column(
+                #   width = 1
+                # ),
                 boxPlus(
-                  width = 2, 
+                  width = 4, 
                   solidHeader = TRUE,
                   title = "Tipo",
                   status = "primary",
@@ -262,9 +276,9 @@ ui <- dashboardPagePlus(
                     )
                   )
                 ),
-                column(
-                  width = 1
-                ),
+                # column(
+                #   width = 1
+                # ),
                 column(
                   width = 3, 
                   boxPlus(
@@ -336,8 +350,8 @@ ui <- dashboardPagePlus(
                       label = "",
                       icon = icon("question-circle")
                     ),
-                    downloadButton("download_Table_tab1.1.0.xlsx", ".xlsx"), # icon = icon("file-excel)
-                    downloadButton("download_Table_tab1.1.0.csv", ".csv") # icon = icon("file-csv)
+                    downloadButton("download_Table_tab1.1.0.xlsx", ".xlsx"), 
+                    downloadButton("download_Table_tab1.1.0.csv", ".csv") 
                   )
                 )
               ),
@@ -488,7 +502,7 @@ ui <- dashboardPagePlus(
                     width = 12,
                     solidHeader = TRUE,
                     status = "success",
-                    HTML("<h4><center><b>ESTADÍSTICA MULTIVARIABLE</b></h4>"),
+                    HTML("<h4><center><b>ESTADÍSTICA MULTIVARIADA</b></h4>"),
                   )
                 ),
                 column(
@@ -514,7 +528,8 @@ ui <- dashboardPagePlus(
                         label = "",
                         inputId = "DimInput_tab1.2", 
                         multiple = FALSE,
-                        choices = levels(df_PD$Dimensión %>% droplevels(exclude=c("Masoterápea"))) ,
+                        choices = levels(df_PD$Dimensión %>% 
+                                           droplevels(exclude=c("Masoterápea"))) ,
                         selected = levels(df_PD$Dimensión)[1]
                       )
                     ),
@@ -532,11 +547,11 @@ ui <- dashboardPagePlus(
                     )
                   )
                 ),
-                column(
-                  width = 1
-                ),
+                # column(
+                #   width = 1
+                # ),
                 boxPlus(
-                  width = 2, 
+                  width = 4, 
                   solidHeader = TRUE,
                   title = "Tipo",
                   status = "primary",
@@ -558,9 +573,9 @@ ui <- dashboardPagePlus(
                     )
                   )
                 ),
-                column(
-                  width = 1
-                ),
+                # column(
+                #   width = 1
+                # ),
                 column(
                   width = 3, 
                   boxPlus(
@@ -774,7 +789,7 @@ ui <- dashboardPagePlus(
               ####  VB_2  ####
               fluidRow(
                 column(
-                  width = 3
+                  width = 1
                 ),
                 valueBoxOutput(
                   width = 3,
@@ -784,28 +799,14 @@ ui <- dashboardPagePlus(
                   width = 3,
                   "valuebox_tab2.0.2"
                 ),
+                valueBoxOutput(
+                  width = 4,
+                  "valuebox_tab2.0.3"
+                ),
                 column(
-                  width = 3
-                )
+                  width = 1
+                ),
               ),
-              # fluidRow(
-              #   valueBoxOutput(
-              #     width = 3,
-              #     "valuebox_tab2.1"
-              #   ),
-              #   valueBoxOutput(
-              #     width = 3,
-              #     "valuebox_tab2.2"
-              #   ),
-              #   valueBoxOutput(
-              #     width = 3,
-              #     "valuebox_tab2.3"
-              #   ),
-              #   valueBoxOutput(
-              #     width = 3,
-              #     "valuebox_tab2.4"
-              #   )
-              # ),
               br(),
               fluidRow(
                 ####  TAB_2.0  #### 
@@ -1210,17 +1211,17 @@ ui <- dashboardPagePlus(
               fluidRow(
                 boxPlus(
                   width = 8, 
-                  title = "Frecuencia de Acciones y Tratamientos Kinésicos",
+                  title = "Frecuencia de Acciones Terapéuticas y Tratamientos Kinésicos",
                   status = "primary", 
                   solidHeader = TRUE,
                   column(
                     width = 12,
                     tabsetPanel(
-                      ####  TAB_3.2  #### 
+                      ####  TAB_3.2.1  #### 
                       tabPanel(
-                        "General",
+                        "Total Acciones",
                         withSpinner(
-                          plotlyOutput("Plot_tab3.2", height="400px"),
+                          plotlyOutput("Plot_tab3.2.1", height="520px"),
                           type = 6,
                           color = "#0D9AE0DA",
                           size = 0.7
@@ -1228,9 +1229,29 @@ ui <- dashboardPagePlus(
                       ),
                       ####  TAB_3.2.2  #### 
                       tabPanel(
-                        "Semanal",
+                        "Semanal Acciones",
                         withSpinner(
-                          plotlyOutput("Plot_tab3.2.2", height = "420px")  ,
+                          plotlyOutput("Plot_tab3.2.2", height = "520px")  ,
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TAB_3.2.3  #### 
+                      tabPanel(
+                        "Total Tratamientos",
+                        withSpinner(
+                          plotlyOutput("Plot_tab3.2.3", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TAB_3.2.4  #### 
+                      tabPanel(
+                        "Semanal Tratamientos",
+                        withSpinner(
+                          plotlyOutput("Plot_tab3.2.4", height = "520px")  ,
                           type = 6,
                           color = "#0D9AE0DA",
                           size = 0.7
@@ -1241,14 +1262,14 @@ ui <- dashboardPagePlus(
                   collapsible = TRUE,
                   closable = FALSE
                 ),
-                ####  TABLE_3.3  #### 
+                ####  TABLE_3.3.1 #### 
                 boxPlus(
                   width = 4,
-                  title = "", 
+                  title = "Acciones", 
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    DT::dataTableOutput("Table_tab3.3"),
+                    DT::dataTableOutput("Table_tab3.3.1"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -1258,8 +1279,29 @@ ui <- dashboardPagePlus(
                   enable_dropdown = TRUE,
                   dropdown_icon = FALSE,
                   dropdown_menu = list(
-                    downloadButton("download_Table_tab3.3.xlsx", ".xlsx"),
-                    downloadButton("download_Table_tab3.3.csv", ".csv")
+                    downloadButton("download_Table_tab3.3.1.xlsx", ".xlsx"),
+                    downloadButton("download_Table_tab3.3.1.csv", ".csv")
+                  )
+                ),
+                ####  TABLE_3.3.2 #### 
+                boxPlus(
+                  width = 4,
+                  title = "Tratamientos", 
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  withSpinner(
+                    DT::dataTableOutput("Table_tab3.3.2"),
+                    type = 6,
+                    color = "#0D9AE0DA",
+                    size = 0.7
+                  ),
+                  collapsible = TRUE,
+                  closable = FALSE,
+                  enable_dropdown = TRUE,
+                  dropdown_icon = FALSE,
+                  dropdown_menu = list(
+                    downloadButton("download_Table_tab3.3.2.xlsx", ".xlsx"),
+                    downloadButton("download_Table_tab3.3.2.csv", ".csv")
                   )
                 )
               ),
@@ -1366,11 +1408,11 @@ ui <- dashboardPagePlus(
                 ####  TABLE_4.1  #### 
                 boxPlus(
                   width = 12, 
-                  title = "Tabla General Time Loss", 
+                  title = "Tabla de Lesión Time Loss", 
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    DT::dataTableOutput("Table_tab4.1"),
+                    DT::dataTableOutput("Table_tab4.1", height="300px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -1382,6 +1424,34 @@ ui <- dashboardPagePlus(
                   dropdown_menu = list(
                     downloadButton("download_Table_tab4.1.xlsx", ".xlsx"),
                     downloadButton("download_Table_tab4.1.csv", ".csv")
+                  ),
+                  enable_sidebar = TRUE,
+                  sidebar_width = 25,
+                  sidebar_background = "#0A0A0AAD",
+                  sidebar_start_open = TRUE,
+                  sidebar_icon = "sliders-h",
+                  sidebar_content = tagList(
+                    br(),
+                    materialSwitch(
+                      inputId = "TimeLoss_Injuries", 
+                      label = strong("ver Molestias"),
+                      status = "success",
+                      right = TRUE
+                    ),
+                    hr(),
+                    materialSwitch(
+                      inputId = "TimeLoss_Diseases", 
+                      label = strong("ver Enfermedades"),
+                      status = "success",
+                      right = TRUE
+                    ),
+                    hr(),
+                    materialSwitch(
+                      inputId = "TimeLoss_0", 
+                      label = strong("ver datos Sin Ausencia"),
+                      status = "success",
+                      right = TRUE
+                    )
                   )
                 )
               ),
@@ -1518,7 +1588,7 @@ ui <- dashboardPagePlus(
                   status = "primary", 
                   solidHeader = TRUE,
                   withSpinner(
-                    plotlyOutput("Plot_tab5.1", height="370px"),
+                    plotlyOutput("Plot_tab5.1", height="420px"),
                     type = 6,
                     color = "#0D9AE0DA",
                     size = 0.7
@@ -1605,6 +1675,22 @@ ui <- dashboardPagePlus(
                       label = "",
                       icon = icon("file-alt")
                     )
+                  ),
+                  enable_sidebar = TRUE,
+                  sidebar_width = 25,
+                  sidebar_background = "#0A0A0AAD",
+                  sidebar_start_open = TRUE,
+                  sidebar_icon = "sliders-h",
+                  sidebar_content = tagList(
+                    br(),
+                    pickerInput(
+                      inputId = 'dateInput_tab5.2',
+                      label = 'Año:',
+                      multiple = FALSE,
+                      choices = data_years,
+                      selected = max(data_years),
+                      options = list(`actions-box`=TRUE)
+                    )
                   )
                 ),
                 ####  TABLE_5.2  ####
@@ -1634,8 +1720,8 @@ ui <- dashboardPagePlus(
                   )
                 )
               ),
-              # br(),
-              # br(),
+              br(),
+              br(),
               # fluidRow(
               #   column(
               #     width = 3
@@ -1643,12 +1729,11 @@ ui <- dashboardPagePlus(
               #   column(
               #     width = 6,
               #     align = "center",
-              #     ####    ####
               #     box(
               #       width = 12,
               #       solidHeader = TRUE,
-              #       status = "success", 
-              #       HTML("<h4><center><b>LESIONES SEGÚN ACWR</b></h4>")
+              #       status = "success",
+              #       HTML("<h4><center><b>HISTÓRICO LESIONES SEGÚN ACWR</b></h4>")
               #     )
               #   ),
               #   column(
@@ -1656,11 +1741,11 @@ ui <- dashboardPagePlus(
               #   )
               # ),
               # fluidRow(
-              #   ####    #### 
+              #   ####  TAB_5.3  ####
               #   boxPlus(
-              #     width = 9, 
+              #     width = 9,
               #     title = "Gráfica de Lesiones por Contacto Indirecto según ACWR",
-              #     status = "primary", 
+              #     status = "primary",
               #     solidHeader = TRUE,
               #     withSpinner(
               #       plotlyOutput("Plot_tab5.3", height="450px"),
@@ -1682,10 +1767,10 @@ ui <- dashboardPagePlus(
               #   ),
               #   boxPlus(
               #     width = 3,
-              #     title = "", 
-              #     status = "primary", 
+              #     title = "",
+              #     status = "primary",
               #     solidHeader = TRUE,
-              #     ####    #### 
+              #     ####  TABLE_5.3  ####
               #     withSpinner(
               #       DT::dataTableOutput("Table_tab5.3"),
               #       type = 6,
@@ -1913,6 +1998,327 @@ ui <- dashboardPagePlus(
               ),
               br()
       ),
+      #### ----------------------------------- TAB_7 ----------------------------------- #### 
+      tabItem(tabName = "tab_7",
+              br(),
+              br(),
+              br(),
+              br(),
+              ####  TITLE  ####
+              fluidRow(
+                column(
+                  width = 4
+                ),
+                column(
+                  width = 4,
+                  align = "center",
+                  box(
+                    width = 12,
+                    solidHeader = TRUE,
+                    status = "success",
+                    HTML("<h4><center><b>BIOMECÁNICA</b></h4>"),
+                  )
+                ),
+                column(
+                  width = 4
+                )
+              ),
+              br(),
+              fluidRow(
+                ####  TABLE_7.1  #### 
+                boxPlus(
+                  width = 12, 
+                  title = "Último valor de Biomecánica por Jugador",
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  column(
+                    width = 12,
+                    tabsetPanel(
+                      ####  TABLE_7.1.1  #### 
+                      tabPanel(
+                        "Plataforma Fuerza",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.1", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.1.2  #### 
+                      tabPanel(
+                        "Miotone",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.2", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.1.3  #### 
+                      tabPanel(
+                        "Nórdicos Isquio.",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.3", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.1.4  #### 
+                      tabPanel(
+                        "Índice Postural",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.4", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.1.5  #### 
+                      tabPanel(
+                        "Fuerza Isom.",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.5", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.1.6  #### 
+                      tabPanel(
+                        "Isocinética",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.6", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.1.7  #### 
+                      tabPanel(
+                        "Core Plank",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.7", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.1.8  #### 
+                      tabPanel(
+                        "Consumo Oxigeno",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.1.8", height="520px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      )
+                    )
+                  ),
+                  collapsible = TRUE,
+                  closable = FALSE,
+                  enable_dropdown = TRUE,
+                  dropdown_icon = TRUE,
+                  dropdown_menu = list(
+                    # actionButton(
+                    #   inputId = "Table_tab7.1_HELP",
+                    #   label = "",
+                    #   icon = icon("question-circle")
+                    # ),
+                    downloadButton("download_Table_tab7.1.xlsx", ".xlsx"),
+                    downloadButton("download_Table_tab7.1.csv", ".csv")
+                  )
+                )
+              ),
+              br(),
+              fluidRow(
+                boxPlus(
+                  width = 12, 
+                  title = "Frequencia Biomecánica por Jugador y Dimensión",
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  tabsetPanel(
+                    ####  TAB_7.1  #### 
+                    tabPanel(
+                      "Diagrama",
+                      withSpinner(
+                        plotlyOutput("Plot_tab7.1", height="450px"),
+                        type = 6,
+                        color = "#0D9AE0DA",
+                        size = 0.7
+                      )
+                    ),
+                    ####  TABLE_7.3  #### 
+                    tabPanel(
+                      "Tabla",
+                      withSpinner(
+                        DT::dataTableOutput("Table_tab7.3", height="450px"),
+                        type = 6,
+                        color = "#0D9AE0DA",
+                        size = 0.7
+                      )
+                    )
+                  ),
+                  collapsible = TRUE,
+                  closable = FALSE,
+                  enable_dropdown = TRUE,
+                  dropdown_icon = TRUE,
+                  dropdown_menu = list(
+                    # actionButton(
+                    #   inputId = "Plot_tab7.1_HELP",
+                    #   label = "",
+                    #   icon = icon("question-circle")
+                    # ),
+                    downloadButton("download_Table_tab7.3.xlsx", ".xlsx"),
+                    downloadButton("download_Table_tab7.3.csv", ".csv")
+                  ),
+                  footer = fluidRow(
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_A")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_B")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_C")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_D")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_E")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_F")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_G")
+                    ),
+                    column(
+                      width = 3,
+                      uiOutput("Plot_tab7.1_Footer_H")
+                    )
+                  )
+                )
+              ),
+              br(),
+              fluidRow(
+                ####  TABLE_7.2  #### 
+                boxPlus(
+                  width = 12, 
+                  title = "Valor Plantel Promedio de Biomecánica por Posición",
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  column(
+                    width = 12,
+                    tabsetPanel(
+                      ####  TABLE_7.2.1  #### 
+                      tabPanel(
+                        "Plataforma Fuerza",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.1", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.2.2  #### 
+                      tabPanel(
+                        "Miotone",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.2", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.2.3  #### 
+                      tabPanel(
+                        "Nórdicos Isquio.",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.3", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.2.4  #### 
+                      tabPanel(
+                        "Índice Postural",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.4", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.2.5  #### 
+                      tabPanel(
+                        "Fuerza Isom.",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.5", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.2.6  #### 
+                      tabPanel(
+                        "Isocinética",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.6", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.2.7  #### 
+                      tabPanel(
+                        "Core Plank",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.7", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      ),
+                      ####  TABLE_7.2.8  #### 
+                      tabPanel(
+                        "Consumo Oxigeno",
+                        withSpinner(
+                          DT::dataTableOutput("Table_tab7.2.8", height="420px"),
+                          type = 6,
+                          color = "#0D9AE0DA",
+                          size = 0.7
+                        )
+                      )
+                    )
+                  ),
+                  collapsible = TRUE,
+                  closable = FALSE,
+                  enable_dropdown = TRUE,
+                  dropdown_icon = TRUE,
+                  dropdown_menu = list(
+                    # actionButton(
+                    #   inputId = "Table_tab7.2_HELP",
+                    #   label = "",
+                    #   icon = icon("question-circle")
+                    # ),
+                    downloadButton("download_Table_tab7.2.xlsx", ".xlsx"),
+                    downloadButton("download_Table_tab7.2.csv", ".csv")
+                  )
+                )
+              ),
+              br()
+      ),
       #### ----------------------------------- TAB_API ----------------------------------- #### 
       tabItem(tabName = "tab_API",
               br(),
@@ -2059,6 +2465,192 @@ ui <- dashboardPagePlus(
                 )
               ),
               br()
+      ),
+      #### ----------------------------------- TAB_RELOAD_REPORT ----------------------------------- #### 
+      tabItem(tabName = "tab_RELOAD_REPORT",
+              br(),
+              br(),
+              br(),
+              br(),
+              fluidRow(
+                ####  REPORT  #### 
+                column(
+                  width = 6,
+                  fluidRow(
+                    column(
+                      width = 1
+                    ),
+                    column(
+                      width = 10,
+                      align = "center",
+                      box(
+                        width = 12,
+                        solidHeader = TRUE,
+                        status = "success",
+                        HTML("<h4><center><b>GENERACIÓN DE REPORTES</b></h4>"),
+                      )
+                    ),
+                    column(
+                      width = 1
+                    )
+                  ),
+                  br(),
+                  br(),
+                  fluidRow(
+                    box(
+                      width = 12, 
+                      solidHeader = TRUE,
+                      title = " ",
+                      status = "primary",
+                      column(
+                        width = 12,
+                        column(
+                          width = 12,
+                          br(),
+                          column(
+                            width = 12,
+                            conditionalPanel(
+                              condition = "input.Player == true",
+                              br(),
+                              materialSwitch(
+                                inputId = "conditionReport", 
+                                label = strong("Especificar Condiciones del Jugador"),
+                                status = "primary",
+                                right = TRUE
+                              )
+                            )
+                          ),
+                          column(
+                            width = 12,
+                            conditionalPanel(
+                              condition = "input.conditionReport == true",
+                              br(),
+                              uiOutput("initialCondition")
+                            ),
+                            conditionalPanel(
+                              condition = "input.conditionReport == true",
+                              uiOutput("finalCondition")
+                            )
+                          ),
+                          column(
+                            width = 12,
+                            column(
+                              width = 6,
+                              conditionalPanel(
+                                condition = "input.conditionReport == true",
+                                uiOutput("entryDate")
+                              )
+                            ),
+                            column(
+                              width = 6,
+                              conditionalPanel(
+                                condition = "input.conditionReport == true",
+                                uiOutput("leaveDate")
+                              ),
+                            )
+                          ),
+                          column(
+                            width = 12,
+                            br(),
+                            strong(
+                              "Escriba el correo al cual desea enviar el Link para la descarga del Reporte:"
+                            ),
+                            br(),
+                            br(),
+                            textInput(
+                              width = "300px",
+                              label = NULL, 
+                              inputId = "ReportEmailInput",
+                              value = "email@gmail.com"
+                            ),
+                            br(),
+                            actionButton(
+                              inputId = "generate_report",
+                              label = strong("Generar Reporte"),
+                              style = "color: white;  
+                                       padding:14px; 
+                                       background: linear-gradient(60deg, #142c59, #00C0EF);",
+                              icon = icon("paper-plane")
+                            ),
+                            br(),
+                            br(),
+                            br()
+                          ),
+                          br(),
+                          br(),
+                          br()
+                        )
+                      )
+                    )
+                  )
+                ),
+                ####  RELOAD  #### 
+                column(
+                  width = 6,
+                  fluidRow(
+                    column(
+                      width = 1
+                    ),
+                    column(
+                      width = 10,
+                      align = "center",
+                      box(
+                        width = 12,
+                        solidHeader = TRUE,
+                        status = "success",
+                        HTML("<h4><center><b>ACTUALIZACIÓN DE DATOS</b></h4>"),
+                      )
+                    ),
+                    column(
+                      width = 1
+                    )
+                  ),
+                  br(),
+                  br(),
+                  fluidRow(
+                    box(
+                      width = 12, 
+                      solidHeader = TRUE,
+                      title = " ",
+                      status = "primary",
+                      column(
+                        width = 12,
+                        column(
+                          width = 12,
+                          br(),
+                          br(),
+                          strong("Selecciones la fecha de inicio para la recarga de datos:"),
+                          br(),
+                          br(),
+                          dateInput(
+                            width = "100px",
+                            inputId = "timeReloadFromInput", 
+                            label = NULL,
+                            value = (Sys.Date() - 30),
+                            min = NULL,
+                            max = NULL,
+                            startview = "month",
+                            language = "es"
+                          ),
+                          br(), # hr(), # style = "border-top: 0.5px solid #142c59;"
+                          actionButton(
+                            inputId = "update",
+                            label = strong("Recargar Datos"),
+                            style = "color: white;  
+                                     padding:14px; 
+                                     background: linear-gradient(60deg, #142c59, #00C0EF);",
+                            icon = icon("sync-alt")
+                          ),
+                          br(),
+                          br(),
+                          br()
+                        )
+                      )
+                    )
+                  )
+                )
+              ),
+              br()
       )
     )
   )
@@ -2098,10 +2690,48 @@ server <- function(input, output, session) {
   #   removeModal()
   # })
   
+  ####  LOGIN  ####
+  ## ?benutzer=66  |  ?benutzer=402
+  url_search <- reactive({
+    parseQueryString(session$clientData$url_search)
+  })
+  url_ID_User <- reactive({
+    if (!is.null(url_search())) {
+      url_search()[[
+        'benutzer'
+      ]] %>% 
+        as.character()
+    } 
+  })
+  userCategoriesLogin <- reactive({
+    if (!is.null(url_search())) {
+      df_USER %>%
+        filter(ID_Usuario %in% url_ID_User()) %>%
+        pull(Categoría) %>%
+        as.vector() %>% 
+        as.factor()
+    } else {
+      levels(df_PD$Categoría)
+    }
+  })
+  userEmail <- reactive({
+    df_USER %>%
+      filter(ID_Usuario %in% url_ID_User()) %>%
+      pull(Email)
+  })
   
-  ####  UI  ####
+  ####  GENERAL UI  ####
+  output$categoryOption <- renderUI({
+    selectInput(
+      width = "210px",
+      inputId = 'CategoryInput', 
+      label = NULL,
+      choices = levels(df_PD$Categoría), # userCategoriesLogin()
+      selected = 1 # levels(df_PD$Categoría)[1]
+    )
+  })
   levelsPlayers <- reactive({
-    df_CED %>% 
+    df_PD %>% 
       filter(Categoría %in% input$CategoryInput) %>%
       select(Jugador) %>%
       unique() %>% 
@@ -2109,7 +2739,7 @@ server <- function(input, output, session) {
       t()
   })
   output$playerOption <- renderUI({
-    if(input$Player){
+    if (input$Player) {
       selectInput(
         width = "210px",
         inputId = 'PlayerInput', 
@@ -2119,38 +2749,37 @@ server <- function(input, output, session) {
     } 
   })
   
-  ####  DF  ####
+  ####  GENERAL DF  ####
   
   ## Player Dimension Numeric
   df_PD_fil <- reactive({
-    if(input$Player){
-      df_PD %>% filter(Categoría %in% input$CategoryInput,
-                       FechaDimensión >= input$timeFromInput,
-                       FechaDimensión <= input$timeToInput,
-                       Jugador %in% input$PlayerInput)
+    if (input$Player) {
+      df_PD %>% 
+        filter(Categoría %in% input$CategoryInput,
+               FechaDimensión >= input$timeFromInput,
+               FechaDimensión <= input$timeToInput,
+               Jugador %in% input$PlayerInput)
     } else {
-      df_PD %>% filter(Categoría %in% input$CategoryInput,
-                       FechaDimensión >= input$timeFromInput,
-                       FechaDimensión <= input$timeToInput)
+      df_PD %>% 
+        filter(Categoría %in% input$CategoryInput,
+               FechaDimensión >= input$timeFromInput,
+               FechaDimensión <= input$timeToInput)
     }
   })
-  df_PD_C <- reactive({
-    df_PD %>% filter(Categoría %in% input$CategoryInput,
-                     FechaDimensión >= input$timeFromInput,
-                     FechaDimensión <= input$timeToInput)
-  })
   df_PD_CAT_T <- reactive({
-    df_PD %>% filter(Categoría %in% input$CategoryInput,
-                     FechaDimensión >= input$timeFromInput,
-                     FechaDimensión <= input$timeToInput)
+    df_PD %>% 
+      filter(Categoría %in% input$CategoryInput,
+             FechaDimensión >= input$timeFromInput,
+             FechaDimensión <= input$timeToInput)
   })
   df_PD_CAT <- reactive({
-    df_PD %>% filter(Categoría %in% input$CategoryInput)
+    df_PD %>% 
+      filter(Categoría %in% input$CategoryInput)
   })
   
   ## Player Dimension Factor
   df_PD_F_fil <- reactive({
-    if(input$Player){
+    if (input$Player) {
       df_PD_F %>% 
         filter(Categoría %in% input$CategoryInput,
                FechaDimensión >= input$timeFromInput,
@@ -2172,29 +2801,89 @@ server <- function(input, output, session) {
   
   ## Clinical Event
   df_CED_fil <- reactive({
-    if(input$Player){
-      df_CED %>% 
-        filter(Categoría %in% input$CategoryInput,
-               FechaDiagnóstico >= input$timeFromInput,
-               FechaDiagnóstico <= input$timeToInput,
-               Jugador %in% input$PlayerInput)
+    if (input$Player) {
+      if (input$ExternalData) {
+        df_CED %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput,
+                 Jugador %in% input$PlayerInput)
+      } else {
+        df_CED %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 !Instancia %in% "Evento clínico externo (Selección/Club)",
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput,
+                 Jugador %in% input$PlayerInput)
+      }
     } else {
+      if (input$ExternalData) {
+        df_CED %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput)
+      } else {
+        df_CED %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 !Instancia %in% "Evento clínico externo (Selección/Club)",
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput)
+      }
+    }
+  })
+  df_CED_TE_fil <- reactive({
+    if (input$Player) {
+      if (input$ExternalData) {
+        df_CED_TE %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput,
+                 Jugador %in% input$PlayerInput) %>%
+          select(!Instancia)
+      } else {
+        df_CED_TE %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 !Instancia %in% "Evento clínico externo (Selección/Club)",
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput,
+                 Jugador %in% input$PlayerInput) %>%
+          select(!Instancia)
+      }
+    } else {
+      if (input$ExternalData) {
+        df_CED_TE %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput) %>%
+          select(!Instancia)
+      } else {
+        df_CED_TE %>% 
+          filter(Categoría %in% input$CategoryInput,
+                 !Instancia %in% "Evento clínico externo (Selección/Club)",
+                 FechaDiagnóstico >= input$timeFromInput,
+                 FechaDiagnóstico <= input$timeToInput) %>%
+          select(!Instancia)
+      }
+    }
+  })
+  df_CED_C <- reactive({
+    if (input$ExternalData) {
       df_CED %>% 
         filter(Categoría %in% input$CategoryInput,
                FechaDiagnóstico >= input$timeFromInput,
                FechaDiagnóstico <= input$timeToInput)
+    } else {
+      df_CED %>% 
+        filter(Categoría %in% input$CategoryInput,
+               !Instancia %in% "Evento clínico externo (Selección/Club)",
+               FechaDiagnóstico >= input$timeFromInput,
+               FechaDiagnóstico <= input$timeToInput)
     }
-  })
-  df_CED_C <- reactive({
-    df_CED %>% 
-      filter(Categoría %in% input$CategoryInput,
-             FechaDiagnóstico >= input$timeFromInput,
-             FechaDiagnóstico <= input$timeToInput)
   })
   
   ## Kinesic Tratement
   df_KT_fil <- reactive({
-    if(input$Player){
+    if (input$Player) {
       df_KT %>% 
         filter(Categoría %in% input$CategoryInput,
                FechaTratamientoKinésico >= input$timeFromInput,
@@ -2216,29 +2905,29 @@ server <- function(input, output, session) {
   
   ## Kinesic Tratement
   df_KA_fil <- reactive({
-    if(input$Player){
+    if (input$Player) {
       df_KA %>% 
         filter(Categoría %in% input$CategoryInput,
-               FechaAcciónKinésica >= input$timeFromInput,
-               FechaAcciónKinésica <= input$timeToInput,
+               FechaAcciónTerapéutica >= input$timeFromInput,
+               FechaAcciónTerapéutica <= input$timeToInput,
                Jugador %in% input$PlayerInput)
     } else {
       df_KA %>% 
         filter(Categoría %in% input$CategoryInput,
-               FechaAcciónKinésica >= input$timeFromInput,
-               FechaAcciónKinésica <= input$timeToInput)
+               FechaAcciónTerapéutica >= input$timeFromInput,
+               FechaAcciónTerapéutica <= input$timeToInput)
     }
   })
   df_KA_C <- reactive({
     df_KA %>% 
       filter(Categoría %in% input$CategoryInput,
-             FechaAcciónKinésica >= input$timeFromInput,
-             FechaAcciónKinésica <= input$timeToInput)
+             FechaAcciónTerapéutica >= input$timeFromInput,
+             FechaAcciónTerapéutica <= input$timeToInput)
   })
   
   ## Time Loss
   df_TL_fil <- reactive({
-    if(input$Player){
+    if (input$Player) {
       df_TL %>% 
         filter(Categoría %in% input$CategoryInput,
                FechaTérmino_TimeLoss >= input$timeFromInput,
@@ -2260,7 +2949,7 @@ server <- function(input, output, session) {
   
   ## Availability Condition
   df_AC_fil <- reactive({
-    if(input$Player){
+    if (input$Player) {
       df_AC %>% 
         filter(Categoría %in% input$CategoryInput,
                FechaCondición >= input$timeFromInput,
@@ -2282,7 +2971,7 @@ server <- function(input, output, session) {
   
   ## Availability Condition
   df_MED_fil <- reactive({
-    if(input$Player){
+    if (input$Player) {
       df_MED %>% 
         filter(Categoría %in% input$CategoryInput,
                FechaDiagnóstico >= input$timeFromInput,
@@ -2301,21 +2990,34 @@ server <- function(input, output, session) {
              FechaDiagnóstico >= input$timeFromInput,
              FechaDiagnóstico <= input$timeToInput)
   })
+  df_EO_fil <- reactive({
+    if (input$Player) {
+      df_EO %>% 
+        filter(Categoría %in% input$CategoryInput,
+               FechaDiagnóstico >= input$timeFromInput,
+               FechaDiagnóstico <= input$timeToInput,
+               Jugador %in% input$PlayerInput)
+    } else {
+      df_EO %>% 
+        filter(Categoría %in% input$CategoryInput,
+               FechaDiagnóstico >= input$timeFromInput,
+               FechaDiagnóstico <= input$timeToInput)
+    }
+  })
   
-  
-  ## Total Duration
+  ## Minutos de exposición
   Min_Exp.DF <- reactive({
     if (input$mInput_tab2.0 %in% "Total") {
       df_PD_fil() %>% 
         filter(
-          Medición %in% "Total Duration"
+          Medición %in% "Minutos de exposición"
         ) %>%
         select(ValorMedición) 
     } else {
       df_PD_fil() %>% 
         filter(
           TipoMedición %in% input$mInput_tab2.0,
-          Medición %in% "Total Duration"
+          Medición %in% "Minutos de exposición"
         ) %>%
         select(ValorMedición) 
     }
@@ -2337,7 +3039,7 @@ server <- function(input, output, session) {
                               "entrenamiento") ~ "Entrenamiento",
           stringr::str_detect(tolower(TipoMedición), 
                               "partido") ~ "Partido",
-        )
+        ) %>% as.factor()
       ) %>%
       drop_na() %>% 
       select(TipoMedición,
@@ -2345,18 +3047,23 @@ server <- function(input, output, session) {
       unique()
   })
   
+  ## Biomechanics
+  df_BM_CAT<- reactive({
+    df_BM %>% 
+      filter(Categoría %in% input$CategoryInput)
+  })
+  
   #### --------------------------- TAB_1_1 --------------------------- #### 
   
   ####  UI  ####
   levelsTypeMeters_tab1.1 <- reactive({
-    df_PD_CAT() %>% 
+    df_PD_CAT_T()%>% 
       filter(
         Dimensión %in% input$DimInput_tab1.1
-      ) %>%
-      select(TipoMedición) %>%
-      unique() %>% 
+      ) %>% 
       drop_na() %>%
-      t()
+      pull(TipoMedición) %>%
+      unique() 
   })
   output$typeMetersOption_tab1.1 <- renderUI({
     selectInput(
@@ -2369,15 +3076,14 @@ server <- function(input, output, session) {
   })
   
   levelsMeters_tab1.1 <- reactive({
-    df_PD_CAT()%>% 
+    df_PD_CAT_T()%>% 
       filter(
         Dimensión %in% input$DimInput_tab1.1,
         TipoMedición %in% input$TypeMetInput_tap1.1
-      ) %>%
-      select(Medición) %>%
-      unique() %>% 
+      ) %>% 
       drop_na() %>%
-      t()
+      pull(Medición) %>%
+      unique() 
   })
   output$metersOption_tab1.1 <- renderUI({
     selectInput(
@@ -2483,13 +3189,15 @@ server <- function(input, output, session) {
   
   ## Filtered 
   filtered_tab1.1 <- reactive({
-    df_PD_fil() %>% filter(Dimensión %in% input$DimInput_tab1.1,
-                           TipoMedición %in% input$TypeMetInput_tap1.1,
-                           Medición %in% input$MetInput_tab1.1)
+    df_PD_fil() %>% 
+      filter(Dimensión %in% input$DimInput_tab1.1,
+             TipoMedición %in% input$TypeMetInput_tap1.1,
+             Medición %in% input$MetInput_tab1.1)
   })
   filtered_tab1.1.2 <- reactive({
-    df_PD_fil() %>% filter(Dimensión %in% input$DimInput_tab1.1,
-                           TipoMedición %in% input$TypeMetInput_tap1.1)
+    df_PD_fil() %>% 
+      filter(Dimensión %in% input$DimInput_tab1.1,
+             TipoMedición %in% input$TypeMetInput_tap1.1)
   })
   filtered_tab1.1.3 <- reactive({
     filtered_tab1.1() %>% 
@@ -2505,11 +3213,15 @@ server <- function(input, output, session) {
   ####  VB_1.1  #### 
   output$valuebox_tab1.1.1 <- renderValueBox({
     valueBox(
-      Stat.DF_tab1.1.1() %>% 
-        filter(Medición %in% input$MetInput_tab1.1) %>%
-        select(Promedio) %>%
-        round(0) %>%
-        slice(1),
+      ifelse(
+        nrow(Stat.DF_tab1.1.1()) < 1, 
+        'Indf',
+        Stat.DF_tab1.1.1() %>% 
+          filter(Medición %in% input$MetInput_tab1.1) %>%
+          select(Promedio) %>%
+          round(0) %>%
+          slice(1)
+      ),
       "Promedio", 
       icon = icon("divide"),
       color = "aqua"
@@ -2517,11 +3229,15 @@ server <- function(input, output, session) {
   })
   output$valuebox_tab1.1.2 <- renderValueBox({
     valueBox(
-      Stat.DF_tab1.1.1() %>% 
-        filter(Medición %in% input$MetInput_tab1.1) %>%
-        select(Desviación) %>%
-        round(1) %>%
-        slice(1),
+      ifelse(
+        nrow(Stat.DF_tab1.1.1()) < 3, 
+        'Indf',
+        Stat.DF_tab1.1.1() %>% 
+          filter(Medición %in% input$MetInput_tab1.1) %>%
+          select(Desviación) %>%
+          round(1) %>%
+          slice(1)
+      ),
       "Desviación Estándar", 
       icon = icon("sort-amount-down"),
       color = "aqua"
@@ -2537,29 +3253,39 @@ server <- function(input, output, session) {
           (ValorMedición - mean(ValorMedición)) / sd(ValorMedición) 
         ) %>% round(2)
       ) %>%
-      select(Jugador,
-             Fecha = FechaDimensión,
-             Medición,
-             Valor = ValorMedición,
-             Zscore) %>%
+      select(
+        Jugador,
+        Fecha = FechaDimensión,
+        Medición,
+        Valor = ValorMedición,
+        Zscore
+      ) %>%
       arrange(desc(Fecha))
   })
   output$Table_tab1.1.0 <- DT::renderDataTable({
     DT::datatable(
       Table_tab1.1.0(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",    
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",    
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="300px", 
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "300px", 
         paging=FALSE, info=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
-    )  %>%
+    ) %>%
+      formatStyle(
+        'Valor',
+        background = styleColorBar(Table_tab1.1.0()$Valor, 'lightblue'),
+        backgroundSize = '100%',
+        backgroundRepeat = 'no-repeat',
+        backgroundPosition = 'center'
+      ) %>%
       formatStyle(
         'Zscore', 
         fontWeight = styleInterval(1.99, c('bold','normal')),
@@ -2581,7 +3307,7 @@ server <- function(input, output, session) {
   })
   output$download_Table_tab1.1.0.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Zscore de ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -2607,7 +3333,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab1.1.0.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Zscore de ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -2651,77 +3377,93 @@ server <- function(input, output, session) {
   
   ####  TAB_1.1.1 #### 
   output$Plot_tab1.1.1 <- renderPlotly({
-    # Input Validation
-    validate(need(!nrow(filtered_tab1.1()) < 2, 
-                  message = na.time.med))
-    # Creating Object
-    Xvar <- select(filtered_tab1.1(), 'Xvar'=ValorMedición)
-    summarise <- data.frame(Prom = mean(Xvar$Xvar) %>% round(1), 
-                            Desv. = sd(Xvar$Xvar) %>% round(1),
-                            Var = 0, 
-                            color = 0)
-    for (i in seq(1, nrow(summarise), by=1)) {
-      summarise$color[i] = if (summarise$Prom[i]>2*summarise$Desv.[i]) { "black" } else { "red" } 
-    }
     
     # Visualization
-    ggplotly(
-      ggplot(summarise) +
-        geom_bar(aes(x = Var,
-                     y = Prom), 
-                 stat = "identity", 
-                 color="black",
-                 size=.3,
-                 fill = "#30E01D",
-                 alpha = .7) +
-        geom_errorbar(aes(x = Var,
-                          ymin = Prom-Desv., 
-                          ymax = Prom+Desv.), 
-                      width = 0.1, 
-                      alpha = 0.9, 
-                      size = .6,
-                      colour = ifelse(summarise$color=="black",
-                                      "black","red")) +
-        labs(x=NULL, y=NULL, fill=NULL) +
-        theme(panel.grid.major.x = element_blank(),
-              axis.text.x = element_blank(),
-              panel.grid.major=element_line(colour="#00000018"),
-              panel.grid.minor=element_line(colour="#00000018"),
-              panel.background=element_rect(fill="transparent",colour=NA)),
-      tooltip = c("y","ymin","ymax")
-    ) %>%
-      layout(
-        hovermode = 'compare',
-        showlegend = FALSE
-      ) %>%
-      config(
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                   "zoomOut2d", "lasso2d", 
-                                   "toggleSpikelines"), 
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename =
-            if(input$Player){
-              paste(
-                "Barras de Error Promedio del Jugador ", input$PlayerInput,
-                " del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            } else {
-              paste(
-                "Barras de Error Promedio de ", input$MetInput_tab1.1, 
-                " del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            },
-          scale = 2
+    if ( filtered_tab1.1() %>% nrow() < 3 ) { 
+      
+      emptyChart(
+        paste(
+          "No se registran <br> suficientes datos <br>",
+          "<b>de esta Variable</b> <br>",
+          "para generar <br> la Visualización"
         )
-      ) %>% toWebGL()
+      )
+      
+    } else {
+      
+      # Creating Object
+      Xvar <- select(filtered_tab1.1(), 'Xvar'=ValorMedición)
+      summarise <- data.frame(Prom = mean(Xvar$Xvar) %>% round(1), 
+                              Desv. = sd(Xvar$Xvar) %>% round(1),
+                              Var = 0, 
+                              color = 0)
+      for (i in seq(1, nrow(summarise), by=1)) {
+        summarise$color[i] <- 
+          if ( summarise$Prom[i] > 2*summarise$Desv.[i] ) { "black" } else { "red" } 
+      }
+      
+      # Visualization
+      ggplotly(
+        ggplot(summarise) +
+          geom_bar(
+            aes(x = Var, y = Prom), 
+            stat = "identity", 
+            color="black",
+            size=.3,
+            fill = "#30E01D",
+            alpha = .7
+          ) +
+          geom_errorbar(
+            aes(x = Var, ymin = Prom-Desv., ymax = Prom+Desv.), 
+            width = 0.1, 
+            alpha = 0.9, 
+            size = .6,
+            colour = ifelse(summarise$color=="black", "black", "red")
+          ) +
+          labs(x=NULL, y=NULL, fill=NULL) +
+          theme(
+            panel.grid.major.x = element_blank(),
+            axis.text.x = element_blank(),
+            panel.grid.major=element_line(colour="#00000018"),
+            panel.grid.minor=element_line(colour="#00000018"),
+            panel.background=element_rect(fill="transparent",colour=NA)
+          ),
+        tooltip = c("y","ymin","ymax")
+      ) %>%
+        layout(
+          hovermode = 'compare',
+          showlegend = FALSE
+        ) %>%
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              if (input$Player) {
+                paste(
+                  "Barras de Error Promedio del Jugador ", input$PlayerInput,
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              } else {
+                paste(
+                  "Barras de Error Promedio de ", input$MetInput_tab1.1, 
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              },
+            scale = 3
+          )
+        )
+      
+    }
   }) 
   SD_tab1.1 <- reactive({
     df <-
@@ -2774,98 +3516,129 @@ server <- function(input, output, session) {
   
   ####  TAB_1.1.2  #### 
   output$Plot_tab1.1.2 <- renderPlotly({
-    # Input Validation
-    validate(need(!nrow(filtered_tab1.1()) < 2, 
-                  na.time.med))
-    # Creating Object
-    filtered <- filtered_tab1.1()
+    
     # Visualization
-    if (input$DimInput_tab1.1 %in% "Autoreporte") {
-      ggplotly(
-        ggplot(filtered, aes(x=ValorMedición)) +
-          geom_bar(stat="count", 
-                   fill = "#E31D31",
-                   alpha=.7, 
-                   width=.7, 
-                   color="black", 
-                   size=.3)  + 
-          scale_x_discrete(
-            limits = seq(min(filtered$ValorMedición), max(filtered$ValorMedición),1)
-          ) +
-          labs(x = NULL, y = NULL) +
-          theme(panel.grid.major.x = element_blank(),
-                panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA))
-      ) %>%
-        config(
-          displaylogo = FALSE,
-          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                     "zoomOut2d", "lasso2d", 
-                                     "toggleSpikelines"), 
-          toImageButtonOptions = list(
-            format = "jpeg",
-            filename = 
-              if(input$Player){
-                paste(
-                  "Diagrama de Densidad del Jugador ", input$PlayerInput,
-                  " del ", input$CategoryInput, 
-                  " con rango de fecha desde ", input$timeFromInput, 
-                  " hasta ", input$timeToInput,
-                  sep = ""
-                )
-              } else {
-                paste(
-                  "Diagrama de Densidad de ", input$MetInput_tab1.1, 
-                  " del ", input$CategoryInput, 
-                  " con rango de fecha desde ", input$timeFromInput, 
-                  " hasta ", input$timeToInput,
-                  sep = ""
-                )
-              },
-            scale = 2
-          )
-        ) %>% toWebGL()
+    if ( filtered_tab1.1() %>% nrow() < 3 ) { 
+      
+      emptyChart(
+        emptyMessage('esta Variable')      
+      )
+      
     } else {
-      ggplotly(
-        ggplot(filtered, aes(x=ValorMedición)) +
-          geom_density(aes(y=..density..), 
-                       size=.7, 
-                       fill = "#E31D31",
-                       alpha = .5) +
-          labs(x = NULL, y = NULL) +
-          theme(panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA))
-      ) %>%
-        config(
-          displaylogo = FALSE,
-          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                     "zoomOut2d", "lasso2d", 
-                                     "toggleSpikelines"), 
-          toImageButtonOptions = list(
-            format = "jpeg",
-            filename = 
-              if(input$Player){
-                paste(
-                  "Diagrama de Densidad del Jugador ", input$PlayerInput,
-                  " del ", input$CategoryInput, 
-                  " con rango de fecha desde ", input$timeFromInput, 
-                  " hasta ", input$timeToInput,
-                  sep = ""
-                )
-              } else {
-                paste(
-                  "Diagrama de Densidad de ", input$MetInput_tab1.1, 
-                  " del ", input$CategoryInput, 
-                  " con rango de fecha desde ", input$timeFromInput, 
-                  " hasta ", input$timeToInput,
-                  sep = ""
-                )
-              },
-            scale = 2
-          )
-        ) %>% toWebGL()
+      
+      # Creating Object
+      filtered <- filtered_tab1.1()
+      
+      # Visualization
+      if (
+        
+        input$MetInput_tab1.1 %in% c("Nivel de energía",
+                                     "Humor / Estado de ánimo",
+                                     "Estado general muscular",
+                                     "Calidad del sueño",
+                                     "Percepción subjetiva del esfuerzo",
+                                     "T.Q.R",
+                                     "Minutos de exposición")
+      ) {
+        
+        ggplotly(
+          ggplot(filtered, aes(x=ValorMedición)) +
+            geom_bar(
+              stat="count", 
+              fill = "#E31D31",
+              alpha=.7, 
+              width=.7, 
+              color="black", 
+              size=.3
+            )  + 
+            scale_x_discrete(
+              limits = seq(min(filtered$ValorMedición), max(filtered$ValorMedición),1)
+            ) +
+            labs(x = NULL, y = NULL) +
+            theme(
+              panel.grid.major.x = element_blank(),
+              panel.grid.major=element_line(colour="#00000018"),
+              panel.grid.minor=element_line(colour="#00000018"),
+              panel.background=element_rect(fill="transparent",colour=NA)
+            )
+        ) %>%
+          config(
+            displaylogo = FALSE,
+            modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                       "zoomOut2d", "lasso2d", 
+                                       "toggleSpikelines"), 
+            toImageButtonOptions = list(
+              format = "jpeg",
+              filename = 
+                if (input$Player) {
+                  paste(
+                    "Diagrama de Densidad del Jugador ", input$PlayerInput,
+                    " del ", input$CategoryInput, 
+                    " con rango de fecha desde ", input$timeFromInput, 
+                    " hasta ", input$timeToInput,
+                    sep = ""
+                  )
+                } else {
+                  paste(
+                    "Diagrama de Densidad de ", input$MetInput_tab1.1, 
+                    " del ", input$CategoryInput, 
+                    " con rango de fecha desde ", input$timeFromInput, 
+                    " hasta ", input$timeToInput,
+                    sep = ""
+                  )
+                },
+              scale = 3
+            )
+          ) 
+        
+      } else {
+        
+        ggplotly(
+          ggplot(filtered, aes(x=ValorMedición)) +
+            geom_density(
+              aes(y=..density..), 
+              size=.7, 
+              fill = "#E31D31",
+              alpha = .5
+            ) +
+            labs(x = NULL, y = NULL) +
+            theme(
+              panel.grid.major=element_line(colour="#00000018"),
+              panel.grid.minor=element_line(colour="#00000018"),
+              panel.background=element_rect(fill="transparent",colour=NA)
+            )
+        ) %>%
+          config(
+            displaylogo = FALSE,
+            modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                       "zoomOut2d", "lasso2d", 
+                                       "toggleSpikelines"), 
+            toImageButtonOptions = list(
+              format = "jpeg",
+              filename = 
+                if (input$Player) {
+                  paste(
+                    "Diagrama de Densidad del Jugador ", input$PlayerInput,
+                    " del ", input$CategoryInput, 
+                    " con rango de fecha desde ", input$timeFromInput, 
+                    " hasta ", input$timeToInput,
+                    sep = ""
+                  )
+                } else {
+                  paste(
+                    "Diagrama de Densidad de ", input$MetInput_tab1.1, 
+                    " del ", input$CategoryInput, 
+                    " con rango de fecha desde ", input$timeFromInput, 
+                    " hasta ", input$timeToInput,
+                    sep = ""
+                  )
+                },
+              scale = 3
+            )
+          ) 
+        
+      }
+      
     }
   })
   output$Plot_tab1.1.2_Footer_A <- renderUI({
@@ -2919,57 +3692,72 @@ server <- function(input, output, session) {
   
   ####  TAB_1.1.3  #### 
   output$Plot_tab1.1.3 <- renderPlotly({
-    # Input Validation
-    validate(need(!nrow(filtered_tab1.1()) < 2, 
-                  na.time.med))
-    # Creating Object
-    filtered <- filtered_tab1.1()
+    
     # Visualization
-    plot_ly(
-      type = 'box',  
-      showlegend = FALSE
-    ) %>% 
-      add_boxplot(
-        y = filtered$ValorMedición,
-        name = ".",
-        boxpoints = 'outliers',
-        marker = list(color = 'red',  
-                      size = 9, 
-                      line = list(
-                        color = 'black',
-                        width = 1
-                      )),
-        line = list(color = 'black'),
-        hoverinfo = 'y'
-      ) %>%
-      config(
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                   "zoomOut2d", "lasso2d", 
-                                   "toggleSpikelines"), 
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename = 
-            if(input$Player){
-              paste(
-                "Diagrama de Cajas del Jugador ", input$PlayerInput,
-                " del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            } else {
-              paste(
-                "Diagrama de Cajas de ", input$MetInput_tab1.1, 
-                " del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            },
-          scale = 2
+    if ( filtered_tab1.1() %>% nrow() < 3 ) { 
+      
+      emptyChart(
+        paste(
+          "No se registran <br> suficientes datos <br>",
+          "<b>de esta Variable</b> <br>",
+          "para generar <br> la Visualización"
         )
-      ) %>% toWebGL()
+      )
+      
+    } else {
+      
+      # Creating Object
+      filtered <- filtered_tab1.1()
+      # Visualization
+      plot_ly(
+        type = 'box',  
+        showlegend = FALSE
+      ) %>% 
+        add_boxplot(
+          y = filtered$ValorMedición,
+          name = ".",
+          boxpoints = 'outliers',
+          marker = list(
+            color = 'red',  
+            size = 9, 
+            line = list(
+              color = 'black',
+              width = 1
+            )
+          ),
+          line = list(color = 'black'),
+          hoverinfo = 'y'
+        ) %>%
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename = 
+              if (input$Player) {
+                paste(
+                  "Diagrama de Cajas del Jugador ", input$PlayerInput,
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              } else {
+                paste(
+                  "Diagrama de Cajas de ", input$MetInput_tab1.1, 
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              },
+            scale = 3
+          )
+        ) 
+      
+    }
   })
   output$Plot_tab1.1.3_Footer <- renderUI({
     descriptionBlock(
@@ -3008,7 +3796,7 @@ server <- function(input, output, session) {
   ####  TABLE_1_out  #### 
   output$download_Table_tab1.1_outliers.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla con Datos Atítpicos de la medida ", input$yInput_tab1.0, 
           " del Jugador ", input$PlayerInput, 
@@ -3034,7 +3822,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab1.1.0.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla con Datos Atítpicos de la medida ", input$yInput_tab1.0, 
           " del Jugador ", input$PlayerInput, 
@@ -3070,9 +3858,6 @@ server <- function(input, output, session) {
   
   ####  TABLE_1.1.1  #### 
   Stat.DF_tab1.1.1 <- reactive({
-    # Input Validation
-    validate(need(!nrow(filtered_tab1.1.2()) < 2, 
-                  na.time.med))
     # Creating Object
     filtered <- filtered_tab1.1.2()
     outliers <- filtered %>% 
@@ -3127,24 +3912,25 @@ server <- function(input, output, session) {
   output$Table_tab1.1.1 <- DT::renderDataTable({
     DT::datatable(
       Stat.DF_tab1.1.1(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",    
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",    
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE,
-        scrollX='400px', # scrollY="350px", 
+        scrollX = '400px', # scrollY = "350px", 
         paging=FALSE, info=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     ) 
   })
   output$download_Table_tab1.1.1.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Medidas Estadísticas del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -3168,7 +3954,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab1.1.1.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Medidas Estadísticas del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -3213,7 +3999,7 @@ server <- function(input, output, session) {
   
   ####  UI  ####
   levelsTypeMeters_tabe1.2 <- reactive({
-    df_PD_CAT()%>% 
+    df_PD_CAT_T()%>% 
       filter(
         Dimensión %in% input$DimInput_tab1.2
       ) %>%
@@ -3233,7 +4019,7 @@ server <- function(input, output, session) {
   })
   
   levelsMeters_tab1.2 <- reactive({
-    df_PD_CAT()%>% 
+    df_PD_CAT_T()%>% 
       filter(
         Dimensión %in% input$DimInput_tab1.2,
         TipoMedición %in% input$TypeMetInput_tap1.2
@@ -3349,7 +4135,7 @@ server <- function(input, output, session) {
   
   ####  TAB_1.2.1  ####
   df.PD.s <- reactive({
-    df_PD_CAT() %>% 
+    df_PD_CAT_T()%>% 
       filter(
         Dimensión %in% input$DimInput_tab1.2,
         TipoMedición %in% input$TypeMetInput_tap1.2,
@@ -3366,53 +4152,59 @@ server <- function(input, output, session) {
     ) 
   })
   output$Plot_tab1.2.1 <- renderPlotly({
-    # Input Validation
-    validate(need(!df.Cl() %>% nrow() == 0, 
-                  message = na.time.med))
-    validate(need(!df.Cl()$Jugador %>% unique() %>% table() %>% nrow() == 1, 
-                  message = na.time.med))
-    validate(need(!df.Cl() %>% nrow() <= input$nClusters2.1, 
-                  message = na.time.med))
-    ggplotly(
-      fviz_cluster(
-        eclust(
-          df.Cl(), 
-          FUNcluster = input$mClusters2.1, 
-          k = input$nClusters2.1,
-          graph = FALSE
-        ),
-        data = df.Cl(),
-        show.clust.cent = FALSE,
-        ellipse.alpha = 0.4,
-        palette = "jco",
-        pointsize = 1.7, 
-        geom = "point" # geom = "text" labelsize = 1
-      ) + 
-        labs(x=NULL, y=NULL, title=NULL, fill=NULL, color=NULL, shape=NULL) +
-        theme(panel.grid.major=element_line(colour="#00000018"),
-              panel.grid.minor=element_line(colour="#00000018"),
-              panel.background=element_rect(fill="transparent",colour=NA))
-    ) %>% 
-      layout(showlegend=FALSE) %>%
-      config(
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                   "zoomOut2d", "lasso2d", 
-                                   "toggleSpikelines"), 
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename = paste(
-            input$nClusters2.1, 
-            " Clusters de Partición en ", input$mClusters2.1, 
-            " del ", input$CategoryInput, 
-            " en ", input$DimInput_tab1.2,
-            " con rango de fecha desde ", input$timeFromInput, 
-            " hasta ", input$timeToInput,
-            sep = ""
+    
+    # Visualization
+    if ( df.Cl() %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('esta Variable')      
+      )
+      
+    } else {
+      
+      ggplotly(
+        fviz_cluster(
+          eclust(
+            df.Cl(), 
+            FUNcluster = input$mClusters2.1, 
+            k = input$nClusters2.1,
+            graph = FALSE
           ),
-          scale = 2
-        )
-      ) %>% toWebGL()
+          data = df.Cl(),
+          show.clust.cent = FALSE,
+          ellipse.alpha = 0.4,
+          palette = "jco",
+          pointsize = 1.7, 
+          geom = "point" # geom = "text" labelsize = 1
+        ) + 
+          labs(x=NULL, y=NULL, title=NULL, fill=NULL, color=NULL, shape=NULL) +
+          theme(panel.grid.major=element_line(colour="#00000018"),
+                panel.grid.minor=element_line(colour="#00000018"),
+                panel.background=element_rect(fill="transparent",colour=NA))
+      ) %>% 
+        layout(showlegend=FALSE) %>%
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename = paste(
+              input$nClusters2.1, 
+              " Clusters de Partición en ", input$mClusters2.1, 
+              " del ", input$CategoryInput, 
+              " en ", input$DimInput_tab1.2,
+              " con rango de fecha desde ", input$timeFromInput, 
+              " hasta ", input$timeToInput,
+              sep = ""
+            ),
+            scale = 3
+          )
+        ) 
+      
+    }
+    
   }) 
   observeEvent(input$Plot_tab1.2.1_HELP, {
     showModal(
@@ -3435,11 +4227,6 @@ server <- function(input, output, session) {
   
   ####  TABLE_1.2.1  ####
   Table_tab1.2.1 <- reactive({
-    # Input Validation
-    validate(need(!df.PD.s() %>% nrow() == 0, 
-                  message = na.time.med))
-    validate(need(!df.Cl() %>% nrow() <= input$nClusters2.1, 
-                  message = na.time.med))
     data.frame(
       "Jugador" =  df.PD.s()$Jugador,
       "Cluster" = eclust(
@@ -3452,23 +4239,19 @@ server <- function(input, output, session) {
       arrange(desc(Cluster))
   })
   output$Table_tab1.2.1 <- DT::renderDataTable({
-    # Input Validation
-    validate(need(!Table_tab1.2.1()$Jugador %>% 
-                    as.numeric() %>% unique() %>% table() %>% nrow() == 1, 
-                  message = na.time.med))
     DT::datatable(
       Table_tab1.2.1(), 
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="360px", 
-        scrollCollapse=TRUE, paging=FALSE,
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "360px", 
+        scrollCollapse = TRUE, paging = FALSE,
         columnDefs=list(list(className="dt-center", targets="_all"))
       )
     )
@@ -3529,35 +4312,31 @@ server <- function(input, output, session) {
   
   ####  DF_1.2 PD #### 
   df.tab1.2_PD <- reactive({
-    if(input$Player){
-      df_PD_CAT()%>% 
+    if (input$Player) {
+      df_PD_CAT_T()%>% 
         filter(
           Dimensión %in% input$DimInput_tab1.2,
           TipoMedición %in% input$TypeMetInput_tap1.2,
           Medición %in% input$MetInput_tab1.2,
-          FechaDimensión >= input$timeFromInput,
-          FechaDimensión <= input$timeToInput,
           Jugador %in% input$PlayerInput
         )
       
     } else {
-      df_PD_CAT() %>% 
+      df_PD_CAT_T()%>% 
         filter(
           Dimensión %in% input$DimInput_tab1.2,
           TipoMedición %in% input$TypeMetInput_tap1.2,
-          Medición %in% input$MetInput_tab1.2,
-          FechaDimensión >= input$timeFromInput,
-          FechaDimensión <= input$timeToInput,
+          Medición %in% input$MetInput_tab1.2
         )
     }
   })
   
   output$Player_tab1.2.2_Option_1 <- renderUI({
-    if(input$Player){
+    if (input$Player) {
       dateInput(
         inputId = "timeFromInput_tab1.2.2", 
         label = "Fecha desde:",
-        value = min(date.range),
+        value = min(date_range),
         min = NULL,
         max = NULL,
         startview = "month",
@@ -3566,11 +4345,11 @@ server <- function(input, output, session) {
     }
   })
   output$Player_tab1.2.2_Option_2 <- renderUI({
-    if(input$Player){
+    if (input$Player) {
       dateInput(
         inputId = "timeToInput_tab1.2.2", 
         label = "hasta:",
-        value = max(date.range),
+        value = max(date_range),
         min = NULL,
         max = NULL,
         startview = "month",
@@ -3580,7 +4359,7 @@ server <- function(input, output, session) {
   })
   
   df_PD_fil_w <- reactive({
-    if(input$Player){
+    if (input$Player) {
       df_PD_CAT() %>% 
         filter(
           Dimensión %in% input$DimInput_tab1.2,
@@ -3596,10 +4375,7 @@ server <- function(input, output, session) {
   ####  TAB_1.2.2  #### 
   
   df.Cl_t <- reactive({
-    # Input Validation
-    validate(need(!df.PD.s() %>% nrow() == 0, 
-                  message = na.time.med))
-    if(input$Player){
+    if (input$Player) {
       ## Promedio General
       df.P_g <- 
         df.PD.s() %>%
@@ -3624,9 +4400,6 @@ server <- function(input, output, session) {
                                   [,"ValorMedición"]) * 100, 1)
       }
       df.J <- df.P_j %>% spread(Medición, Valor)
-      ## Internal Validation
-      validate(need(ncol(df.J) == ncol(df.G), 
-                    message = na.cl.com))
       ## Promedio Jugador segunda Capa
       df.P_j_2 <- 
         df_PD_fil_w() %>% 
@@ -3659,117 +4432,126 @@ server <- function(input, output, session) {
   })
   
   output$Plot_tab1.2.2 <- renderPlotly({
-    if(input$Player){
-      plot_ly(
-        type = 'scatterpolar',
-        mode = "lines+markers",
-        opacity = 0.8,
-        fill = if (input$Fill_tab1.2.2) {
-          'toself'
-        } else {
-          NULL
-        }
-      ) %>%
-        add_trace(
-          r = c(as.numeric(df.Cl_t()[1,]), as.numeric(df.Cl_t()[1,])[1]),
-          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
-          name = "Plantel",
-          marker = list(
-            size = 14
-          ),
-          line = list(
-            width = 4
-          )
-        ) %>%
-        add_trace(
-          r = c(as.numeric(df.Cl_t()[2,]), as.numeric(df.Cl_t()[2,])[1]),
-          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
-          name = paste(input$PlayerInput," 1"),
-          marker = list(
-            size = 14
-          ),
-          line = list(
-            width = 4
-          )
-        ) %>%
-        add_trace(
-          r = c(as.numeric(df.Cl_t()[3,]), as.numeric(df.Cl_t()[3,])[1]),
-          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
-          name = paste(input$PlayerInput," 2"),
-          marker = list(
-            size = 14
-          ),
-          line = list(
-            width = 4
-          )
-        ) %>%
-        layout(
-          hovermode = 'compare',
-          showlegend = TRUE
-        ) %>%
-        config(
-          displaylogo = FALSE,
-          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                     "zoomOut2d", "lasso2d", 
-                                     "toggleSpikelines"), 
-          toImageButtonOptions = list(
-            format = "jpeg",
-            filename = paste(
-              "Gráfica Spyder de Promedios Proporcionales del_", input$CategoryInput, 
-              " y del Jugador ", input$PlayerInput,
-              " en ", input$DimInput_tab1.2,
-              " con rango de fecha (1) desde ", input$timeFromInput, 
-              " hasta ", input$timeToInput,
-              " y (2) desde ", input$timeFromInput_tab1.2.2,
-              " hasta ", input$timeToInput_tab1.2.2,
-              sep = ""
-            ),
-            scale = 2
-          )
-        ) %>% toWebGL()
+    
+    # Visualization
+    if ( df.tab1.2_PD() %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('esta Variable')      
+      )
+      
     } else {
-      plot_ly(
-        type = 'scatterpolar',
-        mode = "lines+markers",
-        fill = if (input$Fill_tab1.2.2) {
-          'toself'
-        } else {
-          NULL
-        }
-      ) %>%
-        add_trace(
-          r = c(as.numeric(df.Cl_t()[1,]), as.numeric(df.Cl_t()[1,])[1]),
-          theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
-          name = "Plantel",
-          marker = list(
-            size = 14
-          ),
-          line = list(
-            width = 4
-          )
+      
+      if (input$Player) {
+        plot_ly(
+          type = 'scatterpolar',
+          mode = "lines+markers",
+          opacity = 0.8,
+          fill = if (input$Fill_tab1.2.2) {
+            'toself'
+          } else {
+            NULL
+          }
         ) %>%
-        layout(
-          hovermode = 'compare',
-          showlegend = TRUE
-        ) %>%
-        config(
-          displaylogo = FALSE,
-          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                     "zoomOut2d", "lasso2d", 
-                                     "toggleSpikelines"), 
-          toImageButtonOptions = list(
-            format = "jpeg",
-            filename = paste(
-              "Gráfica Spyder de Promedios Proporcionales del ", input$CategoryInput, 
-              " en ", input$DimInput_tab1.2,
-              " con rango de fecha desde ", input$timeFromInput, 
-              " hasta ", input$timeToInput,
-              sep = ""
+          add_trace(
+            r = c(as.numeric(df.Cl_t()[1,]), as.numeric(df.Cl_t()[1,])[1]),
+            theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
+            name = "Plantel",
+            marker = list(
+              size = 14
             ),
-            scale = 2
-          )
-        ) %>% toWebGL()
+            line = list(
+              width = 4
+            )
+          ) %>%
+          add_trace(
+            r = c(as.numeric(df.Cl_t()[2,]), as.numeric(df.Cl_t()[2,])[1]),
+            theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
+            name = paste(input$PlayerInput," 1"),
+            marker = list(
+              size = 14
+            ),
+            line = list(
+              width = 4
+            )
+          ) %>%
+          add_trace(
+            r = c(as.numeric(df.Cl_t()[3,]), as.numeric(df.Cl_t()[3,])[1]),
+            theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
+            name = paste(input$PlayerInput," 2"),
+            marker = list(
+              size = 14
+            ),
+            line = list(
+              width = 4
+            )
+          ) %>%
+          layout(
+            hovermode = 'compare',
+            showlegend = TRUE
+          ) %>%
+          config(
+            displaylogo = FALSE,
+            modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                       "zoomOut2d", "lasso2d", 
+                                       "toggleSpikelines"), 
+            toImageButtonOptions = list(
+              format = "jpeg",
+              filename = paste(
+                "Gráfica Spyder de Promedios Proporcionales del_", input$CategoryInput, 
+                " y del Jugador ", input$PlayerInput,
+                " en ", input$DimInput_tab1.2,
+                " con rango de fecha (1) desde ", input$timeFromInput, 
+                " hasta ", input$timeToInput,
+                " y (2) desde ", input$timeFromInput_tab1.2.2,
+                " hasta ", input$timeToInput_tab1.2.2,
+                sep = ""
+              ),
+              scale = 3
+            )
+          ) 
+      } else {
+        plot_ly(
+          type = 'scatterpolar',
+          mode = "lines+markers",
+          fill = if (input$Fill_tab1.2.2) {'toself'} else {NULL}
+        ) %>%
+          add_trace(
+            r = c(as.numeric(df.Cl_t()[1,]), as.numeric(df.Cl_t()[1,])[1]),
+            theta = c(colnames(df.Cl_t()), colnames(df.Cl_t())[1]),
+            name = "Plantel",
+            marker = list(
+              size = 14
+            ),
+            line = list(
+              width = 4
+            )
+          ) %>%
+          layout(
+            hovermode = 'compare',
+            showlegend = TRUE
+          ) %>%
+          config(
+            displaylogo = FALSE,
+            modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                       "zoomOut2d", "lasso2d", 
+                                       "toggleSpikelines"), 
+            toImageButtonOptions = list(
+              format = "jpeg",
+              filename = paste(
+                "Gráfica Spyder de Promedios Proporcionales del ", input$CategoryInput, 
+                " en ", input$DimInput_tab1.2,
+                " con rango de fecha desde ", input$timeFromInput, 
+                " hasta ", input$timeToInput,
+                sep = ""
+              ),
+              scale = 3
+            )
+          ) 
+      }
+      
     }
+    
   })
   observeEvent(input$Plot_tab1.2.2_HELP, {
     showModal(
@@ -3793,7 +4575,7 @@ server <- function(input, output, session) {
   ####  TABLE_1.2.2  ####
   
   Table_tab1.2.2 <- reactive({
-    if(input$Player){
+    if (input$Player) {
       ## Promedio General
       df.G <- 
         df.PD.s() %>%
@@ -3808,9 +4590,6 @@ server <- function(input, output, session) {
         summarise(Valor=round(mean(ValorMedición),1)) %>% 
         as.data.frame() %>% 
         spread(Medición, Valor)
-      ## Internal Validation
-      validate(need(ncol(df.J) == ncol(df.G), 
-                    message = na.cl.com))
       ## Promedio Jugador
       df.J_2 <- 
         df_PD_fil_w() %>% 
@@ -3884,20 +4663,21 @@ server <- function(input, output, session) {
   output$Table_tab1.2.2 <- DT::renderDataTable({
     DT::datatable(
       Table_tab1.2.2(), 
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
         searching=FALSE, info=FALSE,
-        scrollX='400px', scrollY="520px", 
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all")))
+        scrollX = '400px', scrollY = "520px", 
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs=list(list(className="dt-center", targets="_all"))
+      )
     ) 
   }) 
   output$download_Table_tab1.2.2.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla de Promedios Proporcionales del ", input$CategoryInput, 
           " y del Jugador ", input$PlayerInput,
@@ -3923,7 +4703,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab1.2.2.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla de Promedios Proporcioanles del ", input$CategoryInput, 
           " y del Jugador ", input$PlayerInput,
@@ -3997,6 +4777,28 @@ server <- function(input, output, session) {
       "PCR Positivos", 
       icon = icon("virus"),
       color = "red"
+    )
+  })
+  # ValueBox 2.0.3
+  valuebox_tab2.0.3 <- reactive({
+    if (
+      valuebox_tab2.0.1() == 0 &
+      valuebox_tab2.0.2() == 0
+    ) {
+      0
+    } else {
+      paste(
+        round(((valuebox_tab2.0.2() / (valuebox_tab2.0.1() + valuebox_tab2.0.2())) * 100 ),1),
+        "%"
+      )
+    }
+  })
+  output$valuebox_tab2.0.3 <- renderValueBox({
+    valueBox(
+      valuebox_tab2.0.3(),
+      "Índice General de Positividad", 
+      icon = icon("shield-virus"),
+      color = "aqua"
     )
   })
   # ValueBox 2.1
@@ -4115,199 +4917,308 @@ server <- function(input, output, session) {
   
   ####  TAB_2.0  #### 
   output$Plot_tab2.0 <- renderPlotly({
-    # Defining DF
-    df_CE_T <- 
-      df_CED_fil() %>% 
-      select(
-        ID_EventoClínico,
-        Fecha = FechaEventoClínico, 
-        Categoría = Categoría_I
-      ) %>% 
-      distinct() %>%
-      select(!ID_EventoClínico) %>%
-      drop_na() %>% 
-      table() %>% 
-      as.data.frame() %>% 
-      rename(Cantidad = Freq) %>%
-      mutate(Fecha = Fecha %>% as.Date(),
-             Cantidad = Cantidad %>% as.numeric())
-    ## Join & Final Data Frame
-    df_CE_T <- 
-      full_join(
-        rbind(
-          data.frame(
-            Fecha = seq.Date(
-              from = min(df_CE_T$Fecha),
-              to = max(df_CE_T$Fecha),
-              by = "day"
-            ),
-            Categoría = "Enfermedad",
-            Cantidad = 0
-          ),
-          data.frame(
-            Fecha = seq.Date(
-              from = min(df_CE_T$Fecha),
-              to = max(df_CE_T$Fecha),
-              by = "day"
-            ),
-            Categoría = "Lesión",
-            Cantidad = 0     
-          ),
-          data.frame(
-            Fecha = seq.Date(
-              from = min(df_CE_T$Fecha),
-              to = max(df_CE_T$Fecha),
-              by = "day"
-            ),
-            Categoría = "Molestia",
-            Cantidad = 0
-          )
-        ),
-        df_CE_T
-      ) %>%
-      mutate(Fecha = Fecha %>% as.Date(),
-             Cantidad = Cantidad %>% as.numeric()) %>%
-      group_by(Fecha, Categoría) %>%
-      summarise(Cantidad = sum(Cantidad)) %>%
-      as.data.frame()
-    ## General DF
-    DF_CE_F <- 
-      df_CE_T %>% 
-      spread(Categoría,Cantidad) %>%
-      mutate(Fecha=Fecha %>% as.Date()) %>%
-      arrange(Fecha)
-    # NA Loop
-    for (i in seq(2,ncol(DF_CE_F))) {
-      DF_CE_F[,i] <- DF_CE_F[,i] %>% 
-        replace_na("0") %>% 
-        as.integer()
-    }
-    ## Games
-    games_CE_F  <- 
-      inner_join(
-        DF_CE_F %>% 
-          select(Fecha) %>% 
-          unique(),
-        df_G_T() %>%
-          filter(TipoMedición %in% "Partido") %>%
-          select(Fecha),
-        by='Fecha'
-      ) %>% pull(Fecha)
-    ## First plot
-    Plotly_1 <- 
-      plot_ly( 
-        DF_CE_F,
-        x = ~Fecha
-      ) %>%
-      add_trace(
-        name = 'Molestias',
-        color = I("#C916C0"), 
-        DF_CE_F, x = ~Fecha, y = ~Molestia,
-        type = 'scatter', mode = 'lines+markers',
-        line = list(simplyfy = F)
-      ) %>% 
-      add_trace(
-        name = 'Lesiones', 
-        color = I("#1348C2"), 
-        DF_CE_F, x = ~Fecha, y = ~Lesión,
-        type = 'scatter', mode = 'lines+markers',
-        line = list(simplyfy = F)
-      ) %>% 
-      add_trace(
-        name = 'Enfermedades',
-        color = I("#10B534"), 
-        DF_CE_F, x = ~Fecha, y = ~Enfermedad,
-        type = 'scatter', mode = 'lines+markers',
-        line = list(simplyfy = F)
-      ) %>%
-      layout(
-        xaxis = list(
-          title = "",
-          type = "date",
-          #range = c(min(df_CE_T$Fecha),max(df_CE_T$Fecha)),
-          zeroline = F,
-          rangeselector = list(
-            buttons = list(
-              list(count = 10,
-                   label = "10 días",
-                   step = "day",
-                   stepmode = "todate"),
-              list(count = 20,
-                   label = "20 días",
-                   step = "day",
-                   stepmode = "todate"),
-              list(count = 30,
-                   label = "30 días",
-                   step = "day",
-                   stepmode = "todate"),
-              list(label = "Completo",
-                   step = "all")
-            ))
-        ),
-        yaxis = list(
-          title = "",
-          zeroline = F
-        )
-      ) %>% 
-      rangeslider(
-        type = "date", 
-        borderwidth = 1, 
-        thickness = .1
-      ) %>% 
-      layout(
-        legend = list(orientation = 'h'),
-        hovermode = "x unified", # = "x"
-        hoverlabel = list(bordercolor = 'black')
-      ) %>% 
-      config( 
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                   "zoomOut2d", "lasso2d", 
-                                   "toggleSpikelines")
-      ) 
-    ## Condition
-    if (!(length(games_CE_F) == 0)) {
-      Plotly_1 <- 
-        Plotly_1 %>%
-        add_segments(
-          name = "Fecha Partido",
-          hoverinfo = 'text',
-          text = paste("Fecha Partido: ", as.Date(games_CE_F), sep=""),
-          color = I("red"), alpha=.6, line = list(dash = "dash"),
-          y = 0, yend = 6,
-          x = as.Date(games_CE_F),
-          xend = as.Date(games_CE_F)
-        )
-    }
-    ## Second Plot
-    Plotly_2 <- 
-      plot_ly( 
-        name = 'Cantidad',
-        y = df_CE_T$Cantidad,
-        type = 'histogram', 
-        mode = 'lines', 
-        color = I("#00AAD6"), 
-        fill = 'tozeroy',
-        showlegend = FALSE,
-        alpha = .8
-      ) %>% 
-      layout(
-        bargap = 0.4,
-        xaxis = list(
-          title = "",
-          zeroline = FALSE,
-          showline = FALSE,
-          showticklabels = FALSE,
-          showgrid = FALSE
-        )
-      )
     
-    # Final Subplot
-    subplot(Plotly_1, Plotly_2, nrows = 1, margin = 0.0, widths = c(0.93, 0.07), shareY = TRUE)  %>% 
-      layout(
-        hovermode = "x unified", # = "x"
-        hoverlabel = list(bordercolor = 'black')
+    if ( 
+      df_CED_fil() %>% nrow() == 0
+    ) { 
+      
+      emptyChart(
+        emptyMessage('Molestias, Lesiones y Enfermedades')      
       )
+      
+    } else {
+      
+      # Defining DF
+      df_CE_T <- 
+        df_CED_fil() %>% 
+        select(
+          ID_EventoClínico,
+          Fecha = FechaEventoClínico, 
+          Categoría = Categoría_I
+        ) %>% 
+        distinct() %>%
+        select(!ID_EventoClínico) %>%
+        drop_na() %>% 
+        table() %>% 
+        as.data.frame() %>% 
+        rename(Cantidad = Freq) %>%
+        mutate(
+          Fecha = Fecha %>% as.Date(),
+          Cantidad = Cantidad %>% as.numeric()
+        )
+      ## Join & Final Data Frame
+      df_CE_T <- 
+        full_join(
+          rbind(
+            data.frame(
+              Fecha = seq.Date(
+                from = min(df_CE_T$Fecha), # input$timeFromInput
+                to = max(df_CE_T$Fecha),   # input$timeToInput
+                by = "day"
+              ),
+              Categoría = "Enfermedad",
+              Cantidad = 0
+            ),
+            data.frame(
+              Fecha = seq.Date(
+                from = min(df_CE_T$Fecha),
+                to = max(df_CE_T$Fecha),
+                by = "day"
+              ),
+              Categoría = "Lesión",
+              Cantidad = 0     
+            ),
+            data.frame(
+              Fecha = seq.Date(
+                from = min(df_CE_T$Fecha),
+                to = max(df_CE_T$Fecha),
+                by = "day"
+              ),
+              Categoría = "Molestia",
+              Cantidad = 0
+            )
+          ),
+          df_CE_T
+        ) %>%
+        mutate(
+          Fecha = Fecha %>% as.Date(),
+          Cantidad = Cantidad %>% as.numeric()
+        ) %>%
+        group_by(Fecha, Categoría) %>%
+        summarise(Cantidad = sum(Cantidad)) %>%
+        as.data.frame()
+      # NA Loop
+      df_CE_T$Cantidad <- 
+        df_CE_T$Cantidad %>% 
+        replace_na("0") %>% 
+        as.numeric()
+      ## General DF
+      DF_CE_F <- 
+        df_CE_T %>% 
+        spread(Categoría,Cantidad) %>%
+        mutate(
+          Fecha=Fecha %>% as.Date(),
+          Molestia=Molestia %>% as.integer(),
+          Lesión=Lesión %>% as.integer(),
+          Enfermedad=Enfermedad %>% as.integer()
+        ) %>%
+        arrange(Fecha)
+      ## Games
+      games_CE_F  <- 
+        inner_join(
+          DF_CE_F %>% 
+            select(Fecha) %>% 
+            unique(),
+          df_G_T() %>%
+            filter(TipoMedición %in% "Partido") %>%
+            select(Fecha),
+          by='Fecha'
+        ) %>% 
+        pull(Fecha)
+      
+      if (
+        DF_CE_F$Fecha %>% unique() %>% length() < 2 
+      ) { 
+        
+        emptyChart(
+          emptyMessage('Molestias, Lesiones y Enfermedades')      
+        )
+        
+      } else {
+        
+        ## Max value
+        max_value <- max(c(
+          max(DF_CE_F$`Molestia`),
+          max(DF_CE_F$`Lesión`),
+          max(DF_CE_F$`Enfermedad`)
+        ))
+        
+        ## Visualization
+        Plotly_1 <- 
+          plot_ly( 
+            DF_CE_F,
+            x = ~Fecha
+          ) %>% 
+          add_trace(
+            name = 'Molestias',
+            color = I("#C916C0"), 
+            DF_CE_F, x = ~Fecha, y = ~Molestia,
+            type = 'scatter', 
+            mode = 'lines+markers',
+            alpha = 1,
+            line = list(width = 2),
+            marker = list(
+              opacity = 1,
+              size = ifelse(DF_CE_F$Molestia == 0, 1, 5)
+            )        
+          ) %>% 
+          add_trace(
+            name = 'Lesiones', 
+            color = I("#1348C2"), 
+            DF_CE_F, x = ~Fecha, y = ~Lesión,
+            type = 'scatter', mode = 'lines+markers',
+            alpha = 1,
+            line = list(width = 2),
+            marker = list(
+              opacity = 1,
+              size = ifelse(DF_CE_F$Lesión == 0, 1, 5)
+            )        
+          ) %>% 
+          add_trace(
+            name = 'Enfermedades',
+            color = I("#10B534"), 
+            DF_CE_F, x = ~Fecha, y = ~Enfermedad,
+            type = 'scatter', mode = 'lines+markers',
+            alpha = 1,
+            line = list(width = 2),
+            marker = list(
+              opacity = 1,
+              size = ifelse(DF_CE_F$Enfermedad == 0, 1, 5)
+            )        
+          ) %>% 
+          layout(
+            xaxis = list(
+              title = "",
+              type = "date",
+              #range = c(min(df_CE_T$Fecha),max(df_CE_T$Fecha)),
+              zeroline = F,
+              rangeselector = list(
+                buttons = list(
+                  list(count = 10,
+                       label = "10 días",
+                       step = "day",
+                       stepmode = "todate"),
+                  list(count = 20,
+                       label = "20 días",
+                       step = "day",
+                       stepmode = "todate"),
+                  list(count = 30,
+                       label = "30 días",
+                       step = "day",
+                       stepmode = "todate"),
+                  list(label = "Completo",
+                       step = "all")
+                ))
+            ),
+            yaxis = list(
+              title = "",
+              zeroline = F
+            )
+          ) %>% 
+          rangeslider(
+            type = "date", 
+            borderwidth = 1, 
+            thickness = .1
+          ) %>% 
+          layout(
+            yaxis = list(range = c(-1, (max(max_value) + 2))),
+            legend = list(orientation = 'h'),
+            hovermode = "x unified",
+            hoverlabel = list(
+              bordercolor = 'black',
+              font = list(size = 13),
+              namelength = 30
+            )
+          ) %>% 
+          config( 
+            displaylogo = FALSE,
+            modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                       "zoomOut2d", "lasso2d", 
+                                       "toggleSpikelines")
+          ) 
+        ## Condition
+        if (length(games_CE_F) != 0) {
+          Plotly_1 <- 
+            Plotly_1 %>%
+            add_segments(
+              name = "Fecha Partido",
+              hoverinfo = 'text',
+              text = paste("Fecha Partido: ", as.Date(games_CE_F), sep=""),
+              color = I("red"), 
+              alpha=.6, 
+              line = list(dash = "dash"),
+              y = 0, 
+              yend = 6,
+              x = as.Date(games_CE_F),
+              xend = as.Date(games_CE_F)
+            )
+        }
+        ## Second Plot
+        Plotly_2 <- 
+          plot_ly( 
+            name = 'Cantidad',
+            y = df_CE_T$Cantidad,
+            type = 'histogram', 
+            mode = 'lines', 
+            color = I("#00AAD6"), 
+            fill = 'tozeroy',
+            showlegend = FALSE,
+            alpha = .8
+          ) %>% 
+          layout(
+            bargap = 0.4,
+            xaxis = list(
+              title = "",
+              zeroline = FALSE,
+              showline = FALSE,
+              showticklabels = FALSE,
+              showgrid = FALSE
+            )
+          )
+        
+        # Final Subplot
+        subplot(
+          Plotly_1, 
+          Plotly_2, 
+          nrows = 1, 
+          margin = 0.0, 
+          widths = c(0.93, 0.07), 
+          shareY = TRUE
+        )  %>% 
+          layout(
+            yaxis = list(range = c(-1, (max(max_value) + 2))),
+            legend = list(orientation = 'h'),
+            hovermode = "x unified",
+            hoverlabel = list(
+              bordercolor = 'black',
+              font = list(size = 13),
+              namelength = 30
+            )
+          ) %>%
+          config(
+            displaylogo = FALSE,
+            modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                       "zoomOut2d", "lasso2d", 
+                                       "toggleSpikelines"), 
+            toImageButtonOptions = list(
+              format = "jpeg",
+              filename =
+                if (input$Player) {
+                  paste(
+                    "Diagrama Temporal de Frequencia de Enfermedades, Lesiones y Molestias de ", 
+                    input$PlayerInput,
+                    " del ", input$CategoryInput, 
+                    " con rango de fecha desde ", input$timeFromInput, 
+                    " hasta ", input$timeToInput,
+                    sep = ""
+                  )
+                } else {
+                  paste(
+                    "Diagrama Temporal de Frequencia de Enfermedades, Lesiones y Molestias del ", 
+                    input$CategoryInput, 
+                    " con rango de fecha desde ", input$timeFromInput, 
+                    " hasta ", input$timeToInput,
+                    sep = ""
+                  )
+                },
+              scale = 3
+            )
+          ) 
+        
+      }
+      
+    }
+    
   }) 
   Plot_tab2.0_Footer_A <- reactive({
     df_CED_fil() %>% 
@@ -4583,9 +5494,6 @@ server <- function(input, output, session) {
         select(Categoría_I,as.character(input$cInput_tab1.0)) %>%
         drop_na()
     }
-    # Internal Validation
-    validate(need(!nrow(Categoría_I) == 0, 
-                  na.time))
     # Building the Table 
     table.DF <- 
       table(Categoría_I) %>% 
@@ -4595,13 +5503,14 @@ server <- function(input, output, session) {
       rename("Frecuencia"=Freq)
     # Droping levels
     for (i in seq(1, (ncol(table.DF)-1), by=1)) {
-      table.DF[,i] <- droplevels(table.DF[,i], exclude="NULL")
+      table.DF[,i] <- 
+        droplevels(table.DF[,i], exclude="NULL")
     }
     # Final table
     table.DF %>% 
       drop_na() %>% 
       mutate(
-        Porcentage=round(Frecuencia/sum(Frecuencia),2),
+        Porcentage = round(Frecuencia/sum(Frecuencia),2),
         "Incidencia" = round(((Frecuencia/(Min_Exp()/60))*1000),2)
       ) %>%
       rename_at("Incidencia", list( ~paste0("Incidencia ", input$cInput_tab2.0)))
@@ -4609,17 +5518,18 @@ server <- function(input, output, session) {
   output$Table_tab2.0 <- DT::renderDataTable({
     DT::datatable(
       Table_tab2.0(), 
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
-        sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, scrollCollapse=TRUE, 
-        scrollX='400px', scrollY="400px", 
-        info=FALSE, paging=FALSE, 
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        sDom = '<"top">lrt<"bottom">ip',
+        searching = TRUE, scrollCollapse = TRUE, 
+        scrollX = '400px', scrollY = "400px", 
+        info = FALSE, paging = FALSE, 
+        columnDefs = list(list(className="dt-center", targets="_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     ) %>% 
       formatPercentage("Porcentage") %>%
@@ -4633,7 +5543,7 @@ server <- function(input, output, session) {
   })
   output$download_Table_tab2.0.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla de Epidemiología de ", input$cInput_tab2.0, 
           " del Jugador ", input$PlayerInput, 
@@ -4659,7 +5569,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab2.0.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla de Epidemiología de ", input$cInput_tab2.0, 
           " del Jugador ", input$PlayerInput, 
@@ -4721,11 +5631,6 @@ server <- function(input, output, session) {
   
   ####  TABLE_2.1  #### 
   Table_tab2.1 <- reactive({
-    # Input Validation
-    validate(need(nrow(df_CED_fil()) != 0, 
-                  na.time.med))
-    validate(need(!is.na(input$cInput_tab1.1), 
-                  na.cat))
     # Creating Df Object
     filtered <- df_CED_fil() %>%
       select(
@@ -4735,9 +5640,6 @@ server <- function(input, output, session) {
       distinct() %>% 
       select(!ID_Diagnóstico) %>%
       drop_na()
-    # Internal Validation
-    validate(need(!nrow(filtered) == 0, 
-                  na.time))
     # Building the Table 
     table.DF <- 
       table(filtered) %>% 
@@ -4771,17 +5673,18 @@ server <- function(input, output, session) {
   output$Table_tab2.1 <- DT::renderDataTable({
     DT::datatable(
       Table_tab2.1(), 
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE, 
-        scrollX='400px', scrollY="450px", 
+        scrollX = '400px', scrollY = "450px", 
         info=FALSE, paging=FALSE, 
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     ) %>% 
       formatPercentage("Porcentage") %>%
@@ -4795,7 +5698,7 @@ server <- function(input, output, session) {
   })
   output$download_Table_tab2.1.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla de Frecuencias Combinadas del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -4819,7 +5722,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab2.1.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla de Frecuencias Combinadas del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -4994,9 +5897,7 @@ server <- function(input, output, session) {
   
   ####  TAB_2.1  #### 
   output$Plot_tab2.1 <- renderPlotly({
-    # Input Validation
-    validate(need(nrow(df_CED_fil()) != 0, 
-                  na.time))
+    
     # Creating Df Object
     filtered <- df_CED_fil() %>%
       select(
@@ -5009,78 +5910,89 @@ server <- function(input, output, session) {
       drop_na() %>%
       table() %>%
       as.data.frame() %>%
-      rename(Cantidad = Freq) 
-    # %>% filter(Cantidad != 0)
-    # if (is.element('Diagnóstico', colnames(filtered)) & 
+      rename(Cantidad = Freq)
+    
+    # if (is.element('Diagnóstico', colnames(filtered)) &
     #     is.element('Categoría_I', colnames(filtered))) {
-    #   filtered <- 
+    #   filtered <-
     #     filtered %>% filter(Categoría_I != "Molestia")
-    #   filtered$Categoría_I <- 
-    #     filtered$Categoría_I %>% 
+    #   filtered$Categoría_I <-
+    #     filtered$Categoría_I %>%
     #     factor(levels = filtered$Categoría_I %>% unique())
-    # } 
+    # }
+    
     # Visualization
-    plot_ly() %>%
-      add_trace(
-        orientation = 'h',
-        type='bar',
-        y = filtered %>% pull(input$cInput_tab1.2),
-        x = filtered %>% pull(Cantidad),
-        color = filtered %>% pull(input$cInput_tab1.3),
-        marker = list(
-          line = list(width = 1.6, 
-                      color = 'rgb(0, 0, 0)')
-        ),
-        text = paste(
-          "<b>",input$cInput_tab1.2,":</b> ", filtered %>% pull(input$cInput_tab1.2),
-          "<br><b>",input$cInput_tab1.3,":</b> ", filtered %>% pull(input$cInput_tab1.3),
-          "<br><b>Cantidad:</b> ", filtered %>% pull(Cantidad)
-        ),
-        hoverinfo = 'text'
-      ) %>% 
-      layout(
-        legend = list(
-          x = 100, y = 1, 
-          title = list(text=paste("<b>",input$cInput_tab1.3,"</b><br>"))
-        ),
-        #xaxis = list(range = c(0, (max(filtered$Cantidad)+18))),
-        yaxis = list(
-          ticktext = filtered %>% pull(input$cInput_tab1.2) %>% unique(),
-          autotick = FALSE,
-          ticks = "outside",
-          tick0 = 0,
-          dtick = 0.5,
-          ticklen = 8,
-          tickwidth = 1.4,
-          tickcolor = toRGB("black")
-        ),
-        barmode = 'stack'
-      ) %>% 
-      config(
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d",
-                                   "zoomOut2d", "lasso2d",
-                                   "toggleSpikelines"),
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename =
-            paste(
-              "Diagrama de Densidad de ", input$cInput_tab1.2,
-              " con ", input$cInput_tab1.3,
-              " del ", input$CategoryInput,
-              " con rango de fecha desde ", input$timeFromInput,
-              " hasta ", input$timeToInput,
-              sep = ""
-            ),
-          scale = 2
-        )
+    if ( filtered %>% filter(!Cantidad == 0) %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('esta combinación de Variables')      
       )
+      
+    } else {
+      
+      # Visualization
+      plot_ly() %>%
+        add_trace(
+          orientation = 'h',
+          type='bar',
+          y = filtered %>% pull(input$cInput_tab1.2),
+          x = filtered$Cantidad,
+          color = filtered %>% pull(input$cInput_tab1.3),
+          marker = list(
+            line = list(width = line_with_bar, 
+                        color = 'rgb(0, 0, 0)')
+          ),
+          text = paste(
+            "<b>",input$cInput_tab1.2,":</b> ", filtered %>% pull(input$cInput_tab1.2),
+            "<br><b>",input$cInput_tab1.3,":</b> ", filtered %>% pull(input$cInput_tab1.3),
+            "<br><b>Cantidad:</b> ", filtered %>% pull(Cantidad)
+          ),
+          hoverinfo = 'text'
+        ) %>% 
+        layout(
+          legend = list(
+            x = 100, y = 1, 
+            title = list(text=paste("<b>",input$cInput_tab1.3,"</b><br>"))
+          ),
+          #xaxis = list(range = c(0, (max(filtered$Cantidad)+18))),
+          yaxis = list(
+            ticktext = filtered %>% pull(input$cInput_tab1.2) %>% unique(),
+            autotick = FALSE,
+            ticks = "outside",
+            tick0 = 0,
+            dtick = 0.5,
+            ticklen = 8,
+            tickwidth = 1.4,
+            tickcolor = toRGB("black")
+          ),
+          barmode = 'stack'
+        ) %>% 
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d",
+                                     "zoomOut2d", "lasso2d",
+                                     "toggleSpikelines"),
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              paste(
+                "Diagrama de Densidad de ", input$cInput_tab1.2,
+                " con ", input$cInput_tab1.3,
+                " del ", input$CategoryInput,
+                " con rango de fecha desde ", input$timeFromInput,
+                " hasta ", input$timeToInput,
+                sep = ""
+              ),
+            scale = 3
+          )
+        )
+      
+    }
+    
   }) 
   ####  TAB_2.2  #### 
   output$Plot_tab2.1.2 <- renderPlotly({
-    # Input Validation
-    validate(need(nrow(df_CED_fil()) != 0, 
-                  na.time))
+    
     # Creating Df Object
     filtered <- df_CED_fil() %>%
       select(
@@ -5097,7 +6009,8 @@ server <- function(input, output, session) {
       table() %>%
       as.data.frame() %>%
       rename(Cantidad = Freq) 
-    # %>% filter(Cantidad != 0)
+    
+    
     # if (is.element('Diagnóstico', colnames(filtered)) & 
     #     is.element('Categoría_I', colnames(filtered))) {
     #   filtered <- 
@@ -5106,79 +6019,97 @@ server <- function(input, output, session) {
     #     filtered$Categoría_I %>% 
     #     factor(levels = filtered$Categoría_I %>% unique())
     # } 
+    
     # Visualization
-    plot_ly() %>%
-      add_trace(
-        orientation = 'h',
-        type='bar',
-        y = filtered %>% pull(input$cInput_tab1.2),
-        x = filtered$Cantidad,
-        color = filtered %>% pull(input$cInput_tab1.3),
-        marker = list(line = list(width = 1.6, 
-                                  color = 'rgb(0, 0, 0)')),
-        text = paste(
-          "<b>Semana:</b> ", filtered %>% pull(Semana),
-          "<br><b>",input$cInput_tab1.2,":</b> ", filtered %>% pull(input$cInput_tab1.2),
-          "<br><b>",input$cInput_tab1.3,":</b> ", filtered %>% pull(input$cInput_tab1.3),
-          "<br><b>Cantidad:</b> ", filtered$Cantidad
-        ),
-        hoverinfo = 'text',
-        frame = filtered$Semana
-      ) %>% 
-      layout(
-        legend = list(
-          x = 100, y = 1, 
-          title = list(text=paste("<b>",input$cInput_tab1.3,"</b><br>"))
-        ),
-        xaxis = list(range = c(0, (max(filtered$Cantidad)+6))),
-        yaxis = list(
-          #tickvals = ~(filtered %>% pull(input$cInput_tab1.2)),
-          ticktext = filtered %>% pull(input$cInput_tab1.2) %>% unique(),
-          tickmode = "array",
-          autotick = FALSE,
-          ticks = "outside",
-          tick0 = .5,
-          dtick = .5,
-          ticklen = 10,
-          tickwidth = 1.4,
-          tickcolor = toRGB("black")
-        ),
-        barmode = 'stack'
-      ) %>% 
-      animation_opts(
-        frame = 2000, 
-        transition = 800
-        # redraw = FALSE,
-        # easing = "elastic",
-        # mode = "afterall"
-      ) %>% 
-      animation_slider(
-        currentvalue = list(prefix = "Semana: "),
-        hide = FALSE
-      ) %>%
-      animation_button(
-        #x = 1.05, xanchor = "left", y =0, yanchor = "up",
-        label = "Recorrido"
-      ) %>% 
-      config(
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d",
-                                   "zoomOut2d", "lasso2d",
-                                   "toggleSpikelines"),
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename =
-            paste(
-              "Diagrama de Densidad de ", input$cInput_tab1.2,
-              " con ", input$cInput_tab1.3,
-              " del ", input$CategoryInput,
-              " con rango de fecha desde ", input$timeFromInput,
-              " hasta ", input$timeToInput,
-              sep = ""
-            ),
-          scale = 2
-        )
+    if ( filtered %>% filter(!Cantidad == 0) %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('esta combinación de Variables')      
       )
+      
+    } else if ( filtered$Semana %>% unique() %>% length() < 2 ) { 
+      
+      emptyChart(
+        emptyMessage('esta combinación de Variables')      
+      )
+      
+    } else {
+      
+      # Visualization
+      plot_ly() %>%
+        add_trace(
+          orientation = 'h',
+          type='bar',
+          y = filtered %>% pull(input$cInput_tab1.2),
+          x = filtered$Cantidad,
+          color = filtered %>% pull(input$cInput_tab1.3),
+          marker = list(line = list(width = line_with_bar, 
+                                    color = 'rgb(0, 0, 0)')),
+          text = paste(
+            "<b>Semana:</b> ", filtered %>% pull(Semana),
+            "<br><b>",input$cInput_tab1.2,":</b> ", filtered %>% pull(input$cInput_tab1.2),
+            "<br><b>",input$cInput_tab1.3,":</b> ", filtered %>% pull(input$cInput_tab1.3),
+            "<br><b>Cantidad:</b> ", filtered$Cantidad
+          ),
+          hoverinfo = 'text',
+          frame = filtered$Semana
+        ) %>% 
+        layout(
+          legend = list(
+            x = 100, y = 1, 
+            title = list(text=paste("<b>",input$cInput_tab1.3,"</b><br>"))
+          ),
+          xaxis = list(range = c(0, (max(filtered$Cantidad)+6))),
+          yaxis = list(
+            #tickvals = ~(filtered %>% pull(input$cInput_tab1.2)),
+            ticktext = filtered %>% pull(input$cInput_tab1.2) %>% unique(),
+            tickmode = "array",
+            autotick = FALSE,
+            ticks = "outside",
+            tick0 = .5,
+            dtick = .5,
+            ticklen = 10,
+            tickwidth = 1.4,
+            tickcolor = toRGB("black")
+          ),
+          barmode = 'stack'
+        ) %>% 
+        animation_opts(
+          frame = 2000, 
+          transition = 800
+          # redraw = FALSE,
+          # easing = "elastic",
+          # mode = "afterall"
+        ) %>% 
+        animation_slider(
+          currentvalue = list(prefix = "Semana: "),
+          hide = FALSE
+        ) %>%
+        animation_button(
+          #x = 1.05, xanchor = "left", y =0, yanchor = "up",
+          label = "Recorrido"
+        ) %>% 
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d",
+                                     "zoomOut2d", "lasso2d",
+                                     "toggleSpikelines"),
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              paste(
+                "Diagrama de Densidad de ", input$cInput_tab1.2,
+                " con ", input$cInput_tab1.3,
+                " del ", input$CategoryInput,
+                " con rango de fecha desde ", input$timeFromInput,
+                " hasta ", input$timeToInput,
+                sep = ""
+              ),
+            scale = 3
+          )
+        )
+      
+    }
   }) 
   observeEvent(input$Plot_tab2.1_HELP, {
     showModal(
@@ -5234,261 +6165,386 @@ server <- function(input, output, session) {
   
   ####  TAB_3.1  #### 
   output$Plot_tab3.1 <- renderPlotly({
-    ## DF
-    df.ID <- 
-      rbind(
-        df_KT_fil() %>% 
-          group_by(FechaTratamientoKinésico) %>% 
-          summarise(
-            Cantidad=n_distinct(ID_TratamientoKinésico)
-          ) %>% 
-          mutate(Grupo="Tratamientos Kinésicos") %>%
-          rename(Fecha=FechaTratamientoKinésico),
-        df_KA_fil() %>% 
-          group_by(FechaAcciónKinésica) %>% 
-          summarise(
-            Cantidad=n_distinct(ID_AcciónKinésica)
-          ) %>% 
-          mutate(Grupo="Acciones Kinésicas") %>%
-          rename(Fecha=FechaAcciónKinésica),
-        df_CED_fil() %>% 
-          group_by(FechaEventoClínico) %>% 
-          summarise(
-            Cantidad=n_distinct(ID_EventoClínico)
-          ) %>% 
-          mutate(Grupo="Eventos Clínicos") %>%
-          rename(Fecha=FechaEventoClínico),
-        df_PD_F_fil() %>% 
-          filter(Dimensión %in% "Masoterápea") %>% 
-          group_by(Jugador, FechaDimensión) %>% 
-          summarise(
-            Cantidad_1=n_distinct(Medición)
-          ) %>%
-          rename(Fecha=FechaDimensión) %>%
-          group_by(Fecha) %>% 
-          summarise(
-            Cantidad=sum(Cantidad_1)
-          ) %>% 
-          mutate(Grupo="Masajes")
-      ) %>%
-      filter(!is.na(Fecha)) %>%
-      arrange(Fecha)
-    ## Empty Range Date
-    date.range <- 
-      seq.Date(
-        from = min(df.ID$Fecha),
-        to = max(df.ID$Fecha),
-        by = "day"
-      )
-    ## Join & Final Data Frame
-    df.ID <- 
-      full_join(
-        rbind(
-          data.frame(
-            Fecha = seq.Date(
-              from = min(df.ID$Fecha),
-              to = max(df.ID$Fecha),
-              by = "day"
-            ),
-            Cantidad = 0,
-            Grupo = "Tratamientos Kinésicos"
-          ),
-          data.frame(
-            Fecha = seq.Date(
-              from = min(df.ID$Fecha),
-              to = max(df.ID$Fecha),
-              by = "day"
-            ),
-            Cantidad = 0,
-            Grupo = "Acciones Kinésicas"
-          ),
-          data.frame(
-            Fecha = seq.Date(
-              from = min(df.ID$Fecha),
-              to = max(df.ID$Fecha),
-              by = "day"
-            ),
-            Cantidad = 0,
-            Grupo = "Masajes"     
-          ),
-          data.frame(
-            Fecha = seq.Date(
-              from = min(df.ID$Fecha),
-              to = max(df.ID$Fecha),
-              by = "day"
-            ),
-            Cantidad = 0,
-            Grupo = "Eventos Clínicos"
-          )
-        ),
-        df.ID
-      ) %>%
-      mutate(Fecha = Fecha %>% as.Date()) %>%
-      group_by(Fecha, Grupo) %>%
-      summarise(Cantidad = sum(Cantidad))
-    ## General DF
-    DF_CKM_F <- 
-      df.ID %>% 
-      spread(Grupo,Cantidad) %>% 
-      ungroup() %>%
-      mutate_if(is.numeric , replace_na, replace = 0) %>% 
-      mutate_if(is.numeric , as.integer) %>%
-      arrange(Fecha)
-    ## Games
-    games_CKM_F <- inner_join(
-      DF_CKM_F %>% 
-        select(Fecha) %>% 
-        unique(),
-      df_G_T() %>%
-        filter(TipoMedición %in% "Partido") %>%
-        select(Fecha),
-      by='Fecha'
-    ) %>% pull(Fecha)
-    ## Visualization
-    Plotly_1 <- 
-      plot_ly( 
-        DF_CKM_F,
-        x = ~Fecha
-      ) %>% 
-      add_trace(
-        name = 'Eventos Clínicos',
-        color = I("#1348C2"), 
-        DF_CKM_F, x = ~Fecha, y = DF_CKM_F$`Eventos Clínicos`,
-        type = 'scatter', mode = 'lines+markers',
-        line = list(simplyfy = F)
-      ) %>% 
-      add_trace(
-        name = 'Acciones Kinésicas',
-        color = I("#179EB3"), 
-        DF_CKM_F, x = ~Fecha, y = DF_CKM_F$`Acciones Kinésicas`,
-        type = 'scatter', mode = 'lines+markers',
-        line = list(simplyfy = F)
-      ) %>% 
-      add_trace(
-        name = 'Tratamientos Kinésicos',
-        color = I("#10B534"), 
-        DF_CKM_F, x = ~Fecha, y = DF_CKM_F$`Tratamientos Kinésicos`,
-        type = 'scatter', mode = 'lines+markers',
-        line = list(simplyfy = F)
-      ) %>% 
-      add_trace(
-        name = 'Masajes',
-        color = I("#C916C0"), 
-        DF_CKM_F, x = ~Fecha, y = DF_CKM_F$Masajes,
-        type = 'scatter', mode = 'lines+markers',
-        line = list(simplyfy = F)
-      ) %>%
-      layout(
-        xaxis = list(
-          title = "",
-          type = "date",
-          #Range selected:
-          #range = c(min(DF_CKM_F$Fecha),max(DF_CKM_F$Fecha)),
-          zeroline = F,
-          rangeselector = list(
-            buttons = list(
-              list(count = 10,
-                   label = "10 días",
-                   step = "day",
-                   stepmode = "todate"),
-              list(count = 20,
-                   label = "20 días",
-                   step = "day",
-                   stepmode = "todate"),
-              list(count = 30,
-                   label = "30 días",
-                   step = "day",
-                   stepmode = "todate"),
-              list(
-                label = "Completo",
-                step = "all")
-            ))
-        ),
-        yaxis = list(
-          title = "",
-          zeroline = F
-        )
-      ) %>% 
-      rangeslider(
-        type = "date", 
-        borderwidth = 1, 
-        thickness = .1
-      ) %>% 
-      layout(
-        legend = list(orientation = 'h'),
-        hovermode = "x unified", # = "x unified"
-        hoverlabel = list(bordercolor = 'black')
-      ) %>% 
-      config( 
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                   "zoomOut2d", "lasso2d", 
-                                   "toggleSpikelines"), 
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename = 
-            if(input$Player){
-              paste(
-                "Diagrama de Frequencia de Eventos, Trastamientos, Acciones y Masajes del Jugador ", 
-                input$PlayerInput,
-                " del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            } else {
-              paste(
-                "Diagrama de Frequencia de Eventos, Trastamientos, Acciones y Masajes del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            },
-          scale = 2
-        )
-      ) 
-    if (!(length(games_CKM_F) == 0)) {
-      Plotly_1 %>%
-        add_segments(
-          name = "Fecha Partido",
-          hoverinfo = 'text',
-          text = paste("Fecha Partido: ", as.Date(games_CKM_F), sep=""),
-          color = I("red"), alpha=.6, line = list(dash = "dash"),
-          y = 0, yend = 26,
-          x = as.Date(games_CKM_F),
-          xend = as.Date(games_CKM_F)
-        )
-    }
-    ## Second Plot
-    Plotly_2 <- 
-      plot_ly( 
-        name = 'Cantidad',
-        y = df.ID$Cantidad,
-        type = 'histogram', 
-        mode = 'lines', 
-        color = I("#00AAD6"), 
-        fill = 'tozeroy',
-        showlegend = FALSE,
-        alpha = .8
-      ) %>% 
-      layout(
-        bargap = 0.4,
-        xaxis = list(
-          title = "",
-          zeroline = FALSE,
-          showline = FALSE,
-          showticklabels = FALSE,
-          showgrid = FALSE
-        )
-      )
     
-    # Final Subplot
-    subplot(Plotly_1, Plotly_2, nrows = 1, margin = 0.0, widths = c(0.93, 0.07), shareY = TRUE)  %>% 
-      layout(
-        hovermode = "x unified", # = "x"
-        hoverlabel = list(bordercolor = 'black')
+    if ( 
+      df_CED_fil() %>% nrow() == 0 &
+      df_KA_fil() %>% nrow() == 0 &
+      df_KT_fil() %>% nrow() == 0 &
+      df_PD_F_fil() %>% nrow() == 0
+    ) { 
+      
+      emptyChart(
+        emptyMessage('Molestias, Lesiones y Enfermedades')      
       )
+      
+    } else {
+      
+      ## DF
+      df.ID <- 
+        rbind(
+          df_KT_fil() %>% 
+            group_by(FechaTratamientoKinésico) %>% 
+            summarise(
+              Cantidad=n_distinct(ID_TratamientoKinésico)
+            ) %>% 
+            mutate(Grupo="Tratamientos Kinésicos") %>%
+            rename(Fecha=FechaTratamientoKinésico),
+          df_KA_fil() %>% 
+            group_by(FechaAcciónTerapéutica) %>% 
+            summarise(
+              Cantidad=n_distinct(ID_AcciónTerapéutica)
+            ) %>% 
+            mutate(Grupo="Acciones Terapéuticas") %>%
+            rename(Fecha=FechaAcciónTerapéutica),
+          df_CED_fil() %>% 
+            group_by(FechaEventoClínico) %>% 
+            summarise(
+              Cantidad=n_distinct(ID_EventoClínico)
+            ) %>% 
+            mutate(Grupo="Eventos Clínicos") %>%
+            rename(Fecha=FechaEventoClínico),
+          df_PD_F_fil() %>% 
+            filter(Dimensión %in% "Masoterápea") %>% 
+            group_by(Jugador, FechaDimensión) %>% 
+            summarise(
+              Cantidad_1=n_distinct(Medición)
+            ) %>%
+            rename(Fecha=FechaDimensión) %>%
+            group_by(Fecha) %>% 
+            summarise(
+              Cantidad=sum(Cantidad_1)
+            ) %>% 
+            mutate(Grupo="Masajes")
+        ) %>%
+        filter(!is.na(Fecha)) %>%
+        arrange(Fecha)
+      
+      if ( 
+        df.ID %>% nrow() < 2
+      ) { 
+        
+        emptyChart(
+          emptyMessage('Molestias, Lesiones y Enfermedades')      
+        )
+        
+      } else {
+        
+        ## Empty Range Date
+        date_range <- 
+          seq.Date(
+            from = min(df.ID$Fecha),
+            to = max(df.ID$Fecha),
+            by = "day"
+          )
+        ## Join & Final Data Frame
+        df.ID <- 
+          full_join(
+            rbind(
+              data.frame(
+                Fecha = seq.Date(
+                  from = min(df.ID$Fecha),
+                  to = max(df.ID$Fecha),
+                  by = "day"
+                ),
+                Cantidad = 0,
+                Grupo = "Tratamientos Kinésicos"
+              ),
+              data.frame(
+                Fecha = seq.Date(
+                  from = min(df.ID$Fecha),
+                  to = max(df.ID$Fecha),
+                  by = "day"
+                ),
+                Cantidad = 0,
+                Grupo = "Acciones Terapéuticas"
+              ),
+              data.frame(
+                Fecha = seq.Date(
+                  from = min(df.ID$Fecha),
+                  to = max(df.ID$Fecha),
+                  by = "day"
+                ),
+                Cantidad = 0,
+                Grupo = "Masajes"     
+              ),
+              data.frame(
+                Fecha = seq.Date(
+                  from = min(df.ID$Fecha),
+                  to = max(df.ID$Fecha),
+                  by = "day"
+                ),
+                Cantidad = 0,
+                Grupo = "Eventos Clínicos"
+              )
+            ),
+            df.ID
+          ) %>%
+          mutate(Fecha = Fecha %>% as.Date()) %>%
+          group_by(Fecha, Grupo) %>%
+          summarise(Cantidad = sum(Cantidad))
+        ## General DF
+        DF_CKM_F <- 
+          df.ID %>% 
+          spread(Grupo,Cantidad) %>% 
+          ungroup() %>%
+          mutate_if (is.numeric , replace_na, replace = 0) %>% 
+          mutate_if (is.numeric , as.integer) %>%
+          arrange(Fecha)
+        
+        if (
+          DF_CKM_F$Fecha %>% unique() %>% length() < 2 
+        ) { 
+          
+          emptyChart(
+            emptyMessage('Molestias, Lesiones y Enfermedades')      
+          )
+          
+        } else {
+          
+          ## Games
+          games_CKM_F <- inner_join(
+            DF_CKM_F %>% 
+              select(Fecha) %>% 
+              unique(),
+            df_G_T() %>%
+              filter(TipoMedición %in% "Partido") %>%
+              select(Fecha),
+            by='Fecha'
+          ) %>% 
+            pull(Fecha)
+          
+          ## Max value
+          max_value <- max(c(
+            max(DF_CKM_F$`Eventos Clínicos`),
+            max(DF_CKM_F$`Acciones Terapéuticas`),
+            max(DF_CKM_F$`Tratamientos Kinésicos`),
+            max(DF_CKM_F$`Masajes`)
+          ))
+          
+          ## Visualization
+          Plotly_1 <- 
+            plot_ly( 
+              DF_CKM_F,
+              x = ~Fecha
+            ) %>% 
+            add_trace(
+              name = 'Eventos Clínicos',
+              color = I("#1348C2"), 
+              DF_CKM_F, x = ~Fecha, y = DF_CKM_F$`Eventos Clínicos`,
+              type = 'scatter', 
+              mode = 'lines+markers',
+              line = list(width = 2),
+              marker = list(
+                opacity = 1,
+                size = ifelse(DF_CKM_F$`Eventos Clínicos` == 0, 1, 5)
+              )
+            ) %>% 
+            add_trace(
+              name = 'Acciones Terapéuticas',
+              color = I("#179EB3"), 
+              DF_CKM_F, x = ~Fecha, y = DF_CKM_F$`Acciones Terapéuticas`,
+              type = 'scatter', 
+              line = list(width = 2),
+              marker = list(
+                opacity = 1,
+                size = ifelse(DF_CKM_F$`Acciones Terapéuticas` == 0, 1, 5)
+              )
+            ) %>% 
+            add_trace(
+              name = 'Tratamientos Kinésicos',
+              color = I("#10B534"), 
+              DF_CKM_F, x = ~Fecha, y = DF_CKM_F$`Tratamientos Kinésicos`,
+              type = 'scatter', 
+              mode = 'lines+markers',
+              line = list(width = 2),
+              marker = list(
+                opacity = 1,
+                size = ifelse(DF_CKM_F$`Tratamientos Kinésicos` == 0, 1, 5)
+              )
+            ) %>% 
+            add_trace(
+              name = 'Masajes',
+              color = I("#C916C0"), 
+              DF_CKM_F, x = ~Fecha, y = DF_CKM_F$Masajes,
+              type = 'scatter', 
+              mode = 'lines+markers',
+              alpha = 1,
+              line = list(width = 2),
+              marker = list(
+                opacity = 1,
+                size = ifelse(DF_CKM_F$`Masajes` == 0, 1, 5)
+              )
+            ) %>%
+            layout(
+              xaxis = list(
+                title = "",
+                type = "date",
+                #Range selected:
+                #range = c(min(DF_CKM_F$Fecha),max(DF_CKM_F$Fecha)),
+                zeroline = F,
+                rangeselector = list(
+                  buttons = list(
+                    list(count = 10,
+                         label = "10 días",
+                         step = "day",
+                         stepmode = "todate"),
+                    list(count = 20,
+                         label = "20 días",
+                         step = "day",
+                         stepmode = "todate"),
+                    list(count = 30,
+                         label = "30 días",
+                         step = "day",
+                         stepmode = "todate"),
+                    list(
+                      label = "Completo",
+                      step = "all")
+                  ))
+              ),
+              yaxis = list(
+                title = "",
+                zeroline = F
+              )
+            ) %>% 
+            rangeslider(
+              type = "date", 
+              borderwidth = 1, 
+              thickness = .1
+            ) %>% 
+            layout(
+              yaxis = list(range = c(-1, (max(max_value) + 2))),
+              legend = list(orientation = 'h'),
+              hovermode = "x unified",
+              hoverlabel = list(
+                bordercolor = 'black',
+                font = list(size = 13),
+                namelength = 30
+              )
+            ) %>% 
+            config( 
+              displaylogo = FALSE,
+              modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                         "zoomOut2d", "lasso2d", 
+                                         "toggleSpikelines"), 
+              toImageButtonOptions = list(
+                format = "jpeg",
+                filename = 
+                  if (input$Player) {
+                    paste(
+                      "Diagrama de Frequencia de Eventos, Trastamientos, Acciones y Masajes del Jugador ", 
+                      input$PlayerInput,
+                      " del ", input$CategoryInput, 
+                      " con rango de fecha desde ", input$timeFromInput, 
+                      " hasta ", input$timeToInput,
+                      sep = ""
+                    )
+                  } else {
+                    paste(
+                      "Diagrama de Frequencia de Eventos, Trastamientos, Acciones y Masajes del ", 
+                      input$CategoryInput, 
+                      " con rango de fecha desde ", input$timeFromInput, 
+                      " hasta ", input$timeToInput,
+                      sep = ""
+                    )
+                  },
+                scale = 3
+              )
+            ) 
+          if (length(games_CKM_F) != 0) {
+            Plotly_1 <- 
+              Plotly_1 %>%
+              add_segments(
+                name = "Fecha Partido",
+                hoverinfo = 'text',
+                text = paste("Fecha Partido: ", as.Date(games_CKM_F), sep=""),
+                color = I("red"), alpha=.6, line = list(dash = "dash"),
+                y = 0, yend = 40,
+                x = as.Date(games_CKM_F),
+                xend = as.Date(games_CKM_F)
+              )
+          }
+          ## Second Plot
+          Plotly_2 <- 
+            plot_ly( 
+              name = 'Cantidad',
+              y = df.ID$Cantidad, 
+              type = 'histogram', 
+              mode = 'lines', 
+              color = I("#00AAD6"), 
+              fill = 'tozeroy',
+              showlegend = FALSE,
+              alpha = .8
+            ) %>% 
+            layout(
+              bargap = 0.4,
+              xaxis = list(
+                title = "",
+                zeroline = FALSE,
+                showline = FALSE,
+                showticklabels = FALSE,
+                showgrid = FALSE
+              )
+            )
+          
+          # Final Subplot
+          subplot(
+            Plotly_1, 
+            Plotly_2, 
+            nrows = 1, 
+            margin = 0.0, 
+            widths = c(0.93, 0.07), 
+            shareY = TRUE
+          )  %>% 
+            layout(
+              yaxis = list(range = c(-1, (max(max_value) + 2))),
+              legend = list(orientation = 'h'),
+              hovermode = "x unified",
+              hoverlabel = list(
+                bordercolor = 'black',
+                font = list(size = 13),
+                namelength = 30
+              )
+            ) %>%
+            config(
+              displaylogo = FALSE,
+              modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                         "zoomOut2d", "lasso2d", 
+                                         "toggleSpikelines"), 
+              toImageButtonOptions = list(
+                format = "jpeg",
+                filename =
+                  if (input$Player) {
+                    paste(
+                      "Diagrama Temporal de Frequencia de Eventos, Acciones, Tratamientos y Masajes de ", 
+                      input$PlayerInput,
+                      " del ", input$CategoryInput, 
+                      " con rango de fecha desde ", input$timeFromInput, 
+                      " hasta ", input$timeToInput,
+                      sep = ""
+                    )
+                  } else {
+                    paste(
+                      "Diagrama Temporal de Frequencia de Eventos, Acciones, Tratamientos y Masajes del ", 
+                      input$CategoryInput, 
+                      " con rango de fecha desde ", input$timeFromInput, 
+                      " hasta ", input$timeToInput,
+                      sep = ""
+                    )
+                  },
+                scale = 3
+              )
+            ) 
+          
+        }
+        
+      }
+      
+    }
+    
   })
+  
+  ####  FOOTER_3.1  #### 
+  
   Plot_tab3.1_Footer_A_1 <- reactive({
     df_KT_fil() %>% 
       select(ID_TratamientoKinésico) %>% 
@@ -5507,9 +6563,10 @@ server <- function(input, output, session) {
       text = "Total de Tratamientos Kinésicos"
     )
   })
+  
   Plot_tab3.1_Footer_A_2 <- reactive({
     df_KA_fil() %>% 
-      select(ID_AcciónKinésica) %>% 
+      select(ID_AcciónTerapéutica) %>% 
       unique() %>% 
       drop_na() %>%
       nrow()
@@ -5544,6 +6601,7 @@ server <- function(input, output, session) {
       text = "Total de Masajes"
     )
   })
+  
   Plot_tab3.1_Footer_C <- reactive({
     df_CED_fil() %>% 
       select(ID_EventoClínico) %>% 
@@ -5562,6 +6620,7 @@ server <- function(input, output, session) {
       text = "Total de Eventos Clínicos"
     )
   })
+  
   Plot_tab3.1_Footer_D <- reactive({
     df_KT_C() %>%
       filter(!ID_TratamientoKinésico %in% "NULL") %>%
@@ -5581,6 +6640,7 @@ server <- function(input, output, session) {
       text = "Total de Deportistas con Tratamientos Kinésicos"
     )
   })
+  
   Plot_tab3.1_Footer_E <- reactive({
     df_G_T() %>%
       filter(TipoMedición %in% "Entrenamiento") %>%
@@ -5598,10 +6658,11 @@ server <- function(input, output, session) {
       text = "Total de Entrenamientos"
     )
   })
+  
   Plot_tab3.1_Footer_F <- reactive({
-    df_PD_fil() %>%
+    df_G_T() %>%
       filter(TipoMedición %in% "Partido") %>%
-      select(FechaDimensión) %>%
+      select(Fecha) %>%
       unique() %>%
       drop_na() %>%
       nrow()
@@ -5617,6 +6678,7 @@ server <- function(input, output, session) {
       text = "Total de Partidos"
     )
   })
+  
   observeEvent(input$Plot_tab3.1_HELP, {
     showModal(
       modalDialog(
@@ -5650,11 +6712,11 @@ server <- function(input, output, session) {
             rename(Fecha=FechaEventoClínico),
           full_join(
             df_KA_fil() %>% 
-              group_by(FechaAcciónKinésica) %>% 
+              group_by(FechaAcciónTerapéutica) %>% 
               summarise(
-                'Acciones Kinésicas'=n_distinct(ID_AcciónKinésica)
+                'Acciones Terapéuticas'=n_distinct(ID_AcciónTerapéutica)
               ) %>%
-              rename(Fecha=FechaAcciónKinésica),
+              rename(Fecha=FechaAcciónTerapéutica),
             df_KT_fil() %>% 
               group_by(FechaTratamientoKinésico) %>% 
               summarise(
@@ -5684,10 +6746,9 @@ server <- function(input, output, session) {
     }
     full_join(
       df.T,
-      df_PD_fil() %>% 
+      df_G_T() %>% 
         filter(TipoMedición %in% c("Partido")) %>%
-        select(Fecha = FechaDimensión) %>%
-        unique() %>% 
+        select(Fecha) %>%
         mutate(Jornada = "Partido"),
       by = 'Fecha'
     ) %>%
@@ -5698,17 +6759,18 @@ server <- function(input, output, session) {
   output$Table_tab3.1 <- DT::renderDataTable({
     DT::datatable(
       Table_tab3.1(), 
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
-      selection="multiple",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE, 
-        scrollX='400px', scrollY="300px", 
+        scrollX = '400px', scrollY = "300px", 
         info=FALSE, paging=FALSE, 
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     ) %>% 
       formatStyle(
@@ -5723,9 +6785,10 @@ server <- function(input, output, session) {
   })
   output$download_Table_tab3.1.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
-          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del Jugador ", input$PlayerInput, 
+          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del Jugador ", 
+          input$PlayerInput, 
           " del ", input$CategoryInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
@@ -5733,7 +6796,8 @@ server <- function(input, output, session) {
         )  
       } else {
         paste(
-          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del ", input$CategoryInput, 
+          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del ", 
+          input$CategoryInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
           ".xlsx", sep = ""
@@ -5747,9 +6811,10 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab3.1.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
-          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del Jugador ", input$PlayerInput, 
+          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del Jugador ", 
+          input$PlayerInput, 
           " del ", input$CategoryInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
@@ -5757,7 +6822,8 @@ server <- function(input, output, session) {
         )  
       } else {
         paste(
-          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del ", input$CategoryInput, 
+          "Tabla de Frequencia de Eventos, Tratamientos, Acciones y Masajes del ", 
+          input$CategoryInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
           ".csv", sep = ""
@@ -5792,7 +6858,7 @@ server <- function(input, output, session) {
     data.frame(
       Medida = c(
         "Total Tratamientos Kinésicos",
-        "Total Acciones Kinésicas",
+        "Total Acciones Terapéuticas",
         "Total Masajes",
         "Total Eventos Clínicos",
         "Deportistas con Tratamientos Kinésicos",
@@ -5813,22 +6879,23 @@ server <- function(input, output, session) {
   output$Table_tab3.2 <- DT::renderDataTable({
     DT::datatable(
       Table_tab3.2(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
-      selection="multiple",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE, 
         info=FALSE, paging=FALSE, 
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     ) 
   })
   output$download_Table_tab3.2.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Resumen de Gestión Médica del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -5852,7 +6919,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab3.2.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Resumen de Gestión Médica del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -5874,266 +6941,776 @@ server <- function(input, output, session) {
     }
   )
   
-  ####  TAB_3.2  #### 
-  output$Plot_tab3.2 <- renderPlotly({
+  ####  TAB_3.2.1  #### 
+  
+  df_tab3.2.1 <- reactive({
+    ## Defining Objects and Matching Colnames
+    df_KA_G <- df_KA_fil()
+    ## Creating Df Object
+    table.DF_KT <- 
+      df_KA_G %>%
+      select(AcciónTerapéutica) %>%
+      drop_na() %>%
+      table() %>% 
+      as.data.frame() %>% 
+      arrange(desc(Freq)) %>%
+      filter(Freq != 0) 
+    ## Condition
+    if (table.DF_KT %>% nrow() != 0) {
+      table.DF_KT <- 
+        table.DF_KT %>% 
+        rename("Cantidad"=Freq, Tipo='.') 
+      ## Revalue
+      table.DF_KT$Tipo <- 
+        table.DF_KT$Tipo %>% 
+        as.character() %>% 
+        as.factor()
+    }
+    ## Final DF
+    table.DF_KT
+  })
+  
+  output$Plot_tab3.2.1 <- renderPlotly({
+    
     # Defining the Object
-    table.DF_KT <- Table_tab3.3()
+    table.DF_KT <- df_tab3.2.1()
+    
     # Visualization
-    plot_ly() %>%
-      add_trace(
-        orientation = 'h',
-        type='bar',
-        y=table.DF_KT$Tipo,
-        x=table.DF_KT$Cantidad,
-        color = table.DF_KT$Tipo,
-        marker = list(
-          line = list(width = 1.6, 
-                      color = 'rgb(0, 0, 0)')
-        ),
-        text = paste(
-          "<b>Tipo: </b>", table.DF_KT$Tipo,
-          "<br><b>Cantidad: </b>", table.DF_KT$Cantidad
-        ),
-        hoverinfo = 'text'
-      ) %>%
-      layout(
-        #margin = list(l = 200, r = 50, b = 100, t = 100, pad = 20),
-        #xaxis = list(range = c(0, (max(table.DF_KT$Cantidad)+10))),
-        yaxis = list(
-          autotick = FALSE,
-          ticks = "outside",
-          tick0 = 0,
-          dtick = 0.25,
-          ticklen = 5,
-          tickwidth = 2,
-          tickcolor = toRGB("blue")
-        ),
-        showlegend = FALSE
-      ) %>%
-      config(
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                   "zoomOut2d", "lasso2d", 
-                                   "toggleSpikelines"), 
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename =
-            if(input$Player){
-              paste(
-                "Gráfica de Frecuencia de Acciones y Tratamientos Kinésico del Jugador ", input$PlayerInput,
-                " del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            } else {
-              paste(
-                "Gráfica de Frecuencia de Acciones y Tratamientos Kinésico del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            },
-          scale = 2
-        )
-      ) 
-  }
-  )
+    if ( table.DF_KT %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('Acciones Terapéuticas')      
+      )
+      
+    } else {
+      
+      # Visualization
+      plot_ly() %>%
+        add_trace(
+          orientation = 'h',
+          type='bar',
+          y=table.DF_KT$Tipo,
+          x=table.DF_KT$Cantidad,
+          color = table.DF_KT$Tipo,
+          marker = list(
+            line = list(width = line_with_bar, 
+                        color = 'rgb(0, 0, 0)')
+          ),
+          text = paste(
+            "<b>Tipo: </b>", table.DF_KT$Tipo,
+            "<br><b>Cantidad: </b>", table.DF_KT$Cantidad
+          ),
+          hoverinfo = 'text'
+        ) %>%
+        layout(
+          xaxis = list(range = c(0, (max(table.DF_KT$Cantidad)+10))),
+          yaxis = list(
+            autotick = FALSE,
+            ticks = "outside",
+            tick0 = 0,
+            dtick = 0.25,
+            ticklen = 5,
+            tickwidth = 2,
+            tickcolor = toRGB("blue")
+          ),
+          showlegend = FALSE
+        ) %>%
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              if (input$Player) {
+                paste(
+                  "Gráfica de Frecuencia de Acciones Terapéuticas del Jugador ", input$PlayerInput,
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              } else {
+                paste(
+                  "Gráfica de Frecuencia de Acciones Terapéuticas del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              },
+            scale = 3
+          )
+        ) 
+    }
+    
+  })
   
   ####  TAB_3.2.2  #### 
+  
+  df_tab3.2.2 <- reactive({
+    
+    ## Defining Objects and Matching Colnames
+    df_KA_G <- 
+      df_KA_fil()
+    ## Years
+    years_data <- 
+      unique(format(df_KA_G$FechaAcciónTerapéutica, "%y"))
+    ## Empty DF
+    general_empty_df <- 
+      data.frame(
+        Tipo = factor(),
+        Semana = factor(),
+        Cantidad = integer()
+      )
+    ## General Loop & Condition
+    if (df_KA_G %>% drop_na() %>% nrow() != 0) {
+      
+      for (year in seq(1,length(years_data))) {
+        
+        ## Creating Df Object
+        initial_DF_KT <- 
+          df_KA_G %>%
+          select(AcciónTerapéutica,
+                 FechaAcciónTerapéutica) %>%
+          drop_na() %>%
+          mutate(
+            Año = format(FechaAcciónTerapéutica, "%y")
+          ) %>%
+          filter(
+            Año == years_data[year]
+          ) %>%
+          select(!Año)
+        table.DF_KT <- 
+          initial_DF_KT %>%
+          mutate("Semana" = lubridate::week(FechaAcciónTerapéutica)) %>% 
+          select(!FechaAcciónTerapéutica) %>%
+          table() %>% 
+          as.data.frame() %>%
+          filter(Freq != 0) %>%
+          arrange(desc(Semana)) %>% 
+          rename("Cantidad"=Freq,
+                 "Tipo"=AcciónTerapéutica) 
+        ## Revalue
+        table.DF_KT$Tipo <- 
+          table.DF_KT$Tipo %>% 
+          as.character() %>% 
+          as.factor() 
+        ## Missing values
+        # Empty DF
+        empty_df <- 
+          data.frame(
+            Tipo = factor(),
+            Semana = factor(),
+            Cantidad = integer()
+          )
+        # Levels
+        levels <- table.DF_KT$Tipo %>% unique()
+        # Loop
+        for (level in levels) {
+          # DF
+          df <- 
+            data.frame(
+              Tipo = level,
+              Semana = seq(lubridate::week(min(initial_DF_KT$FechaAcciónTerapéutica)),
+                           lubridate::week(max(initial_DF_KT$FechaAcciónTerapéutica))) %>% 
+                as.factor(),
+              Cantidad = 0
+            )
+          # Final DF
+          empty_df <- 
+            rbind(
+              empty_df,
+              df
+            )
+        }
+        ## Grouping
+        final_df <- 
+          rbind(
+            table.DF_KT,
+            empty_df
+          ) %>% 
+          group_by(Tipo,Semana) %>%
+          summarise(Cantidad = sum(Cantidad)) %>%
+          arrange(desc(Cantidad))
+        ## New Date order
+        final_df$Semana <- 
+          factor(
+            final_df$Semana,
+            levels = seq(lubridate::week(min(initial_DF_KT$FechaAcciónTerapéutica)),
+                         lubridate::week(max(initial_DF_KT$FechaAcciónTerapéutica)))
+          )
+        ## Fianl DF
+        final_df <- 
+          final_df %>% 
+          distinct() %>%
+          arrange(desc(Semana)) %>%
+          mutate(
+            Semana =  as.factor(paste(years_data[year], Semana, sep = "-"))
+          )
+        ## Merging
+        general_empty_df <- 
+          rbind(
+            general_empty_df,
+            final_df
+          )
+        
+      }
+      
+    }
+    
+    ## Final DF
+    general_empty_df
+    
+  })
+  
   output$Plot_tab3.2.2 <- renderPlotly({
+    
     # Defining the Object
-    table.DF_KT <- Table_tab3.3.2()
+    table.DF_KT <- df_tab3.2.2()
+    
     # Visualization
-    plot_ly() %>%
-      add_trace(
-        orientation = 'h',
-        type='bar',
-        y=table.DF_KT$Tipo,
-        x=table.DF_KT$Cantidad,
-        color = table.DF_KT$Tipo,
-        marker = list(
-          line = list(width = 1.6, 
-                      color = 'rgb(0, 0, 0)')
-        ),
-        text = paste(
-          "<b>Tipo: </b>", table.DF_KT$Tipo,
-          "<br><b>Cantidad: </b>", table.DF_KT$Cantidad
-        ),
-        hoverinfo = 'text',
-        frame = table.DF_KT$Semana
-      ) %>%
-      layout(
-        yaxis = list(
-          autotick = FALSE,
-          ticks = "outside",
-          tick0 = 0,
-          dtick = 0.25,
-          ticklen = 5,
-          tickwidth = 2,
-          tickcolor = toRGB("blue")
-        ),
-        showlegend = FALSE
-      ) %>% 
-      animation_opts(
-        frame = 800, 
-        transition = 300, 
-        redraw = FALSE
-        # easing = "elastic",
-        # mode = "afterall"
-      ) %>% 
-      animation_slider(
-        currentvalue = list(prefix = "Semana: "),
-        hide = FALSE
-      ) %>%
-      animation_button(
-        #x = 1.05, xanchor = "left", y =0, yanchor = "up",
-        label = "Recorrido"
-      ) %>%
-      config(
-        displaylogo = FALSE,
-        modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
-                                   "zoomOut2d", "lasso2d", 
-                                   "toggleSpikelines"), 
-        toImageButtonOptions = list(
-          format = "jpeg",
-          filename =
-            if(input$Player){
-              paste(
-                "Gráfica de Frecuencia de Acciones y Tratamientos Kinésico del Jugador ", input$PlayerInput,
-                " del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            } else {
-              paste(
-                "Gráfica de Frecuencia de Acciones y Tratamientos Kinésico del ", input$CategoryInput, 
-                " con rango de fecha desde ", input$timeFromInput, 
-                " hasta ", input$timeToInput,
-                sep = ""
-              )
-            },
-          scale = 2
-        )
-      ) 
+    if ( table.DF_KT %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('Acciones Terapéuticas')      
+      )
+      
+    } else if ( table.DF_KT$Semana %>% unique() %>% length() < 2 ) { 
+      
+      emptyChart(
+        emptyMessage('Acciones Terapéuticas')      
+      )
+      
+    } else {
+      
+      # Visualization
+      plot_ly() %>%
+        add_trace(
+          orientation = 'h',
+          type = 'bar',
+          y = table.DF_KT$Tipo,
+          x = table.DF_KT$Cantidad,
+          color = table.DF_KT$Tipo,
+          marker = list(
+            line = list(width = line_with_bar, 
+                        color = 'rgb(0, 0, 0)')
+          ),
+          text = paste(
+            "<b>Tipo: </b>", table.DF_KT$Tipo,
+            "<br><b>Cantidad: </b>", table.DF_KT$Cantidad
+          ),
+          hoverinfo = 'text',
+          frame = table.DF_KT$Semana
+        ) %>%
+        layout(
+          xaxis = list(range = c(0, (max(table.DF_KT$Cantidad)+5))),
+          yaxis = list(
+            ticktext = table.DF_KT$Tipo %>% unique(),
+            tickmode = "array",
+            autotick = FALSE,
+            ticks = "outside",
+            tick0 = 0,
+            dtick = 0.25,
+            ticklen = 5,
+            tickwidth = 2,
+            tickcolor = toRGB("blue")
+          ),
+          showlegend = FALSE
+        ) %>% 
+        animation_opts(
+          frame = 2000, 
+          transition = 800
+          # redraw = FALSE,
+          # easing = "elastic",
+          # mode = "afterall"
+        ) %>% 
+        animation_slider(
+          currentvalue = list(prefix = "Semana: "),
+          hide = FALSE
+        ) %>%
+        animation_button(
+          #x = 1.05, xanchor = "left", y =0, yanchor = "up",
+          label = "Recorrido"
+        ) %>% 
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              if (input$Player) {
+                paste(
+                  "Gráfica de Frecuencia de Acciones Terapéuticas del Jugador ", input$PlayerInput,
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              } else {
+                paste(
+                  "Gráfica de Frecuencia de Acciones Terapéuticas Kinésico del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              },
+            scale = 3
+          )
+        ) 
+    }
   }
   )
   
-  ####  TABLE_3.3  #### 
+  ####  TAB_3.2.3  #### 
   
-  Table_tab3.3 <- reactive({
+  df_tab3.2.3 <- reactive({
     ## Defining Objects and Matching Colnames
-    df_KA_G <- df_KA_fil()
-    df_KT_G <- df_KT_fil()
-    colnames(df_KA_G) <- colnames(df_KT_G)
-    table.DF_KT <- rbind(df_KA_G,df_KT_G) 
-    # Empty DF
-    df_KAT_F <- 
-      data.frame(
-        Tipo = factor(),
-        Cantidad = numeric()
-      )
-    # Categories
-    KT_KA <- c("TERMO/CRIO","PRESOTERAPIA","MASOTERAPIA",
-               "TENS","TECAR","US","ET") #"TRABAJO FISICO DIFERENCIADO"
-    # General Loop
-    for (category in KT_KA) {
-      # Searching Categories
-      df_initial <- 
-        table.DF_KT %>%
-        mutate(
-          TratamientoKinésico = case_when(
-            stringr::str_detect(TratamientoKinésico, category) ~ category
+    table.DF_KT <- df_KT_fil()
+    
+    ## Condition
+    if (table.DF_KT %>% nrow() != 0) {
+      # Empty DF
+      df_KAT_F <- 
+        data.frame(
+          Tipo = factor(),
+          Cantidad = numeric()
+        )
+      # Categories
+      KT_KA <- 
+        c("TERMO/CRIO","PRESOTERAPIA","MASOTERAPIA","ACTIVACIÓN","LIBERACIÓN","MIOFASIAL","LASER","DRENAJE",
+          "LIB","CHC","TENS","TECAR","TEKAR","US","ET","FST")
+      # Uppercase
+      table.DF_KT$TratamientoKinésico <- 
+        table.DF_KT$TratamientoKinésico %>% toupper() %>% as.character()
+      # General Loop
+      for (category in KT_KA) {
+        # Searching Categories
+        df_initial <- 
+          table.DF_KT %>%
+          mutate(
+            TratamientoKinésico = case_when(
+              stringr::str_detect(TratamientoKinésico, category) ~ category
+            ) %>% 
+              as.factor() 
           ) %>% 
-            as.factor() 
-        ) %>% 
-        select(TratamientoKinésico,
-               FechaTratamientoKinésico) %>%
-        drop_na()
-      if (nrow(df_initial) != 0) {
-        df <- df_initial %>%
-          select(!FechaTratamientoKinésico) %>%
-          table() %>% 
-          as.data.frame() %>%
-          rename(Tipo = '.',
-                 Cantidad = 'Freq')
-        # Building the DF
-        df_KAT_F <- rbind(df_KAT_F,df) %>% 
-          arrange(Cantidad) 
+          select(TratamientoKinésico,
+                 FechaTratamientoKinésico) %>%
+          drop_na()
+        if (nrow(df_initial) != 0) {
+          if (category == "TECAR" ) {
+            df_initial$TratamientoKinésico <- 
+              df_initial$TratamientoKinésico %>% 
+              plyr::revalue(
+                c(TECAR = "TEKAR")
+              )
+          } 
+          if (category == "LIBERACIÓN" ) {
+            df_initial$TratamientoKinésico <- 
+              df_initial$TratamientoKinésico %>% 
+              plyr::revalue(
+                c(LIBERACIÓN = "LIB")
+              )
+          }
+          df <- 
+            df_initial %>%
+            select(!FechaTratamientoKinésico) %>%
+            table() %>% 
+            as.data.frame() %>%
+            rename(Tipo = '.',
+                   Cantidad = 'Freq')
+          # Building the DF
+          df_KAT_F <- rbind(df_KAT_F,df) %>% 
+            arrange(Cantidad) 
+        }
       }
+      # Final DF
+      df_KAT_F <- 
+        df_KAT_F %>% 
+        group_by(Tipo) %>% 
+        summarise(Cantidad = Cantidad %>% sum()) %>%
+        filter(Cantidad != 0)
+      df_KAT_F$Tipo <- 
+        df_KAT_F$Tipo %>% as.character() %>% as.factor()
+      table.DF_KT <- 
+        df_KAT_F
     }
-    df_KAT_F
+    table.DF_KT
   })
   
-  Table_tab3.3.2 <- reactive({
-    ## Defining Objects and Matching Colnames
-    df_KA_G <- df_KA_fil()
-    df_KT_G <- df_KT_fil()
-    colnames(df_KA_G) <- colnames(df_KT_G)
-    table.DF_KT <- rbind(df_KA_G,df_KT_G) 
-    # Empty DF
-    df_KAT_F <- 
-      data.frame(
-        Tipo = factor(),
-        Cantidad = numeric(),
-        Semana = Date()
+  output$Plot_tab3.2.3 <- renderPlotly({
+    
+    # Defining the Object
+    table.DF_KT <- df_tab3.2.3()
+    
+    # Visualization
+    if ( table.DF_KT %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('Tratamientos Kinésicos')      
       )
-    # Categories
-    KT_KA <- c("TERMO/CRIO","PRESOTERAPIA","MASOTERAPIA",
-               "TENS","TECAR","US","ET") #"TRABAJO FISICO DIFERENCIADO"
-    # General Loop
-    for (category in KT_KA) {
-      # Searching Categories
-      df_initial <- 
-        table.DF_KT %>%
-        mutate(
-          TratamientoKinésico = case_when(
-            stringr::str_detect(TratamientoKinésico, category) ~ category
-          ) %>% 
-            as.factor() 
-        ) %>% 
-        select(TratamientoKinésico,
-               FechaTratamientoKinésico) %>%
-        drop_na()
-      if (nrow(df_initial) != 0) {
-        df <- df_initial %>%
-          mutate("Semana" = lubridate::week(FechaTratamientoKinésico)) %>% 
-          select(!FechaTratamientoKinésico) %>%
-          table() %>% 
-          as.data.frame() %>%
-          rename(Tipo = 'TratamientoKinésico',
-                 Cantidad = 'Freq')
-        # Building the DF
-        df_KAT_F <- rbind(df_KAT_F,df) %>% 
-          arrange(Cantidad) 
-      }
+      
+    } else {
+      
+      # Visualization
+      plot_ly() %>%
+        add_trace(
+          orientation = 'h',
+          type='bar',
+          y=table.DF_KT$Tipo,
+          x=table.DF_KT$Cantidad,
+          color = table.DF_KT$Tipo,
+          marker = list(
+            line = list(width = line_with_bar, 
+                        color = 'rgb(0, 0, 0)')
+          ),
+          text = paste(
+            "<b>Tipo: </b>", table.DF_KT$Tipo,
+            "<br><b>Cantidad: </b>", table.DF_KT$Cantidad
+          ),
+          hoverinfo = 'text'
+        ) %>%
+        layout(
+          #margin = list(l = 200, r = 50, b = 100, t = 100, pad = 20),
+          #xaxis = list(range = c(0, (max(table.DF_KT$Cantidad)+10))),
+          yaxis = list(
+            autotick = FALSE,
+            ticks = "outside",
+            tick0 = 0,
+            dtick = 0.25,
+            ticklen = 5,
+            tickwidth = 2,
+            tickcolor = toRGB("blue")
+          ),
+          showlegend = FALSE
+        ) %>%
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              if (input$Player) {
+                paste(
+                  "Gráfica de Frecuencia de Tratamientos Kinésicos del Jugador ", input$PlayerInput,
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              } else {
+                paste(
+                  "Gráfica de Frecuencia de Tratamientos Kinésicos del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              },
+            scale = 3
+          )
+        ) 
     }
-    df_KAT_F
   })
   
-  output$Table_tab3.3 <- DT::renderDataTable({
+  ####  TAB_3.2.4  #### 
+  
+  df_tab3.2.4 <- reactive({
+    
+    ## Defining Objects and Matching Colnames
+    table.DF_KT <- 
+      df_KT_fil()
+    ## Years
+    years_data <- 
+      unique(format(table.DF_KT$FechaTratamientoKinésico, "%y"))
+    ## Empty DF
+    general_empty_df <- 
+      data.frame(
+        Tipo = factor(),
+        Semana = factor(),
+        Cantidad = integer()
+      )
+    
+    ## General Loop & Condition
+    if (table.DF_KT %>% drop_na() %>% nrow() != 0) {
+      
+      for (year in seq(1,length(years_data))) {
+        
+        # Initial DF
+        df_Loop <- 
+          table.DF_KT %>%
+          mutate(
+            Año = format(FechaTratamientoKinésico, "%y")
+          ) %>%
+          filter(
+            Año == years_data[year]
+          ) %>%
+          select(!Año)
+        # Empty DF
+        df_KAT_F <- 
+          data.frame(
+            Tipo = factor(),
+            Cantidad = numeric(),
+            Semana = Date()
+          )
+        # Categories
+        KT_KA <- 
+          c("TERMO/CRIO","PRESOTERAPIA","MASOTERAPIA","ACTIVACIÓN","LIBERACIÓN","MIOFASIAL","LASER","DRENAJE",
+            "LIB","CHC","TENS","TECAR","TEKAR","US","ET","FST")
+        # Uppercase
+        df_Loop$TratamientoKinésico <- 
+          df_Loop$TratamientoKinésico %>% 
+          toupper() %>% 
+          as.character()
+        # General Loop
+        for (category in KT_KA) {
+          # Searching Categories
+          df_initial <- 
+            df_Loop %>%
+            mutate(
+              TratamientoKinésico = case_when(
+                stringr::str_detect(TratamientoKinésico, category) ~ category
+              ) %>% 
+                as.factor() 
+            ) %>% 
+            select(TratamientoKinésico,
+                   FechaTratamientoKinésico) %>%
+            drop_na()
+          if (nrow(df_initial) != 0) {
+            if (category == "TECAR" ) {
+              df_initial$TratamientoKinésico <- 
+                df_initial$TratamientoKinésico %>% 
+                plyr::revalue(
+                  c(TECAR = "TEKAR")
+                )
+            } 
+            if (category == "LIBERACIÓN" ) {
+              df_initial$TratamientoKinésico <- 
+                df_initial$TratamientoKinésico %>% 
+                plyr::revalue(
+                  c(LIBERACIÓN = "LIB")
+                )
+            }
+            df <- df_initial %>%
+              mutate("Semana" = lubridate::week(FechaTratamientoKinésico)) %>% 
+              select(!FechaTratamientoKinésico) %>%
+              table() %>% 
+              as.data.frame() %>%
+              rename(Tipo = 'TratamientoKinésico',
+                     Cantidad = 'Freq')
+            # Building the DF
+            df_KAT_F <- rbind(df_KAT_F,df) %>% 
+              arrange(Cantidad) 
+          }
+        }
+        # Final DF
+        df_KAT_F <- 
+          df_KAT_F %>% 
+          group_by(Semana,Tipo) %>% 
+          summarise(Cantidad = Cantidad %>% sum()) %>%
+          filter(Cantidad != 0)
+        ## Revalue
+        df_KAT_F$Tipo <- 
+          df_KAT_F$Tipo %>% 
+          as.character() %>% 
+          as.factor()
+        ## Missing values
+        # Empty DF
+        empty_df <- 
+          data.frame(
+            Tipo = factor(),
+            Semana = factor(),
+            Cantidad = integer()
+          )
+        # Levels
+        levels <- df_KAT_F$Tipo %>% unique()
+        # Loop
+        for (level in levels) {
+          # DF
+          df <- 
+            data.frame(
+              Tipo = level,
+              Semana = seq(lubridate::week(min(df_Loop$FechaTratamientoKinésico)),
+                           lubridate::week(max(df_Loop$FechaTratamientoKinésico))) %>% 
+                as.factor(),
+              Cantidad = 0
+            )
+          # Final DF
+          empty_df <- 
+            rbind(
+              empty_df,
+              df
+            )
+        }
+        ## Grouping
+        final_df <- 
+          rbind(
+            df_KAT_F,
+            empty_df
+          ) %>% 
+          group_by(Tipo,Semana) %>%
+          summarise(Cantidad = sum(Cantidad)) %>%
+          arrange(desc(Cantidad))
+        ## New Date order
+        final_df$Semana <- 
+          factor(
+            final_df$Semana,
+            levels = seq(lubridate::week(min(df_Loop$FechaTratamientoKinésico)),
+                         lubridate::week(max(df_Loop$FechaTratamientoKinésico)))
+          )
+        ## Fianl DF
+        final_df <- 
+          final_df %>% 
+          distinct() %>%
+          arrange(desc(Semana)) %>%
+          mutate(
+            Semana =  as.factor(paste(years_data[year], Semana, sep = "-"))
+          )
+        ## Merging
+        general_empty_df <- 
+          rbind(
+            final_df,
+            general_empty_df
+          )
+        
+      }
+      
+    }
+    
+    ## Final DF
+    general_empty_df
+    
+  })
+  
+  output$Plot_tab3.2.4 <- renderPlotly({
+    
+    # Defining the Object
+    df_KAT_F <- df_tab3.2.4()
+    
+    # Visualization
+    if ( df_KAT_F %>% nrow() == 0 ) { 
+      
+      emptyChart(
+        emptyMessage('Tratamientos Kinésicos')      
+      )
+      
+    } else if ( df_KAT_F$Semana %>% unique() %>% length() < 2 ) { 
+      
+      emptyChart(
+        emptyMessage('Tratamientos Kinésicos')      
+      )
+      
+    } else {
+      
+      # Visualization
+      plot_ly() %>%
+        add_trace(
+          orientation = 'h',
+          type='bar',
+          y=df_KAT_F$Tipo,
+          x=df_KAT_F$Cantidad,
+          color = df_KAT_F$Tipo,
+          marker = list(
+            line = list(width = line_with_bar, 
+                        color = 'rgb(0, 0, 0)')
+          ),
+          text = paste(
+            "<b>Tipo: </b>", df_KAT_F$Tipo,
+            "<br><b>Cantidad: </b>", df_KAT_F$Cantidad
+          ),
+          hoverinfo = 'text',
+          frame = df_KAT_F$Semana
+        ) %>%
+        layout(
+          xaxis = list(range = c(0, (max(df_KAT_F$Cantidad)+6))),
+          yaxis = list(
+            #tickvals = ~(filtered %>% pull(input$cInput_tab1.2)),
+            ticktext = df_KAT_F$Tipo %>% unique(),
+            tickmode = "array",
+            autotick = FALSE,
+            ticks = "outside",
+            tick0 = 0,
+            dtick = 0.25,
+            ticklen = 5,
+            tickwidth = 2,
+            tickcolor = toRGB("blue")
+          ),
+          showlegend = FALSE
+        ) %>% 
+        animation_opts(
+          frame = 2000, 
+          transition = 800
+          # redraw = FALSE,
+          # easing = "elastic",
+          # mode = "afterall"
+        ) %>% 
+        animation_slider(
+          currentvalue = list(prefix = "Semana: "),
+          hide = FALSE
+        ) %>%
+        animation_button(
+          #x = 1.05, xanchor = "left", y =0, yanchor = "up",
+          label = "Recorrido"
+        ) %>% 
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"), 
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              if (input$Player) {
+                paste(
+                  "Gráfica de Frecuencia Tratamientos Kinésicos del Jugador ", input$PlayerInput,
+                  " del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              } else {
+                paste(
+                  "Gráfica de Frecuencia de Tratamientos Kinésicos del ", input$CategoryInput, 
+                  " con rango de fecha desde ", input$timeFromInput, 
+                  " hasta ", input$timeToInput,
+                  sep = ""
+                )
+              },
+            scale = 3
+          )
+        )
+    }
+  })
+  
+  
+  ####  TABLE_3.3.1  #### 
+  
+  output$Table_tab3.3.1 <- DT::renderDataTable({
     DT::datatable(
-      Table_tab3.3(), 
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
-      selection="multiple",
+      df_tab3.2.1(), 
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
         searching=TRUE, scrollCollapse=TRUE, 
-        scrollX='400px', 
+        scrollX = '400px', scrollY = "200px", 
         info=FALSE, paging=FALSE, 
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     ) 
   })
-  output$download_Table_tab3.3.xlsx <- downloadHandler(
+  output$download_Table_tab3.3.1.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
-          "Tabla de Frequencia de Acciones y Tratamientos Kinésicos del Jugador ", input$PlayerInput, 
+          "Tabla de Frequencia de Acciones Terapéuticas del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
@@ -6141,7 +7718,7 @@ server <- function(input, output, session) {
         )  
       } else {
         paste(
-          "Tabla de Frequencia de Acciones y Tratamientos Kinésicos del ", input$PlayerInput, 
+          "Tabla de Frequencia de Acciones Terapéuticas del ", input$PlayerInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
           ".xlsx", sep = ""
@@ -6149,15 +7726,15 @@ server <- function(input, output, session) {
       }
     },
     content = function(file) {
-      write.xlsx(Table_tab3.3(), file, col.names = TRUE, 
+      write.xlsx(df_tab3.2.1(), file, col.names = TRUE, 
                  row.names = TRUE, append = FALSE)
     }
   )
-  output$download_Table_tab3.3.csv <- downloadHandler(
+  output$download_Table_tab3.3.1.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
-          "Tabla de Frequencia de Acciones y Tratamientos Kinésicos del Jugador ", input$PlayerInput, 
+          "Tabla de Frequencia de Acciones Terapéuticas del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
@@ -6165,7 +7742,7 @@ server <- function(input, output, session) {
         )  
       } else {
         paste(
-          "Tabla de Frequencia de Acciones y Tratamientos Kinésicos del ", input$PlayerInput, 
+          "Tabla de Frequencia de Acciones Terapéuticas del ", input$PlayerInput, 
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
           ".csv", sep = ""
@@ -6173,7 +7750,75 @@ server <- function(input, output, session) {
       } 
     },
     content = function(file) {
-      write.csv(Table_tab3.3(), file, row.names = FALSE)
+      write.csv(df_tab3.2.1(), file, row.names = FALSE)
+    }
+  )
+  
+  ####  TABLE_3.3.2  #### 
+  
+  output$Table_tab3.3.2 <- DT::renderDataTable({
+    DT::datatable(
+      df_tab3.2.3(), 
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching=TRUE, scrollCollapse=TRUE, 
+        scrollX = '400px', scrollY = "200px", 
+        info=FALSE, paging=FALSE, 
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    ) 
+  })
+  output$download_Table_tab3.3.2.xlsx <- downloadHandler(
+    filename = function() {
+      if (input$Player) {
+        paste(
+          "Tabla de Frequencia de Tratamientos Kinésicos del Jugador ", input$PlayerInput, 
+          " del ", input$CategoryInput, 
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".xlsx", sep = ""
+        )  
+      } else {
+        paste(
+          "Tabla de Frequencia de Tratamientos Kinésicos del ", input$PlayerInput, 
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".xlsx", sep = ""
+        )  
+      }
+    },
+    content = function(file) {
+      write.xlsx(df_tab3.2.3(), file, col.names = TRUE, 
+                 row.names = TRUE, append = FALSE)
+    }
+  )
+  output$download_Table_tab3.3.2.csv <- downloadHandler(
+    filename = function() {
+      if (input$Player) {
+        paste(
+          "Tabla de Frequencia de Tratamientos Kinésicos del Jugador ", input$PlayerInput, 
+          " del ", input$CategoryInput, 
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".csv", sep = ""
+        )  
+      } else {
+        paste(
+          "Tabla de Frequencia de Tratamientos Kinésicos del ", input$PlayerInput, 
+          " con rango de fecha desde ", input$timeFromInput, 
+          " hasta ", input$timeToInput,
+          ".csv", sep = ""
+        )  
+      } 
+    },
+    content = function(file) {
+      write.csv(df_tab3.2.3(), file, row.names = FALSE)
     }
   )
   
@@ -6231,30 +7876,19 @@ server <- function(input, output, session) {
   
   ####  TAB_4.1  #### 
   output$Plot_tab4.1 <- renderPlotly({
-    if ( df_TL_fil() %>% 
-         filter(Categoría_I %in% "Lesión") %>%
-         select(Severidad) %>% 
-         nrow() == 0 ) {  
-      df <- data.frame(Col1=1,Col2=0)
-      ggplotly(
-        ggplot(df, aes(x=Col1, y=Col2)) +
-          geom_line() +
-          labs(x=NULL, y=NULL, fill=NULL) +
-          theme(axis.text.x=element_text(color="white"),
-                axis.text.y=element_text(color="white"),
-                panel.grid.major.x = element_blank(),
-                panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA)),
-        tooltip = c("x")
-      ) %>% 
-        add_annotations(
-          x=1,
-          y=0,
-          text= "<b>No se registran suficientes datos <br> de Lesión en TimeLoss</b>",
-          showarrow=FALSE
-        ) 
+    if ( 
+      df_TL_fil() %>% 
+      filter(Categoría_I %in% "Lesión") %>%
+      select(Severidad) %>% 
+      nrow() == 0 
+    ) {  
+      
+      emptyChart(
+        emptyMessage('Time Loss')      
+      )
+      
     } else {
+      
       # Creating Cross Tab DF
       df_TL_table <-
         df_TL_fil() %>% 
@@ -6294,7 +7928,7 @@ server <- function(input, output, session) {
             format = "jpeg",
             filename = 
               paste(
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Diagrama de Severidad de Lesión del Jugador ", input$PlayerInput, 
                     " del ", input$CategoryInput, 
@@ -6311,9 +7945,10 @@ server <- function(input, output, session) {
                   )  
                 } 
               ),
-            scale = 2
+            scale = 3
           )
-        )
+        ) 
+      
     }
   }) 
   observeEvent(input$Plot_tab4.1_HELP, {
@@ -6337,29 +7972,17 @@ server <- function(input, output, session) {
   
   ####  TAB_4.2  #### 
   output$Plot_tab4.2 <- renderPlotly({
-    if ( df_TL_fil() %>% 
-         filter(Categoría_I %in% "Enfermedad") %>%
-         select(Severidad) %>% 
-         nrow() == 0 ) {  
-      df <- data.frame(Col1=1,Col2=0)
-      ggplotly(
-        ggplot(df, aes(x=Col1, y=Col2)) +
-          geom_line() +
-          labs(x=NULL, y=NULL, fill=NULL) +
-          theme(axis.text.x=element_text(color="white"),
-                axis.text.y=element_text(color="white"),
-                panel.grid.major.x = element_blank(),
-                panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA)),
-        tooltip = c("x")
-      ) %>% 
-        add_annotations(
-          x=1,
-          y=0,
-          text= "<b>No se registran suficientes datos <br> de Enfermedad en TimeLoss</b>",
-          showarrow=FALSE
-        ) 
+    if ( 
+      df_TL_fil() %>% 
+      filter(Categoría_I %in% "Enfermedad") %>%
+      select(Severidad) %>% 
+      nrow() == 0 
+    ) {  
+      
+      emptyChart(
+        emptyMessage('Time Loss')      
+      )
+      
     } else {
       # Creating Cross Tab DF
       df_TL_table <- 
@@ -6400,7 +8023,7 @@ server <- function(input, output, session) {
             format = "jpeg",
             filename = 
               paste(
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Diagrama de Severidad de Enfermedad del Jugador ", input$PlayerInput, 
                     " del ", input$CategoryInput, 
@@ -6417,9 +8040,10 @@ server <- function(input, output, session) {
                   )  
                 } 
               ),
-            scale = 2
+            scale = 3
           )
         ) 
+      
     }
   }) 
   observeEvent(input$Plot_tab4.2_HELP, {
@@ -6442,37 +8066,61 @@ server <- function(input, output, session) {
   })
   
   ####  TABLE_4.1  #### 
+  df_Tab4.1 <- reactive({
+    ## General DF
+    df_tab <- 
+      df_TL_fil() %>% 
+      arrange(desc(FechaTérmino_TimeLoss)) %>% 
+      select(!c("Disponibilidad","Categoría")) %>%
+      rename(
+        'Fecha Inicio' = FechaInicio_TimeLoss,
+        'Fecha Término' = FechaTérmino_TimeLoss,
+        Categoría = Categoría_I
+      ) %>%
+      filter(
+        !Momento %in% "Evento clínico externo (Selección/Club)"
+      )
+    ## Condition
+    if (!input$TimeLoss_Injuries) {
+      df_tab <- 
+        df_tab %>%
+        filter(!Categoría %in% "Molestia")
+    } 
+    if (!input$TimeLoss_Diseases) {
+      df_tab <- 
+        df_tab %>%
+        filter(!Categoría %in% "Enfermedad")
+    } 
+    if (!input$TimeLoss_0) {
+      df_tab <- 
+        df_tab %>%
+        filter(!TimeLoss == 0)
+    } 
+    ## Final DF
+    df_tab
+  })
+  
   output$Table_tab4.1 <- DT::renderDataTable({
     DT::datatable(
-      df_TL_fil() %>% 
-        arrange(desc(FechaTérmino_TimeLoss)) %>% 
-        select(!c("Disponibilidad","Categoría")) %>%
-        rename(
-          'Fecha Inicio' = FechaInicio_TimeLoss,
-          'Fecha Término' = FechaTérmino_TimeLoss,
-          Categoría = Categoría_I
-        ) %>%
-        filter(
-          !Categoría %in% "Molestia",
-          !TimeLoss == 0
-        ), 
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
-      selection="multiple",
-      options=list(
-        ordering=F,
-        sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, scrollCollapse=TRUE, 
-        scrollX='400px', scrollY="300px", 
-        info=FALSE, paging=FALSE, 
-        columnDefs=list(list(className="dt-center", targets="_all"))
+      df_Tab4.1(),
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      selection = "multiple",
+      options = list(
+        ordering = FALSE,
+        sDom = '<"top">lrt<"bottom">ip',
+        searching = TRUE, scrollCollapse = TRUE, 
+        scrollX = '400px', scrollY = "400px", 
+        info = FALSE, paging = FALSE, 
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     ) 
   })
   output$download_Table_tab4.1.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla General Time Loss del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -6490,13 +8138,13 @@ server <- function(input, output, session) {
       }
     },
     content = function(file) {
-      write.xlsx(df_TL_fil(), file, col.names = TRUE, 
+      write.xlsx(df_Tab4.1(), file, col.names = TRUE, 
                  row.names = TRUE, append = FALSE)
     }
   )
   output$download_Table_tab4.1.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Time Loss del Jugador ", input$PlayerInput, 
           " del ", input$CategoryInput, 
@@ -6514,7 +8162,7 @@ server <- function(input, output, session) {
       } 
     },
     content = function(file) {
-      write.csv(df_TL_fil(), file, row.names = FALSE)
+      write.csv(df_Tab4.1(), file, row.names = FALSE)
     }
   )
   
@@ -6544,12 +8192,11 @@ server <- function(input, output, session) {
     )
   })
   
-  ####  DF_1.5  #### 
+  ####  DF_5  #### 
   
   Wellness  <- reactive({
     df_PD_fil() %>% 
       filter(
-        Dimensión %in% "Autoreporte",
         Medición %in% c("Nivel de energía",
                         "Humor / Estado de ánimo",
                         "Estado general muscular",
@@ -6558,13 +8205,13 @@ server <- function(input, output, session) {
       pull(ValorMedición) 
   })
   
+  ####  DF_5.0 #### 
   df.tab5.0_PD <- reactive({
     left_join(
       left_join(
         full_join(
-          df_PD_CAT() %>%
+          df_PD_CAT_T() %>%
             filter(
-              Dimensión %in% "Autoreporte",
               Medición %in% "Percepción subjetiva del esfuerzo" 
             ) %>%
             group_by(Jugador,FechaDimensión) %>%
@@ -6572,7 +8219,7 @@ server <- function(input, output, session) {
               Esfuerzo = sum(ValorMedición)
             ) %>%
             as.data.frame() ,
-          df_PD_CAT() %>%
+          df_PD_CAT_T() %>%
             filter(
               Medición %in% "Minutos de exposición" 
             ) %>%
@@ -6583,9 +8230,8 @@ server <- function(input, output, session) {
             as.data.frame(),
           by = c('Jugador','FechaDimensión')
         ),
-        df_PD_CAT() %>%
+        df_PD_CAT_T() %>%
           filter(
-            Dimensión %in% "Autoreporte",
             Medición %in% c("Nivel de energía",
                             "Humor / Estado de ánimo",
                             "Estado general muscular",
@@ -6598,7 +8244,7 @@ server <- function(input, output, session) {
           as.data.frame(),
         by = c('Jugador','FechaDimensión')
       ),
-      df_PD_CAT() %>%
+      df_PD_CAT_T() %>%
         filter(
           Medición %in%  "T.Q.R" 
         ) %>%
@@ -6618,16 +8264,16 @@ server <- function(input, output, session) {
       ) %>%
       drop_na() %>%
       arrange(FechaDimensión) %>%
-      slice_tail(n=7)
+      slice_tail(n=10)
   })
   
+  ####  DF_5.1 #### 
   df.tab5.1_PD <- reactive({
     left_join(
       left_join(
         full_join(
-          df_PD_CAT() %>%
+          df_PD_CAT_T() %>%
             filter(
-              Dimensión %in% "Autoreporte",
               Medición %in% "Percepción subjetiva del esfuerzo" 
             ) %>%
             group_by(Jugador,FechaDimensión) %>%
@@ -6635,7 +8281,7 @@ server <- function(input, output, session) {
               Esfuerzo = sum(ValorMedición)
             ) %>%
             as.data.frame() ,
-          df_PD_CAT() %>%
+          df_PD_CAT_T() %>%
             filter(
               Medición %in% "Minutos de exposición" 
             ) %>%
@@ -6646,9 +8292,8 @@ server <- function(input, output, session) {
             as.data.frame(),
           by = c('Jugador','FechaDimensión')
         ),
-        df_PD_CAT() %>%
+        df_PD_CAT_T() %>%
           filter(
-            Dimensión %in% "Autoreporte",
             Medición %in% c("Nivel de energía",
                             "Humor / Estado de ánimo",
                             "Estado general muscular",
@@ -6661,7 +8306,7 @@ server <- function(input, output, session) {
           as.data.frame(),
         by = c('Jugador','FechaDimensión')
       ),
-      df_PD_CAT() %>%
+      df_PD_CAT_T() %>%
         filter(
           Medición %in%  "T.Q.R" 
         ) %>%
@@ -6679,35 +8324,99 @@ server <- function(input, output, session) {
       drop_na()
   })
   
+  ####  DF_MP #### 
+  df_MP <- reactive({
+    
+    # Date Variables
+    begin_date <- 
+      paste(
+        input$dateInput_tab5.2,
+        "01",
+        "01",
+        sep = "-"
+      ) %>% 
+      as.Date()
+    end_date <- 
+      paste(
+        input$dateInput_tab5.2,
+        "12",
+        "31",
+        sep = "-"
+      ) %>% 
+      as.Date()
+    
+    if (input$Player) {
+      
+      left_join(
+        df_PD_CAT() %>%
+          filter(
+            Jugador %in% input$PlayerInput,
+            Medición %in% "Minutos de exposición" 
+          ) %>%
+          group_by(Jugador, FechaDimensión) %>%
+          summarise(
+            Suma.Min.Exp = sum(ValorMedición)
+          ) %>%
+          mutate("Semana" = lubridate::week(FechaDimensión)),
+        df_PD_CAT() %>%
+          filter(
+            Jugador %in% input$PlayerInput,
+            Medición %in% "Percepción subjetiva del esfuerzo"
+          ) %>%
+          group_by(Jugador, FechaDimensión) %>%
+          summarise(
+            Suma.D.Med = sum(ValorMedición)
+          ),
+        by = c(
+          "FechaDimensión" = "FechaDimensión",
+          "Jugador" = "Jugador"
+        )
+      ) %>% 
+        filter(
+          FechaDimensión >= begin_date,
+          FechaDimensión <= end_date
+        )
+      
+    } else {
+      
+      left_join(
+        df_PD_CAT() %>%
+          filter(
+            Medición %in% "Minutos de exposición" 
+          ) %>%
+          group_by(Jugador, FechaDimensión) %>%
+          summarise(
+            Suma.Min.Exp = sum(ValorMedición)
+          ) %>%
+          mutate("Semana" = lubridate::week(FechaDimensión)),
+        df_PD_CAT() %>%
+          filter(
+            Medición %in% "Percepción subjetiva del esfuerzo"
+          ) %>%
+          group_by(Jugador, FechaDimensión) %>%
+          summarise(
+            Suma.D.Med = sum(ValorMedición)
+          ),
+        by = c(
+          "FechaDimensión" = "FechaDimensión",
+          "Jugador" = "Jugador"
+        )
+      ) %>% 
+        filter(
+          FechaDimensión >= begin_date,
+          FechaDimensión <= end_date
+        )
+      
+    }
+    
+  })
+  
+  ####  DF_5.2 #### 
   df.tab5.2_PD <- reactive({
-    if(input$Player){
+    if (input$Player) {
       # Main DF
       df.W <-
-        left_join(
-          df_PD_CAT() %>%
-            filter(
-              Jugador %in% input$PlayerInput,
-              Medición %in% "Minutos de exposición" 
-            ) %>%
-            group_by(Jugador, FechaDimensión) %>%
-            summarise(
-              Suma.Min.Exp = sum(ValorMedición)
-            ) %>%
-            mutate("Semana" = lubridate::week(FechaDimensión)),
-          df_PD_CAT() %>%
-            filter(
-              Jugador %in% input$PlayerInput,
-              Medición %in% "Percepción subjetiva del esfuerzo"
-            ) %>%
-            group_by(Jugador, FechaDimensión) %>%
-            summarise(
-              Suma.D.Med = sum(ValorMedición)
-            ),
-          by = c(
-            "FechaDimensión" = "FechaDimensión",
-            "Jugador" = "Jugador"
-          )
-        ) %>%
+        df_MP() %>%
         mutate(
           Suma.Diaria = Suma.Min.Exp*Suma.D.Med
         ) %>%
@@ -6716,7 +8425,9 @@ server <- function(input, output, session) {
         summarise(
           Promedio.Diario = mean(Suma.Diaria)
         ) %>%
-        mutate("Semana" = lubridate::week(FechaDimensión)) %>%
+        mutate(
+          "Semana" = lubridate::week(FechaDimensión)
+        ) %>%
         group_by(Semana) %>%
         summarise(
           Acute.Workload = sum(Promedio.Diario) %>% round(0)
@@ -6757,32 +8468,12 @@ server <- function(input, output, session) {
           "ACWR" = Chronic.Workload.Ratio
         ) %>%
         arrange(desc(Semana))
+      
     } else {
+      
       # Main DF
       df.W <-
-        left_join(
-          df_PD_CAT() %>%
-            filter(
-              Medición %in% "Minutos de exposición" 
-            ) %>%
-            group_by(Jugador, FechaDimensión) %>%
-            summarise(
-              Suma.Min.Exp = sum(ValorMedición)
-            ) %>%
-            mutate("Semana" = lubridate::week(FechaDimensión)),
-          df_PD_CAT() %>%
-            filter(
-              Medición %in% "Percepción subjetiva del esfuerzo"
-            ) %>%
-            group_by(Jugador, FechaDimensión) %>%
-            summarise(
-              Suma.D.Med = sum(ValorMedición)
-            ),
-          by = c(
-            "FechaDimensión" = "FechaDimensión",
-            "Jugador" = "Jugador"
-          )
-        ) %>%
+        df_MP() %>%
         mutate(
           Suma.Diaria = Suma.Min.Exp*Suma.D.Med
         ) %>%
@@ -6791,7 +8482,9 @@ server <- function(input, output, session) {
         summarise(
           Promedio.Diario = mean(Suma.Diaria)
         ) %>%
-        mutate("Semana" = lubridate::week(FechaDimensión)) %>%
+        mutate(
+          "Semana" = lubridate::week(FechaDimensión)
+        ) %>%
         group_by(Semana) %>%
         summarise(
           Acute.Workload = sum(Promedio.Diario) %>% round(0)
@@ -6844,12 +8537,13 @@ server <- function(input, output, session) {
     }
   })
   
+  ####  DF_5.3 #### 
   df.tab5.3_PD <- reactive({
     #
     # Main DF
     df.W <-
       left_join(
-        df_PD_CAT() %>%
+        df_PD %>%
           filter(
             Medición %in% "Minutos de exposición" 
           ) %>%
@@ -6858,7 +8552,7 @@ server <- function(input, output, session) {
             Suma.Min.Exp = sum(ValorMedición)
           ) %>%
           mutate("Semana" = lubridate::week(FechaDimensión)),
-        df_PD_CAT() %>%
+        df_PD %>%
           filter(
             Medición %in% "Percepción subjetiva del esfuerzo"
           ) %>%
@@ -6879,7 +8573,9 @@ server <- function(input, output, session) {
       summarise(
         Promedio.Diario = mean(Suma.Diaria)
       ) %>%
-      mutate("Semana" = lubridate::week(FechaDimensión)) %>%
+      mutate(
+        "Semana" = lubridate::week(FechaDimensión)
+      ) %>%
       group_by(Semana) %>%
       summarise(
         Acute.Workload = sum(Promedio.Diario) %>% round(0)
@@ -6952,17 +8648,13 @@ server <- function(input, output, session) {
   ####  TABLE_5.0.1   ####
   
   Table_tab5.0.1   <- reactive({
-    if(input$Player){
+    if (input$Player) {
       ## Main DF
       # Grouping and counting
       df_selreport <- 
         df_PD_fil() %>% 
         filter(
-          Jugador %in% input$PlayerInput, 
           Medición %in% c(
-            # For calculation
-            'Dolor muscular',
-            'Estado de ánimo',
             # For both
             'Calidad del sueño',
             'Minutos de exposición',
@@ -6978,7 +8670,7 @@ server <- function(input, output, session) {
         ) %>% 
         group_by(FechaDimensión, Medición) %>% 
         summarise(
-          ValorMedición = mean(ValorMedición) %>% round(0)
+          ValorMedición = mean(ValorMedición) %>% round(1)
         ) %>% 
         spread(
           key = Medición,
@@ -6989,19 +8681,15 @@ server <- function(input, output, session) {
         arrange(desc(FechaDimensión)) %>%
         mutate(
           'Total Wellness' = 
-            `Dolor muscular`+
-            `Calidad del sueño`+
-            `Humor / Estado de ánimo`+
-            `Nivel de energía`,
+            (`Estado general muscular`+
+               `Calidad del sueño`+
+               `Humor / Estado de ánimo`+
+               `Nivel de energía`),
           'Carga Interna' = 
-            `Percepción subjetiva del esfuerzo` * 
-            `Minutos de exposición`,
+            (`Percepción subjetiva del esfuerzo` * 
+               `Minutos de exposición`) %>% round(1),
           FechaDimensión = FechaDimensión %>% 
             as.character()
-        ) %>%
-        select(
-          !c('Dolor muscular',
-             'Estado de ánimo')
         ) %>%
         rename(Fecha = FechaDimensión,
                'Estado de ánimo' = 'Humor / Estado de ánimo',
@@ -7029,30 +8717,33 @@ server <- function(input, output, session) {
       df_selreport <- 
         df_selreport[,col_order]
       
-      ## Mean and SD
-      # Empty vectors
-      mean_row <- c("Promedio")
-      sd_row <- c("Desviación Estandar")
-      # Loop for append
-      for (i in seq(2, ncol(df_selreport))) {
-        mean_row <- 
-          mean_row %>% 
-          append(
-            df_selreport[,i] %>% mean() %>% round(1)
-          )
-        sd_row <- 
-          sd_row %>% 
-          append(
-            df_selreport[,i] %>% sd() %>% round(1)
-          )
-      }
-      # Merging Results
-      df_selreport_final <- 
-        df_selreport %>% 
-        rbind(mean_row) %>% 
-        rbind(sd_row)
-      # Final DF
-      df_selreport_final
+      # ## Mean and SD
+      # # Empty vectors
+      # mean_row <- c("Promedio")
+      # sd_row <- c("Desviación Estandar")
+      # # Loop for append
+      # for (i in seq(2, ncol(df_selreport))) {
+      #   mean_row <- 
+      #     mean_row %>% 
+      #     append(
+      #       df_selreport[,i] %>% mean() %>% round(1)
+      #     )
+      #   sd_row <- 
+      #     sd_row %>% 
+      #     append(
+      #       df_selreport[,i] %>% sd() %>% round(1)
+      #     )
+      # }
+      # # Merging Results
+      # df_selreport_final <- 
+      #   df_selreport %>% 
+      #   rbind(mean_row) %>% 
+      #   rbind(sd_row)
+      # # Final DF
+      # df_selreport_final
+      
+      df_selreport
+      
     } else {
       ## Main DF
       # Grouping and counting
@@ -7089,7 +8780,7 @@ server <- function(input, output, session) {
         arrange(desc(FechaDimensión)) %>%
         mutate(
           'Total Wellness' = 
-            (`Dolor muscular`+
+            (`Estado general muscular`+
                `Calidad del sueño`+
                `Humor / Estado de ánimo`+
                `Nivel de energía`),
@@ -7098,10 +8789,6 @@ server <- function(input, output, session) {
                `Minutos de exposición`) %>% round(1),
           FechaDimensión = FechaDimensión %>% 
             as.character()
-        ) %>%
-        select(
-          !c('Dolor muscular',
-             'Estado de ánimo')
         ) %>%
         rename(Fecha = FechaDimensión,
                'Estado de ánimo' = 'Humor / Estado de ánimo',
@@ -7128,10 +8815,10 @@ server <- function(input, output, session) {
       # Ordering
       df_selreport <- 
         df_selreport[,col_order]
-      # Loop for Colnames
-      for (i in seq(2,ncol(df_selreport))) {
-        colnames(df_selreport)[i] <- paste('Promedio de', colnames(df_selreport)[i])
-      }
+      # # Loop for Colnames
+      # for (i in seq(2,ncol(df_selreport))) {
+      #   colnames(df_selreport)[i] <- paste('Promedio de', colnames(df_selreport)[i])
+      # }
       # Final DF
       df_selreport
     }
@@ -7140,25 +8827,88 @@ server <- function(input, output, session) {
   output$Table_tab5.0.1 <- DT::renderDataTable({
     DT::datatable(
       Table_tab5.0.1(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="240px",
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all")),
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "350px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
         language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
-    )
+    ) %>%
+      formatStyle(
+        'Peso inicial',
+        background = styleColorBar(Table_tab5.0.1()$`Peso inicial`, 'lightblue'),
+        backgroundSize = '100%',
+        backgroundRepeat = 'no-repeat',
+        backgroundPosition = 'center'
+      ) %>%
+      formatStyle(
+        'T.Q.R',
+        fontWeight = 'bold',
+        color = styleInterval(6.9, c('black', 'white')),
+        backgroundColor = styleInterval(c(3.9,6.9), c('red', 'yellow','green'))
+      ) %>%
+      formatStyle(
+        'Calidad del sueño',
+        fontWeight = 'bold',
+        color = styleInterval(3.9, c('black', 'white')),
+        backgroundColor = styleInterval(c(2.9,3.9), c('red', 'yellow','green'))
+      ) %>%
+      formatStyle(
+        'Nivel de energía', 
+        fontWeight = 'bold',
+        color = styleInterval(3.9, c('black', 'white')),
+        backgroundColor = styleInterval(c(2.9,3.9), c('red', 'yellow','green'))
+      ) %>%
+      formatStyle(
+        'Estado general muscular',
+        fontWeight = 'bold',
+        color = styleInterval(3.9, c('black', 'white')),
+        backgroundColor = styleInterval(c(2.9,3.9), c('red', 'yellow','green'))
+      ) %>%
+      formatStyle(
+        'Estado de ánimo',
+        fontWeight = 'bold',
+        color = styleInterval(3.9, c('black', 'white')),
+        backgroundColor = styleInterval(c(2.9,3.9), c('red', 'yellow','green'))
+      ) %>%
+      formatStyle(
+        'Total Wellness',
+        fontWeight = 'bold',
+        color = styleInterval(14.9, c('black', 'white')),
+        backgroundColor = styleInterval(c(9.9,14.9), c('red', 'yellow','green'))
+      ) %>%
+      formatStyle(
+        'PSE',
+        fontWeight = 'bold',
+        color = styleInterval(7.9, c('black', 'white')),
+        backgroundColor = styleInterval(c(3.9,7.9), c('green', 'yellow','red'))
+      ) %>%
+      formatStyle(
+        'Minutos de exposición',
+        background = styleColorBar(Table_tab5.0.1()$`Minutos de exposición`, 'lightblue'),
+        backgroundSize = '100%',
+        backgroundRepeat = 'no-repeat',
+        backgroundPosition = 'center'
+      ) %>%
+      formatStyle(
+        'Carga Interna',
+        background = styleColorBar(Table_tab5.0.1()$`Carga Interna`, 'lightblue'),
+        backgroundSize = '100%',
+        backgroundRepeat = 'no-repeat',
+        backgroundPosition = 'center'
+      )
   })
   output$download_Table_tab5.0.1.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla General de Autoreporte del Jugador ", input$PlayerInput,
           " del ", input$CategoryInput,
@@ -7180,7 +8930,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab5.0.1.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla General de Autoreporte del Jugador ", input$PlayerInput,
           " del ", input$CategoryInput,
@@ -7222,63 +8972,55 @@ server <- function(input, output, session) {
   output$Plot_tab5.0 <- renderPlotly({
     filtered <- 
       df.tab5.0_PD() %>%
+      arrange(
+        FechaDimensión
+      ) %>%
       mutate(
-        FechaDimensión = format(FechaDimensión, "%m-%d") 
+        FechaDimensión = format(FechaDimensión, "%Y-%m-%d") 
       )
     max_date <- 
-      ((
-        df.tab5.0_PD() %>% 
+      ((df.tab5.0_PD() %>% 
           pull(FechaDimensión) %>% 
-          max()
-      )+1) %>% format("%m-%d") 
+          max()) + 1) %>% 
+      format("%m-%d") 
     
     # Visualization
     if ( filtered %>% nrow() == 0 ) { 
       
-      df <- data.frame(Col1=1,Col2=0)
-      ggplotly(
-        ggplot(df, aes(x=Col1, y=Col2)) +
-          geom_line() +
-          labs(x=NULL, y=NULL, fill=NULL) +
-          theme(axis.text.x=element_text(color="white"),
-                axis.text.y=element_text(color="white"),
-                panel.grid.major.x = element_blank(),
-                panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA)),
-        tooltip = c("x")
-      ) %>% 
-        add_annotations(
-          x=1,
-          y=0,
-          text= "No se registran suficientes datos 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-        ) 
+      emptyChart(
+        emptyMessage('Autoreporte')
+      )
       
     } else {
+      
+      # Defining Values
+      filtered$FechaDimensión <-
+        factor(
+          filtered$FechaDimensión,
+          unique(filtered$FechaDimensión)
+        )
       
       # Visualization
       plot_ly() %>%
         add_trace(
-          type='bar',
-          x=filtered$FechaDimensión %>% as.character(),
-          y=filtered$TotalWellness,
+          type = 'bar',
+          x = filtered$FechaDimensión,
+          y = filtered$TotalWellness,
           color = I("#2089E0E2"),
           name = 'Total Wellness',
           marker = list(
-            line = list(width = 1.6, 
+            line = list(width = line_with_bar, 
                         color = 'rgb(0, 0, 0)')
           )
         ) %>%
         add_trace(
-          type='scatter',
-          x=filtered$FechaDimensión %>% as.character(),
-          y=filtered$CargaInterna,
+          type = 'scatter',
+          x = filtered$FechaDimensión,
+          y = filtered$CargaInterna,
           color = I("#EB1C15"),
           marker = list(
             size = 8,
-            line = list(width = .6, 
+            line = list(width = line_with_point, 
                         color = 'rgb(0, 0, 0)')
           ),
           line = list(
@@ -7288,13 +9030,13 @@ server <- function(input, output, session) {
           name = "Carga Interna"
         ) %>%
         add_trace(
-          type='scatter',
-          x=filtered$FechaDimensión %>% as.character(),
-          y=filtered$`T.Q.R`,
+          type = 'scatter',
+          x = filtered$FechaDimensión %>% as.character(),
+          y = filtered$`T.Q.R`,
           color = I("#66CC66"),
           marker = list(
             size = 8,
-            line = list(width = .6, 
+            line = list(width = line_with_point, 
                         color = 'rgb(0, 0, 0)')
           ),
           line = list(
@@ -7303,13 +9045,13 @@ server <- function(input, output, session) {
           name = "T.Q.R"
         ) %>%
         add_trace(
-          type='bar',
-          x=max_date %>% as.character(),
-          y=mean(filtered$CargaInterna) %>% round(1),
+          type = 'bar',
+          x = "Promedio CI",
+          y = filtered$CargaInterna %>% mean() %>% round(1),
           color = I("#EB1C15"),
           name = 'Promedio CI',
           marker = list(
-            line = list(width = 1.6, 
+            line = list(width = line_with_bar, 
                         color = 'rgb(0, 0, 0)')
           ),
           yaxis = "y2"
@@ -7318,7 +9060,7 @@ server <- function(input, output, session) {
           hovermode = 'compare',
           legend = list(
             y = 1.02,
-            x = 1,
+            x = 1.07,
             title = list(text = paste("<b>",input$PlayerInput_tab5,"<b><br>"))
           ),
           #xaxis= list(showticklabels = FALSE),
@@ -7339,9 +9081,9 @@ server <- function(input, output, session) {
                 "Total Wellness y Carga Interna del Jugador ", input$PlayerInput_tab5,
                 sep = ""
               ),
-            scale = 2
+            scale = 3
           )
-        ) %>% toWebGL()
+        ) 
     }
   })
   observeEvent(input$Plot_tab5.0_HELP, {
@@ -7407,18 +9149,18 @@ server <- function(input, output, session) {
   output$Table_tab5.0 <- DT::renderDataTable({
     DT::datatable(
       Table_tab5.0(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="340px",
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all")),
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "280px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
         language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
@@ -7475,55 +9217,45 @@ server <- function(input, output, session) {
       df.tab5.1_PD() %>% 
       filter(
         FechaDimensión == input$time_tab5.1
-      ) 
+      ) %>% distinct()
     
     # Visualization
     if ( filtered %>% nrow() == 0 ) { 
       
-      df <- data.frame(Col1=1,Col2=0)
-      ggplotly(
-        ggplot(df, aes(x=Col1, y=Col2)) +
-          geom_line() +
-          labs(x=NULL, y=NULL, fill=NULL) +
-          theme(axis.text.x=element_text(color="white"),
-                axis.text.y=element_text(color="white"),
-                panel.grid.major.x = element_blank(),
-                panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA)),
-        tooltip = c("x")
-      ) %>% 
-        add_annotations(
-          x=1,
-          y=0,
-          text= "No se registran suficientes datos 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-        ) 
+      emptyChart(
+        emptyMessage('Autoreporte')      
+      )
       
     } else {
+      
+      # Defining Values
+      filtered$Jugador <- 
+        factor(
+          filtered$Jugador,  
+          unique(filtered$Jugador)
+        )
       
       # Visualization
       plot_ly() %>%
         add_trace(
-          type='bar',
-          x=filtered$Jugador %>% as.character(),
-          y=filtered$TotalWellness,
+          type = 'bar',
+          x = filtered$Jugador,
+          y = filtered$TotalWellness,
           color = I("#2089E0E2"),
           name = 'Total Wellness',
           marker = list(
-            line = list(width = 1.6, 
+            line = list(width = line_with_bar, 
                         color = 'rgb(0, 0, 0)')
           )
         ) %>%
         add_trace(
-          type='scatter',
-          x=filtered$Jugador %>% as.character(),
-          y=filtered$CargaInterna,
+          type = 'scatter',
+          x = filtered$Jugador,
+          y = filtered$CargaInterna,
           color = I("#EB1C15"),
           marker = list(
             size = 8,
-            line = list(width = .6, 
+            line = list(width = line_with_point, 
                         color = 'rgb(0, 0, 0)')
           ),
           line = list(
@@ -7533,13 +9265,13 @@ server <- function(input, output, session) {
           name = "Carga Interna"
         ) %>%
         add_trace(
-          type='scatter',
-          x=filtered$Jugador %>% as.character(),
-          y=filtered$`T.Q.R`,
+          type = 'scatter',
+          x = filtered$Jugador,
+          y = filtered$`T.Q.R`,
           color = I("#66CC66"),
           marker = list(
             size = 8,
-            line = list(width = .6, 
+            line = list(width = line_with_point, 
                         color = 'rgb(0, 0, 0)')
           ),
           line = list(
@@ -7548,13 +9280,13 @@ server <- function(input, output, session) {
           name = "T.Q.R"
         ) %>%
         add_trace(
-          type='bar',
-          x="_Promedio CI",
-          y=mean(filtered$CargaInterna) %>% round(1),
+          type = 'bar',
+          x = "_Promedio CI",
+          y = filtered$CargaInterna %>% mean() %>% round(1),
           color = I("#EB1C15"),
           name = 'Promedio CI',
           marker = list(
-            line = list(width = 1.6, 
+            line = list(width = line_with_bar, 
                         color = 'rgb(0, 0, 0)')
           ),
           xaxis = "",
@@ -7563,9 +9295,17 @@ server <- function(input, output, session) {
         layout(
           hovermode = 'compare',
           legend = list(
-            y = 1.02,
-            x = 1,
+            orientation = 'h',
+            y = 1.25, 
+            x = 0.01,
             title = list(text = paste("<b>",input$time_tab5.1,"<b><br>"))
+          ),
+          margin = list(
+            l = 20,
+            r = 40,
+            b = 20,
+            t = 20,
+            pad = 0
           ),
           #xaxis= list(showticklabels = FALSE),
           yaxis2 = list(
@@ -7586,9 +9326,9 @@ server <- function(input, output, session) {
                 " en la fecha ", input$time_tab5.1,
                 sep = ""
               ),
-            scale = 2
+            scale = 3
           )
-        ) %>% toWebGL()
+        )
       
     }
     
@@ -7681,18 +9421,18 @@ server <- function(input, output, session) {
   output$Table_tab5.1 <- DT::renderDataTable({
     DT::datatable(
       Table_tab5.1(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="260px",
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all")),
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "320px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
         language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
@@ -7746,69 +9486,56 @@ server <- function(input, output, session) {
   ####  TAB_5.2  ####
   output$Plot_tab5.2 <- renderPlotly({
     
-    # Selecting Rows
-    filtered <-
-      df.tab5.2_PD() %>%
-      arrange(Semana) 
-    
     # Visualization
-    if ( filtered %>% nrow() == 0 ) { 
+    if ( 
+      df_MP() %>% nrow() == 0 ||
+      lubridate::week(df_MP()$FechaDimensión) < 5 
+    ) { 
       
-      df <- data.frame(Col1=1,Col2=0)
-      ggplotly(
-        ggplot(df, aes(x=Col1, y=Col2)) +
-          geom_line() +
-          labs(x=NULL, y=NULL, fill=NULL) +
-          theme(axis.text.x=element_text(color="white"),
-                axis.text.y=element_text(color="white"),
-                panel.grid.major.x = element_blank(),
-                panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA)),
-        tooltip = c("x")
-      ) %>% 
-        add_annotations(
-          x=1,
-          y=0,
-          text= "No se registran suficientes datos 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-        ) 
+      emptyChart(
+        emptyMessage('Autoreporte')      
+      )
       
     } else {
+      
+      # Selecting Rows
+      filtered <-
+        df.tab5.2_PD() %>%
+        arrange(desc(Semana)) %>%
+        slice(1:8)
       
       # Visualization
       plot_ly() %>%
         add_trace(
-          type='bar',
-          x=filtered$Semana,
-          y=filtered$Agudo,
+          type = 'bar',
+          x = filtered$Semana,
+          y = filtered$Agudo,
           color = I("#2089E0E2"),
           name = "Agudo",
           marker = list(
-            line = list(width = 1.6, 
+            line = list(width = line_with_bar, 
                         color = 'rgb(0, 0, 0)')
           )
         ) %>%
         add_trace(
-          type='bar',
-          x=filtered$Semana,
-          y=filtered$Crónico,
+          type = 'bar',
+          x = filtered$Semana,
+          y = filtered$Crónico,
           color = I("#1DDE64D1"),
           name = "Crónico",
           marker = list(
-            line = list(width = 1.6, 
+            line = list(width = line_with_bar, 
                         color = 'rgb(0, 0, 0)')
           )
         ) %>%
         add_trace(
-          type='scatter',
-          x=filtered$Semana,
-          y=filtered$ACWR,
+          type = 'scatter',
+          x = filtered$Semana,
+          y = filtered$ACWR,
           color = I("#FF0900DF"),
           marker = list(
             size = 8,
-            line = list(width = .6, 
+            line = list(width = line_with_point, 
                         color = 'rgb(0, 0, 0)')
           ),
           line = list(
@@ -7820,7 +9547,7 @@ server <- function(input, output, session) {
         layout(
           hovermode = 'compare',
           legend = list(
-            x = 36
+            x = 1.02
           ),
           yaxis2 = list(
             overlaying = "y",
@@ -7839,9 +9566,9 @@ server <- function(input, output, session) {
                 "Diagrama de Esfuerzo del ", input$CategoryInput,
                 sep = ""
               ),
-            scale = 2
+            scale = 3
           )
-        ) %>% toWebGL()
+        ) 
     }
   })
   observeEvent(input$Plot_tab5.2_HELP, {
@@ -7884,31 +9611,41 @@ server <- function(input, output, session) {
   ####  TABLE_5.2  ####
   
   Table_tab5.2  <- reactive({
-    DF <- df.tab5.2_PD()
-    DF[is.na(DF)] <- 0
-    DF %>%
-      mutate(
-        "Agudo (Zscore)" = paste(Agudo," (",Zscore,")", sep = ""),
-        .before = "Crónico"
-      ) %>%
-      select(-c(Agudo,Zscore))
+    
+    if ( df_MP() %>% nrow() == 0 ) {
+      
+      df_MP()
+      
+    } else {
+      
+      DF <- df.tab5.2_PD()
+      DF[is.na(DF)] <- 0
+      DF %>%
+        mutate(
+          "Agudo (Zscore)" = paste(Agudo," (",Zscore,")", sep = ""),
+          .before = "Crónico"
+        ) %>%
+        select(-c(Agudo,Zscore))
+      
+    }
+    
   })
   
   output$Table_tab5.2 <- DT::renderDataTable({
     DT::datatable(
       Table_tab5.2(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="300px",
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all")),
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "300px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
         language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
@@ -8007,7 +9744,7 @@ server <- function(input, output, session) {
               "Gráfica de Lesiones por Contacto Indirecto según ACWR",
               sep = ""
             ),
-          scale = 2
+          scale = 3
         )
       )
   })
@@ -8034,17 +9771,17 @@ server <- function(input, output, session) {
   output$Table_tab5.3 <- DT::renderDataTable({
     DT::datatable(
       df.tab5.3_PD() %>% select(c(ACWR, Frequencia)) %>% arrange(ACWR),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="400px",
-        scrollCollapse=TRUE, paging=FALSE,
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
         columnDefs=list(list(className="dt-center", targets="_all"))
       )
     )
@@ -8093,14 +9830,11 @@ server <- function(input, output, session) {
     removeModal()
   })
   
-  
   #### --------------------------- TAB_6 --------------------------- #### 
-  
   
   ####  DF_6  #### 
   
   df.tab6_N  <- reactive({
-    
     df_PD_fil() %>% 
       filter(
         Dimensión %in% "Nutrición"
@@ -8113,33 +9847,13 @@ server <- function(input, output, session) {
         ValorMedición
       ) %>%
       mutate(
-        FechaDimensión = FechaDimensión %>% format("%m") # "%Y-%m"
-      ) %>%
-      mutate(
-        FechaDimensión = factor(
-          case_when(
-            FechaDimensión == '01' ~ "Enero",
-            FechaDimensión == '02' ~ "Febrero",
-            FechaDimensión == '03' ~ "Marzo",
-            FechaDimensión == '04' ~ "Abril",
-            FechaDimensión == '05' ~ "Mayo",
-            FechaDimensión == '06' ~ "Junio",
-            FechaDimensión == '07' ~ "Julio",
-            FechaDimensión == '08' ~ "Agosto",
-            FechaDimensión == '09' ~ "Septiembre",
-            FechaDimensión == '10' ~ "Octubre",
-            FechaDimensión == '11' ~ "Noviembre",
-            FechaDimensión == '12' ~ "Diciembre"
-          ), 
-          levels =  c('Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio',
-                      'Agosto','Septiembre','Octubre','Noviembre','Diciembre')
-        )
-      )
+        FechaDimensión = FechaDimensión %>% format("%y-%m") # "%Y-%m"
+      ) %>% 
+      distinct()
   })
   
-  df.tab6_G  <- reactive({
-    
-    df_PD_CAT() %>% 
+  df.tab6_G <- reactive({
+    df_PD_CAT() %>%  
       filter(
         Dimensión %in% "Nutrición"
       ) %>%
@@ -8151,28 +9865,29 @@ server <- function(input, output, session) {
         ValorMedición
       ) %>%
       mutate(
-        FechaDimensión = FechaDimensión %>% format("%m") # "%Y-%m"
+        FechaDimensión = FechaDimensión %>% format("%y-%m") # "%Y-%m"
+      ) %>% 
+      distinct()
+  })
+  
+  df.tab6_G_T <- reactive({
+    
+    df_PD_CAT_T() %>%  
+      filter(
+        Dimensión %in% "Nutrición"
+      ) %>%
+      select(
+        Jugador,
+        FechaDimensión,
+        TipoMedición,
+        Medición,
+        ValorMedición
       ) %>%
       mutate(
-        FechaDimensión = factor(
-          case_when(
-            FechaDimensión == '01' ~ "Enero",
-            FechaDimensión == '02' ~ "Febrero",
-            FechaDimensión == '03' ~ "Marzo",
-            FechaDimensión == '04' ~ "Abril",
-            FechaDimensión == '05' ~ "Mayo",
-            FechaDimensión == '06' ~ "Junio",
-            FechaDimensión == '07' ~ "Julio",
-            FechaDimensión == '08' ~ "Agosto",
-            FechaDimensión == '09' ~ "Septiembre",
-            FechaDimensión == '10' ~ "Octubre",
-            FechaDimensión == '11' ~ "Noviembre",
-            FechaDimensión == '12' ~ "Diciembre"
-          ), 
-          levels =  c('Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio',
-                      'Agosto','Septiembre','Octubre','Noviembre','Diciembre')
-        )
-      )
+        FechaDimensión = FechaDimensión %>% format("%y-%m") # "%Y-%m"
+      ) %>% 
+      distinct()
+    
   })
   
   ####  UI  ####
@@ -8185,7 +9900,7 @@ server <- function(input, output, session) {
   output$uiTab6.1 <- renderUI({
     selectInput(
       inputId = 'cInput_tab6.1',
-      label = 'Mes:',
+      label = 'Año-Mes:',
       choices = levelsDate_tab6()
     )
   })
@@ -8221,7 +9936,7 @@ server <- function(input, output, session) {
   ####  TAB_6.1  #### 
   output$Plot_tab6.1 <- renderPlotly({
     
-    if(input$Player){
+    if (input$Player) {
       
       # Data
       main_df <- 
@@ -8264,27 +9979,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Masa Grasa</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Masa Grasa')      
+        )
+        
       } else {
         
         # Visualization
@@ -8356,7 +10055,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Porcentaje Masa Grasa de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -8372,9 +10071,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
       
     } else {
@@ -8392,27 +10091,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Masa Grasa</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Masa Grasa')      
+        )
+        
       } else {
         plot_ly( 
           filtered,
@@ -8467,7 +10150,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Porcentaje Masa Grasa de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -8483,9 +10166,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
     }
     
@@ -8495,7 +10178,7 @@ server <- function(input, output, session) {
   ####  TAB_6.2  #### 
   output$Plot_tab6.2 <- renderPlotly({
     
-    if(input$Player){
+    if (input$Player) {
       
       # Data
       main_df <- 
@@ -8538,27 +10221,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Masa Muscular</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Masa Muscular')      
+        )
+        
       } else {
         
         # Visualization
@@ -8630,7 +10297,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Porcentaje Masa Muscular de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -8646,9 +10313,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
       
     } else {
@@ -8666,27 +10333,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Masa Muscular</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Masa Muscular')      
+        )
+        
       } else {
         plot_ly( 
           filtered,
@@ -8741,7 +10392,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Porcentaje Masa Muscular de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -8757,9 +10408,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
     }
   }) 
@@ -8767,7 +10418,7 @@ server <- function(input, output, session) {
   ####  TAB_6.3  #### 
   output$Plot_tab6.3 <- renderPlotly({
     
-    if(input$Player){
+    if (input$Player) {
       
       # Data
       main_df <- 
@@ -8808,27 +10459,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Sumatoria de 6 Pliegues</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Sumatoria 6 Pliegues')      
+        )
+        
       } else {
         
         # Visualization
@@ -8900,7 +10535,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Sumatoria de 6 Pliegues de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -8916,9 +10551,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
       
     } else {
@@ -8935,27 +10570,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Sumatoria de 6 Pliegues</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Sumatoria 6 Pliegues')      
+        )
+        
       } else {
         plot_ly( 
           filtered,
@@ -9010,7 +10629,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Sumatoria de 6 Pliegues de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -9026,9 +10645,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
     }
     
@@ -9037,7 +10656,7 @@ server <- function(input, output, session) {
   ####  TAB_6.4  #### 
   output$Plot_tab6.4 <- renderPlotly({
     
-    if(input$Player){
+    if (input$Player) {
       
       # Data
       main_df <- 
@@ -9078,27 +10697,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Peso actual</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Peso Actual')      
+        )
+        
       } else {
         
         # Visualization
@@ -9170,7 +10773,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Peso actual de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -9186,9 +10789,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
       
     } else {
@@ -9205,27 +10808,11 @@ server <- function(input, output, session) {
       
       # Visualization
       if ( filtered %>% nrow() == 0 ) {  
-        df <- data.frame(Col1=1,Col2=0)
-        ggplotly(
-          ggplot(df, aes(x=Col1, y=Col2)) +
-            geom_line() +
-            labs(x=NULL, y=NULL, fill=NULL) +
-            theme(axis.text.x=element_text(color="white"),
-                  axis.text.y=element_text(color="white"),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.major=element_line(colour="#00000018"),
-                  panel.grid.minor=element_line(colour="#00000018"),
-                  panel.background=element_rect(fill="transparent",colour=NA)),
-          tooltip = c("x")
-        ) %>% 
-          add_annotations(
-            x=1,
-            y=0,
-            text= "No se registran suficientes datos 
-          <br> <b>de Peso actual</b> 
-          <br> para generar la Visualización",
-          showarrow=FALSE
-          ) 
+        
+        emptyChart(
+          emptyMessage('Peso Actual')      
+        )
+        
       } else {
         plot_ly( 
           filtered,
@@ -9280,7 +10867,7 @@ server <- function(input, output, session) {
             toImageButtonOptions = list(
               format = "jpeg",
               filename =
-                if(input$Player){
+                if (input$Player) {
                   paste(
                     "Valores de Peso actual de ", input$PlayerInput,
                     " del ", input$CategoryInput, 
@@ -9296,9 +10883,9 @@ server <- function(input, output, session) {
                     sep = ""
                   )
                 },
-              scale = 2
+              scale = 3
             )
-          ) %>% toWebGL()
+          ) 
       }
     }
   }) 
@@ -9310,7 +10897,7 @@ server <- function(input, output, session) {
     # Building Main DF
     join_df <- 
       left_join(
-        df.tab6_G(),
+        df.tab6_G_T(),
         df_CED %>% select(Jugador,Posición) %>% unique(),
         by = "Jugador"
       )
@@ -9392,26 +10979,27 @@ server <- function(input, output, session) {
   output$Table_tab6.0 <- DT::renderDataTable({
     DT::datatable(
       Table_tab6.0(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', 
-        scrollY="250px",
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', 
+        scrollY = "250px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
   })
   output$download_Table_tab6.0.xlsx <- downloadHandler(
     filename = function() {
       paste(
-        "Tabla Nutrición del ", input$CategoryInput,
+        "Tabla de Nutrición según Posición del ", input$CategoryInput,
         " con rango de fecha desde ", input$timeFromInput, 
         " hasta ", input$timeToInput,
         ".xlsx",
@@ -9426,7 +11014,7 @@ server <- function(input, output, session) {
   output$download_Table_tab6.0.csv <- downloadHandler(
     filename = function() {
       paste(
-        "Tabla Nutrición del ", input$CategoryInput,
+        "Tabla de Nutrición según Posición del ", input$CategoryInput,
         " con rango de fecha desde ", input$timeFromInput, 
         " hasta ", input$timeToInput,
         ".csv",
@@ -9481,7 +11069,7 @@ server <- function(input, output, session) {
         "Zscore"
       marker_list <- 
         list(
-          line = list(width = 1.6, 
+          line = list(width = line_with_point, 
                       color = 'rgb(0, 0, 0)')
         )
     } else {
@@ -9496,25 +11084,11 @@ server <- function(input, output, session) {
     }
     
     if ( df_filtered %>% nrow() == 0 ) {  
-      df <- data.frame(Col1=1,Col2=0)
-      ggplotly(
-        ggplot(df, aes(x=Col1, y=Col2)) +
-          geom_line() +
-          labs(x=NULL, y=NULL, fill=NULL) +
-          theme(axis.text.x=element_text(color="white"),
-                axis.text.y=element_text(color="white"),
-                panel.grid.major.x = element_blank(),
-                panel.grid.major=element_line(colour="#00000018"),
-                panel.grid.minor=element_line(colour="#00000018"),
-                panel.background=element_rect(fill="transparent",colour=NA)),
-        tooltip = c("x")
-      ) %>% 
-        add_annotations(
-          x=1,
-          y=0,
-          text= "<b>No se registran suficientes datos <br> de este tipo de valor de Nutrición</b>",
-          showarrow=FALSE
-        ) 
+      
+      emptyChart(
+        emptyMessage('este tipo de Variable de Nutrición')      
+      )
+      
     } else {
       # Visualization
       plot_ly() %>%
@@ -9525,10 +11099,10 @@ server <- function(input, output, session) {
           color = I("#2089E0E2"),
           name = input$cInput_tab6.3,
           marker = list(
-            line = list(width = 1.6, 
+            line = list(width = line_with_bar, 
                         color = 'rgb(0, 0, 0)')
           )
-        )  %>% 
+        ) %>% 
         add_lines(
           x = df_filtered$Jugador %>% as.character(),
           y = value_Y_axis,
@@ -9536,7 +11110,7 @@ server <- function(input, output, session) {
           color = I("#FF0000"),
           line = list(shape = "linear"),
           marker = marker_list,
-          yaxis = "y2", 
+          yaxis = ifelse(input$Mean_Zscore,"y2","y"),
         ) %>%
         layout(
           hovermode = 'compare',
@@ -9565,14 +11139,30 @@ server <- function(input, output, session) {
                 " en ", input$cInput_tab6.2,
                 sep = ""
               ),
-            scale = 2
+            scale = 3
           )
-        ) %>% toWebGL()
+        ) 
       
     }
-    
-    
   }) 
+  observeEvent(input$Plot_tab6.5_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_6/Plot_tab6.5_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Plot_tab6.5_Modal",
+          icon = icon("times-circle"),
+          label = "Cerrar",
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Plot_tab6.5_Modal,{
+    removeModal()
+  })
   
   ####  TABLE_6.1  ####
   
@@ -9605,26 +11195,27 @@ server <- function(input, output, session) {
   output$Table_tab6.1 <- DT::renderDataTable({
     DT::datatable(
       Table_tab6.1(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
-      selection="multiple",
+      selection = "multiple",
       options=list(
         ordering=F,
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="250px",
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "250px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
   })
   output$download_Table_tab6.1.xlsx <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
-          "Tabla Nutrición de ", input$PlayerInput,
+          "Tabla Estadística de Nutrición de ", input$PlayerInput,
           " del ", input$CategoryInput,
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
@@ -9633,7 +11224,7 @@ server <- function(input, output, session) {
         )
       } else {
         paste(
-          "Tabla Nutrición del ", input$CategoryInput,
+          "Tabla Estadística de Nutrición del ", input$CategoryInput,
           " con rango de fecha desde ", input$timeFromInput, 
           " hasta ", input$timeToInput,
           ".xlsx",
@@ -9648,7 +11239,7 @@ server <- function(input, output, session) {
   )
   output$download_Table_tab6.1.csv <- downloadHandler(
     filename = function() {
-      if(input$Player){
+      if (input$Player) {
         paste(
           "Tabla Nutrición de ", input$PlayerInput,
           " del ", input$CategoryInput,
@@ -9691,31 +11282,1614 @@ server <- function(input, output, session) {
   })
   
   
+  #### --------------------------- TAB_7 --------------------------- #### 
+  
+  
+  ####  LIST_7.1  #### 
+  
+  df.tab7_1_list  <- reactive({
+    ## Empty List
+    loop_list <- 
+      list()
+    ## Main Loop
+    for (dimension in dimensions) {
+      ## Initial DF
+      df_PF <- 
+        df_BM_CAT() %>%
+        filter(
+          Dimensión %in% dimension
+        ) %>%
+        select(
+          Jugador,
+          FechaDimensión,
+          Medición,
+          ValorMedición
+        ) 
+      ## Empty
+      loop_df <- 
+        tibble(
+          Jugador = factor(),
+          Medición = factor(),
+          ValorMedición = numeric()
+        )
+      ## Middle Loop
+      for (player in unique(df_PF$Jugador)) {
+        # Player
+        df_player <- 
+          df_PF %>%
+          filter(
+            Jugador == player
+          ) %>%
+          filter(
+            FechaDimensión == max(FechaDimensión)
+          ) %>% 
+          select(!FechaDimensión)
+        # Loop DF
+        loop_df <- 
+          rbind(
+            loop_df,
+            df_player
+          )
+      }
+      ## Final DF
+      final_df <- 
+        spread(
+          loop_df,
+          key = 'Medición',
+          value = 'ValorMedición' 
+        ) %>% 
+        mutate(
+          across(everything(), ~replace_na(.x, 0)) 
+          # final_df[is.na(final_df)] = 'Sin dato'
+        )
+      ## Appending General List
+      loop_list <- 
+        loop_list %>%
+        append(
+          list(final_df)
+        )
+    }
+    ## Adding Titles
+    names(loop_list) <- 
+      dimensions
+    ##Final List
+    loop_list
+  })
+  
+  ####  TABLE_7.1.1  #### 
+  
+  output$Table_tab7.1.1 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[1]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[1]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else {
+      
+      DT::datatable(
+        df.tab7_1_list()[[1]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Abalakov-Valor Altura máxima",
+          fontWeight = 'bold',
+          color = styleInterval(c(41,45), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(41,45), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "CMJ-Valor Altura máxima",
+          fontWeight = 'bold',
+          color = styleInterval(c(34,38.6), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(34,38.6), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "SQ-Índice de utilización de brazos",
+          fontWeight = 'bold',
+          color = styleInterval(c(7,14), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(7,14), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "SQ-Índice Elástico sj cmj",
+          fontWeight = 'bold',
+          color = styleInterval(c(4,10), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(4,10), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "SQ-Valor Altura máxima",
+          fontWeight = 'bold',
+          color = styleInterval(c(32,36), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(32,36), c('red', 'yellow','green'))
+        ) 
+      
+    }
+    
+  })
+  
+  ####  TABLE_7.1.2  #### 
+  
+  output$Table_tab7.1.2 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[2]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[2]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else { 
+      
+      DT::datatable(
+        df.tab7_1_list()[[2]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Derecha-Aquiles valor Stiffness",
+          background = styleColorBar(
+            df.tab7_1_list()[[2]]$`Derecha-Aquiles valor Stiffness`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Derecha-Biceps femoral valor Stiffness",
+          background = styleColorBar(
+            df.tab7_1_list()[[2]]$`Derecha-Biceps femoral valor Stiffness`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Derecha-Semitendinoso valor Stiffness",
+          background = styleColorBar(
+            df.tab7_1_list()[[2]]$`Derecha-Semitendinoso valor Stiffness`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Izquierda-Aquiles valor Stiffness",
+          background = styleColorBar(
+            df.tab7_1_list()[[2]]$`Izquierda-Aquiles valor Stiffness`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Izquierda-Biceps femoral valor Stiffness",
+          background = styleColorBar(
+            df.tab7_1_list()[[2]]$`Izquierda-Biceps femoral valor Stiffness`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Izquierda-Semitendinoso valor Stiffness",
+          background = styleColorBar(
+            df.tab7_1_list()[[2]]$`Izquierda-Semitendinoso valor Stiffness`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Aquiles asimetría %",
+          fontWeight = 'bold',
+          color = styleInterval(c(4.9,16.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(4.9,16.1), c('green', 'yellow','red'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Biceps femoral asimetría %",
+          fontWeight = 'bold',
+          color = styleInterval(c(4.9,16.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(4.9,16.1), c('green', 'yellow','red'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Semitendinoso asimetría %",
+          fontWeight = 'bold',
+          color = styleInterval(c(4.9,16.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(4.9,16.1), c('green', 'yellow','red'))
+        )
+      
+    }
+  })
+  
+  ####  TABLE_7.1.3  #### 
+  
+  output$Table_tab7.1.3 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[3]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[3]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else {
+      
+      DT::datatable(
+        df.tab7_1_list()[[3]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Derecha-Relativo al peso",
+          background = styleColorBar(
+            df.tab7_1_list()[[3]]$`Derecha-Relativo al peso`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Izquierda-Relativo al peso",
+          background = styleColorBar(
+            df.tab7_1_list()[[3]]$`Izquierda-Relativo al peso`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Derecha-Valor N",
+          fontWeight = 'bold',
+          color = styleInterval(c(189.9,279.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(189.9,279.1), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Valor N",
+          fontWeight = 'bold',
+          color = styleInterval(c(189.9,279.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(189.9,279.1), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Relaciónn dere/izq-Asimetría %",
+          fontWeight = 'bold',
+          color = styleInterval(c(9.9,20.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(9.9,20.1), c('green', 'yellow','red'))
+        )
+      
+    }
+  })
+  
+  ####  TABLE_7.1.4  #### 
+  
+  output$Table_tab7.1.4 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[4]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[4]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else {
+      
+      DT::datatable(
+        df.tab7_1_list()[[4]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Derecha-Plano anteroposterior valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(0.09,0.16,0.23,0.30), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(0.09,0.16,0.23,0.30), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Derecha-Plano general valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(1.90,2.15,2.66,2.80), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(1.90,2.15,2.66,2.80), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Derecha-Plano mediolateral valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(0.47,0.58,0.71,0.81), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(0.47,0.58,0.71,0.81), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Derecha-Plano vertical superior valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(1.89,2.04,2.55,2.79), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(1.89,2.04,2.55,2.79), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Plano anteroposterior valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(0.09,0.16,0.23,0.30), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(0.09,0.16,0.23,0.30), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Plano general valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(1.90,2.15,2.66,2.80), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(1.90,2.15,2.66,2.80), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Plano mediolateral valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(0.47,0.58,0.71,0.81), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(0.47,0.58,0.71,0.81), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Plano vertical superior valor promedio/DS",
+          fontWeight = 'bold',
+          color = styleInterval(c(1.89,2.04,2.55,2.79), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(1.89,2.04,2.55,2.79), c('red', 'yellow','green','yellow','red'))
+        )
+      
+    }
+  })
+  
+  ####  TABLE_7.1.5 #### 
+  
+  output$Table_tab7.1.5 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[5]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[5]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else {
+      
+      DT::datatable(
+        df.tab7_1_list()[[5]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Derecha-Cuádriceps 60° valor N/m",
+          fontWeight = 'bold',
+          color = styleInterval(c(139.9,186), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(139.9,186), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Derecha-Isquiotibiales 30° valor N/m",
+          fontWeight = 'bold',
+          color = styleInterval(c(59,96), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(59.9,96), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Cuádriceps 60° valor N/m",
+          fontWeight = 'bold',
+          color = styleInterval(c(139.9,186), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(139.9,186), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Isquiotibiales 30° valor N/m",
+          fontWeight = 'bold',
+          color = styleInterval(c(59,96), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(59.9,96), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Cuádriceps 60° asimetría%",
+          fontWeight = 'bold',
+          color = styleInterval(c(9.9,20.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(9.9,20.1), c('green', 'yellow','red'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Cuádriceps 60° Relación Qcps/Iqt",
+          fontWeight = 'bold',
+          color = styleInterval(c(39.9,54.9,65,75), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(39.9,54.9,65,75), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Isquiotibiales 30° asimetría %",
+          fontWeight = 'bold',
+          color = styleInterval(c(9.9,20.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(9.9,20.1), c('green', 'yellow','red'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Isquiotibiales 30° Relación Qcps/Iqt",
+          fontWeight = 'bold',
+          color = styleInterval(c(39.9,54.9,65,75), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(39.9,54.9,65,75), c('red', 'yellow','green','yellow','red'))
+        )
+      
+    }
+  })
+  
+  ####  TABLE_7.1.6 #### 
+  
+  output$Table_tab7.1.6 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[6]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[6]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else {
+      
+      DT::datatable(
+        df.tab7_1_list()[[6]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Derecha-Torque máximo cuádriceps",
+          fontWeight = 'bold',
+          color = styleInterval(c(179.9,200.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(179.9,200.1), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Derecha-Torque máximo isquiotibial",
+          fontWeight = 'bold',
+          color = styleInterval(c(129.9,160), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(129.9,160), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Torque máximo cuádriceps",
+          fontWeight = 'bold',
+          color = styleInterval(c(179.9,200.1), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(179.9,200.1), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Izquierda-Torque máximo isquiotibial",
+          fontWeight = 'bold',
+          color = styleInterval(c(129.9,160), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(129.9,160), c('red', 'yellow','green'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Relación iqt der/izq %",
+          background = styleColorBar(
+            df.tab7_1_list()[[6]]$`Relación dere/izq-Relación iqt der/izq %`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Relación qcps izq /der %",
+          background = styleColorBar(
+            df.tab7_1_list()[[6]]$`Relación dere/izq-Relación qcps izq /der %`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Relación qcps/iqt  der%",
+          fontWeight = 'bold',
+          color = styleInterval(c(39.9,54.9,65,75), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(39.9,54.9,65,75), c('red', 'yellow','green','yellow','red'))
+        ) %>%
+        formatStyle(
+          "Relación dere/izq-Relación qcps/iqt izq %",
+          fontWeight = 'bold',
+          color = styleInterval(c(39.9,54.9,65,75), c('white', 'black','white','black','white')),
+          backgroundColor = styleInterval(c(39.9,54.9,65,75), c('red', 'yellow','green','yellow','red'))
+        )
+      # formatStyle(
+      #   names(df.tab7_1_list()[[6]][6]),
+      #   fontWeight = 'bold',
+      #   color = styleInterval(c(39.9,54.9,65,75), c('white', 'black','white','black','white')),
+      #   backgroundColor = styleInterval(c(39.9,54.9,65,75), c('red', 'yellow','green','yellow','red'))
+      # ) %>%
+      # formatStyle(
+      #   names(df.tab7_1_list()[[6]][7]),
+      #   fontWeight = 'bold',
+      #   color = styleInterval(c(39.9,54.9,65,75), c('white', 'black','white','black','white')),
+      #   backgroundColor = styleInterval(c(39.9,54.9,65,75), c('red', 'yellow','green','yellow','red'))
+      # ) %>%
+      
+    }
+  })
+  
+  ####  TABLE_7.1.7 #### 
+  
+  output$Table_tab7.1.7 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[7]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[7]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else {
+      
+      DT::datatable(
+        df.tab7_1_list()[[7]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Core Plank Test-Valor",
+          fontWeight = 'bold',
+          color = styleInterval(c(59.9,180), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(59,180), c('red', 'yellow','green'))
+        )
+      
+    }
+  })
+  
+  ####  TABLE_7.1.8 #### 
+  
+  output$Table_tab7.1.8 <- DT::renderDataTable({
+    
+    if (nrow(df.tab7_1_list()[[8]]) == 0) {
+      
+      DT::datatable(
+        df.tab7_1_list()[[8]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      )
+      
+    } else {
+      
+      DT::datatable(
+        df.tab7_1_list()[[8]] ,
+        style = "bootstrap",
+        rownames = FALSE,
+        class = "cell-border stripe",
+        width = "100%",
+        selection = "multiple",
+        options=list(
+          ordering = F,
+          sDom = '<"top">lrt<"bottom">ip',
+          searching = TRUE, info = FALSE,
+          scrollX = '400px', scrollY = "400px",
+          scrollCollapse = TRUE, paging = FALSE,
+          columnDefs = list(list(className = "dt-center", targets = "_all")),
+          language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+        )
+      ) %>%
+        formatStyle(
+          "Consumo máximo de oxigeno-V02",
+          background = styleColorBar(
+            df.tab7_1_list()[[8]]$`Consumo máximo de oxigeno-V02`, 
+            'lightblue'
+          ),
+          backgroundSize = '100%',
+          backgroundRepeat = 'no-repeat',
+          backgroundPosition = 'center'
+        )  %>%
+        formatStyle(
+          "Consumo máximo de oxigeno-Vo2max relativo al peso",
+          fontWeight = 'bold',
+          color = styleInterval(c(35,45), c('white', 'black','white')),
+          backgroundColor = styleInterval(c(40,45), c('red', 'yellow','green'))
+        )
+      
+    }
+  })
+  
+  output$download_Table_tab7.1.csv <- downloadHandler(
+    filename = function() {
+      paste("Biomecánica por Jugador ", input$CategoryInput, ".zip", sep = "")
+    },
+    content = function(file) {
+      owd <- 
+        setwd(tempdir())
+      on.exit(setwd(owd))
+      files <- NULL;
+      for (i in 1:8) {
+        fileName <- 
+          paste(names(df.tab7_1_list()[i]),".csv",sep = "")
+        write.table(
+          df.tab7_1_list()[[i]], 
+          fileName, 
+          sep = ';', 
+          row.names = FALSE, 
+          col.names = TRUE
+        )
+        files <- 
+          c(fileName,files)
+      }
+      zip(file,files)
+    }
+  )
+  
+  output$download_Table_tab7.1.xlsx <- downloadHandler(
+    filename = function() {
+      paste("Biomecánica por Jugador ", input$CategoryInput, ".zip", sep = "")
+    },
+    content = function(file) {
+      owd <- 
+        setwd(tempdir())
+      on.exit(setwd(owd))
+      files <- NULL;
+      for (i in 1:8) {
+        fileName <- 
+          paste(names(df.tab7_1_list()[i]),".xlsx",sep = "")
+        write.xlsx(
+          df.tab7_1_list()[[i]], 
+          fileName,
+          col.names = TRUE, 
+          row.names = TRUE, 
+          append = FALSE
+        )
+        files <- 
+          c(fileName,files)
+      }
+      zip(file,files)
+    }
+  )
+  
+  observeEvent(input$Table_tab7.1_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_7/Table_tab7.1_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Table_tab7.1_Modal",
+          icon = icon("times-circle"),
+          label = "Cerrar",
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Table_tab7.1_Modal,{
+    removeModal()
+  })
+  
+  
+  
+  ####  TAB_7.1  #### 
+  
+  df.tab7.1  <- reactive({
+    ## Empty List
+    final_df <- 
+      tibble(
+        Jugador = factor(),
+        Medición = factor(),
+        ValorMedición = numeric(),
+        ValorMétrica = numeric()
+      )
+    ## Main Loop
+    for (dimension in dimensions) {
+      initial_df <- 
+        df_BM_CAT() %>%
+        filter(
+          Dimensión %in% dimension
+        )
+      ## Empty
+      loop_df <- 
+        tibble(
+          Jugador = factor(),
+          Medición = factor(),
+          ValorMedición = numeric(),
+          ValorMétrica = numeric()
+        )
+      ## Middle Loop
+      for (player in unique(initial_df$Jugador)) {
+        # Player
+        df_player <- 
+          initial_df %>%
+          filter(
+            Jugador == player
+          ) %>%
+          filter(
+            FechaDimensión == max(FechaDimensión)
+          ) %>% 
+          select(!FechaDimensión)
+        # Loop DF
+        loop_df <- 
+          rbind(
+            loop_df,
+            df_player
+          )
+      }
+      ## Final DF
+      final_df <- 
+        rbind(
+          final_df,
+          loop_df
+        ) 
+    }
+    ## DF
+    final_df
+    
+  })
+  
+  df.tab7.1.1  <- reactive({
+    ## Metric DF
+    df_BM_metric <- 
+      df.tab7.1() %>%
+      group_by(Jugador,Dimensión) %>% 
+      summarise(
+        Valor = sum(ValorMétrica)
+      ) %>%
+      as.data.frame()
+    ## Final DF
+    df_BM_metric
+  })
+  
+  df.tab7.1.2  <- reactive({
+    ## Metric DF
+    df_BM_metric <- 
+      df.tab7.1() %>%
+      group_by(Dimensión) %>% 
+      summarise(
+        Valor = sum(ValorMétrica)
+      ) %>%
+      as.data.frame()
+    ## Final DF
+    df_BM_metric
+  })
+  
+  df.tab7.1.3  <- reactive({
+    ## Metric DF
+    df_BM_metric <- 
+      df.tab7.1() %>% 
+      group_by(Jugador,Dimensión) %>% 
+      summarise(
+        Valor = sum(ValorMétrica)
+      ) %>%
+      as.data.frame() %>%
+      spread(
+        key = 'Dimensión',
+        value = 'Valor' 
+      ) %>% 
+      mutate(
+        'Total Puntuación' = rowSums(across(where(is.numeric))) 
+      ) %>% 
+      arrange(desc('Total Puntuación')) %>%
+      rename(
+        'Consumo máximo oxigeno' = 'Consumo máximo de oxigeno',
+        'Índice Postural' = 'Índice postural dinámico para tobillo',
+        'Plataforma de Fuerza' = 'Plataforma de fuerza'
+      )
+    ## Final DF
+    df_BM_metric
+  })
+  
+  output$Plot_tab7.1 <- renderPlotly({
+    
+    ## DF
+    df.tab7_fil <- 
+      df.tab7.1.1()
+    
+    ## Visualization
+    if (nrow(df.tab7_fil) == 0) { 
+      
+      emptyChart(
+        emptyMessage('Biomecánica')      
+      )
+      
+    } else {
+      
+      # Visualization
+      plot_ly() %>%
+        add_trace(
+          orientation = 'h',
+          type = 'bar',
+          x = df.tab7_fil$Valor,
+          y = df.tab7_fil$Jugador,
+          color = df.tab7_fil$Dimensión,
+          marker = list(
+            line = list(width = line_with_bar, 
+                        color = 'rgb(0, 0, 0)')
+          ),
+          text = paste(
+            "<b>Jugador: </b>", df.tab7_fil$Jugador,
+            "<br><b>Dimensión: </b>", df.tab7_fil$Dimensión,
+            "<br><b>Valor: </b>", df.tab7_fil$Valor
+          ),
+          hoverinfo = 'text'
+        ) %>%
+        layout(
+          barmode = 'stack',
+          #xaxis = list(range = c(0,(max(df.tab7_fil$Valor)+2))),
+          yaxis = list(
+            autotick = FALSE,
+            ticks = "outside",
+            tick0 = 0,
+            dtick = 0.25,
+            ticklen = 5,
+            tickwidth = 2,
+            tickcolor = toRGB("black")
+          ),
+          #hovermode = 'compare',
+          legend = list(
+            orientation = 'h',
+            y = 1.3, 
+            x = 0,
+            title = list(
+              text = "<b>Dimensiones   <br>Biomecánica   <b>"
+            )
+          )
+        ) %>%
+        config(
+          displaylogo = FALSE,
+          modeBarButtonsToRemove = c("select2d", "zoomIn2d", 
+                                     "zoomOut2d", "lasso2d", 
+                                     "toggleSpikelines"),
+          toImageButtonOptions = list(
+            format = "jpeg",
+            filename =
+              paste(
+                "Gráfica Biomecánica por Jugador y Dimensión de ", 
+                input$CategoryInput,
+                " con fecha ", Sys.Date(),
+                sep = ""
+              ),
+            scale = 3
+          )
+        ) 
+    }
+  })
+  
+  observeEvent(input$Plot_tab7.1_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_7/Plot_tab7.1_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Plot_tab7.1_Modal",
+          icon = icon("times-circle"),
+          label = "Cerrar",
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Plot_tab7.1_Modal,{
+    removeModal()
+  })
+  
+  ####  FOOTER_7.1  #### 
+  
+  Plot_tab7.1_Footer_A <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Consumo máximo de oxigeno" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_A <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "lungs",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_A(),
+      text = "Total Consumo Oxígeno"
+    )
+  })
+  
+  Plot_tab7.1_Footer_B <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Core Plank Test" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_B <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "ruler",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_B(),
+      text = "Total Core Plank Test"
+    )
+  })
+  
+  Plot_tab7.1_Footer_C <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Fuerza Isométrica" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_C <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "prescription-bottle",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_C(),
+      text = "Total Fuerza Isométrica"
+    )
+  })
+  
+  Plot_tab7.1_Footer_D <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Índice postural dinámico para tobillo" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_D <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "hospital",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_D(),
+      text = "Total Índice Postural"
+    )
+  })
+  
+  Plot_tab7.1_Footer_E <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Isocinética" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_E <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "ruler-combined",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_E(),
+      text = "Total Isocinética"
+    )
+  })
+  
+  Plot_tab7.1_Footer_F <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Miotone" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_F <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "bong",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_F(),
+      text = "Total Miotone"
+    )
+  })
+  
+  Plot_tab7.1_Footer_G <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Nórdicos Isquiotibiales" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_G <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "bars",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_G(),
+      text = "Total Nórdicos Isquiotibiales"
+    )
+  })
+  
+  Plot_tab7.1_Footer_H <- reactive({
+    df.tab7.1.2() %>%
+      filter(
+        Dimensión == "Plataforma de fuerza" 
+      ) %>%
+      pull(Valor)
+  })
+  output$Plot_tab7.1_Footer_H <- renderUI({
+    descriptionBlock(
+      rightBorder = TRUE,
+      marginBottom = FALSE,
+      number = "", 
+      numberIcon = "list",
+      numberColor = "aqua", 
+      header =  Plot_tab7.1_Footer_H(),
+      text = "Total Plataforma de Fuerza"
+    )
+  })
+  
+  ####  TABLE_7.3  #### 
+  
+  output$Table_tab7.3 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7.1.3(),
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    ) %>%
+      formatStyle(
+        "Total Puntuación",
+        background = styleColorBar(
+          df.tab7.1.3()$`Total Puntuación`, 
+          'lightblue'
+        ),
+        backgroundSize = '100%',
+        backgroundRepeat = 'no-repeat',
+        backgroundPosition = 'center'
+      )
+  })
+  
+  output$download_Table_tab7.3.xlsx <- downloadHandler(
+    filename = function() {
+      paste(
+        "Tabla Biomecánica por Jugador y Dimensión de ", 
+        input$CategoryInput,
+        " con fecha ", Sys.Date(),
+        ".xlsx",
+        sep = ""
+      )
+    },
+    content = function(file) {
+      write.xlsx(df.tab7.1.3(), file,
+                 col.names = TRUE, row.names = TRUE, append = FALSE)
+    }
+  )
+  output$download_Table_tab7.3.csv <- downloadHandler(
+    filename = function() {
+      paste(
+        "Tabla Biomecánica por Jugador y Dimensión de ", 
+        input$CategoryInput,
+        " con fecha ", Sys.Date(),
+        ".csv",
+        sep = ""
+      )
+    },
+    content = function(file) {
+      write.csv(df.tab7.1.3(), file, row.names = FALSE)
+    }
+  )
+  
+  
+  ####  LIST_7.2  #### 
+  
+  df.tab7_2_list  <- reactive({
+    
+    ## Empty List
+    loop_list <- 
+      list()
+    ## Main Loop
+    for (dimension in dimensions) {
+      ## Initial DF
+      df_PF <- 
+        df_BM_CAT() %>%
+        filter(
+          Dimensión %in% dimension
+        ) %>%
+        select(
+          Jugador,
+          FechaDimensión,
+          Medición,
+          ValorMedición
+        ) 
+      ## Final DF
+      final_df <- 
+        left_join(
+          df_PF,
+          df_CED %>% 
+            select(Jugador,Posición) %>% 
+            unique(),
+          by = "Jugador"
+        ) %>% 
+        group_by(Posición,Medición) %>%
+        summarise(
+          Promedio = round(mean(ValorMedición),1),
+          Desviación = round(sd(ValorMedición),1)
+        ) %>%
+        mutate(
+          Valor = paste(Promedio,"+-",Desviación)
+        ) %>%
+        select(
+          Posición,
+          Medición,
+          Valor
+        ) %>%
+        spread(
+          key = 'Medición',
+          value = 'Valor' 
+        ) %>%
+        as.data.frame()
+      ## Appending General List
+      loop_list <- 
+        loop_list %>%
+        append(
+          list(final_df)
+        )
+    }
+    ## Adding Titles
+    names(loop_list) <- 
+      dimensions
+    ## Final List
+    loop_list
+  })
+  
+  ####  TABLE_7.2.1  #### 
+  
+  output$Table_tab7.2.1 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[1]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  ####  TABLE_7.2.2  #### 
+  
+  output$Table_tab7.2.2 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[2]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  ####  TABLE_7.2.3  #### 
+  
+  output$Table_tab7.2.3 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[3]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  ####  TABLE_7.2.4  #### 
+  
+  output$Table_tab7.2.4 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[4]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  ####  TABLE_7.2.5  #### 
+  
+  output$Table_tab7.2.5 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[5]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  ####  TABLE_7.2.6  #### 
+  
+  output$Table_tab7.2.6 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[6]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  ####  TABLE_7.2.7  #### 
+  
+  output$Table_tab7.2.7 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[7]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  ####  TABLE_7.2.8  #### 
+  
+  output$Table_tab7.2.8 <- DT::renderDataTable({
+    DT::datatable(
+      df.tab7_2_list()[[8]] ,
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
+      width = "100%",
+      selection = "multiple",
+      options=list(
+        ordering=F,
+        sDom  = '<"top">lrt<"bottom">ip',
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "400px",
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
+      )
+    )
+  })
+  
+  output$download_Table_tab7.2.csv <- downloadHandler(
+    filename = function() {
+      paste("Biomecánica ", input$CategoryInput, ".zip", sep = "")
+    },
+    content = function(file) {
+      owd <- 
+        setwd(tempdir())
+      on.exit(setwd(owd))
+      files <- NULL;
+      for (i in 1:8) {
+        fileName <- 
+          paste(names(df.tab7_2_list()[i]),".csv",sep = "")
+        write.table(
+          df.tab7_2_list()[[i]], 
+          fileName, 
+          sep = ';', 
+          row.names = FALSE, 
+          col.names = TRUE
+        )
+        files <- 
+          c(fileName,files)
+      }
+      zip(file,files)
+    }
+  )
+  
+  output$download_Table_tab7.2.xlsx <- downloadHandler(
+    filename = function() {
+      paste("Biomecánica ", input$CategoryInput, ".zip", sep = "")
+    },
+    content = function(file) {
+      owd <- 
+        setwd(tempdir())
+      on.exit(setwd(owd))
+      files <- NULL;
+      for (i in 1:8) {
+        fileName <- 
+          paste(names(df.tab7_2_list()[i]),".xlsx",sep = "")
+        write.xlsx(
+          df.tab7_2_list()[[i]], 
+          fileName,
+          col.names = TRUE, 
+          row.names = TRUE, 
+          append = FALSE
+        )
+        files <- 
+          c(fileName,files)
+      }
+      zip(file,files)
+    }
+  )
+  
+  observeEvent(input$Table_tab7.2_HELP, {
+    showModal(
+      modalDialog(
+        includeHTML("Modals/Tab_7/Table_tab7.2_HELP.html"),
+        easyClose = TRUE,
+        size = "m",
+        footer = actionButton(
+          inputId = "Table_tab7.2_Modal",
+          icon = icon("times-circle"),
+          label = "Cerrar",
+          style = "color: white;  background: linear-gradient(60deg, #142c59, #00C0EF);"
+        )
+      )
+    )
+  })
+  observeEvent(input$Table_tab7.2_Modal,{
+    removeModal()
+  })
+  
+  
+  
   
   #### --------------------------- TAB_API --------------------------- #### 
   
   ####  Table_API_1  ####
-  Table_API_1  <- reactive({
-    rbind(
-      df_PD_CAT(),
-      df_PD_F_C()
-    )
-  })
   output$Table_API_1 <- DT::renderDataTable({
     DT::datatable(
-      Table_API_1(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      rbind(df_PD_CAT_T(),
+            df_PD_F_C()),
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="260px", 
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "260px", 
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
   })
@@ -9729,7 +12903,9 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       write.xlsx(
-        Table_API_1(), file, col.names = TRUE, row.names = TRUE, append = FALSE)
+        rbind(df_PD_CAT_T(),
+              df_PD_F_C()), 
+        file, col.names = TRUE, row.names = TRUE, append = FALSE)
     }
   )
   output$download_Table_API_1.csv <- downloadHandler(
@@ -9742,26 +12918,29 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       write.csv(
-        Table_API_1(), file, row.names = FALSE)
+        rbind(df_PD_CAT_T(),
+              df_PD_F_C()), 
+        file, row.names = FALSE)
     }
   )
   
   ####  Table_API_2  ####
   output$Table_API_2 <- DT::renderDataTable({
     DT::datatable(
-      df_AC_C(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      df_AC_C(), 
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="260px", 
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "260px", 
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
   })
@@ -9794,19 +12973,20 @@ server <- function(input, output, session) {
   ####  Table_API_3  ####
   output$Table_API_3 <- DT::renderDataTable({
     DT::datatable(
-      df_CED_C(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      df_CED_C(), 
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="260px", 
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "260px", 
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
   })
@@ -9839,19 +13019,20 @@ server <- function(input, output, session) {
   ####  Table_API_4  ####
   output$Table_API_4 <- DT::renderDataTable({
     DT::datatable(
-      df_KT_C(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      df_KT_C(), 
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="260px", 
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "260px", 
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
   })
@@ -9884,19 +13065,20 @@ server <- function(input, output, session) {
   ####  Table_API_5  ####
   output$Table_API_5 <- DT::renderDataTable({
     DT::datatable(
-      df_MED_C(),
-      style="bootstrap",
-      rownames=FALSE,
-      class="cell-border stripe",
+      df_MED_C(), 
+      style = "bootstrap",
+      rownames = FALSE,
+      class = "cell-border stripe",
       width = "100%",
       filter = 'top',
-      selection="multiple",
+      selection = "multiple",
       options=list(
         sDom  = '<"top">lrt<"bottom">ip',
-        searching=TRUE, info=FALSE,
-        scrollX='400px', scrollY="260px", 
-        scrollCollapse=TRUE, paging=FALSE,
-        columnDefs=list(list(className="dt-center", targets="_all"))
+        searching = TRUE, info = FALSE,
+        scrollX = '400px', scrollY = "260px", 
+        scrollCollapse = TRUE, paging = FALSE,
+        columnDefs = list(list(className = "dt-center", targets = "_all")),
+        language = list(zeroRecords = "No hay suficientes datos para generar la Tabla")
       )
     )
   })
@@ -9927,17 +13109,801 @@ server <- function(input, output, session) {
   )
   
   
+  #### --------------------------- TAB_RELOAD --------------------------- #### 
+  
+  ####  Loading  ####
+  output$plotUpdate <- renderPlot({
+    input$update
+  })
+  
+  ####  Process  ####
+  observeEvent(input$update, {
+    
+    shinyjs::disable('update')
+    
+    show_spinner(spin_id = NULL, session = shiny::getDefaultReactiveDomain())
+    
+    ## Starting Time
+    start_tenant_time <- 
+      Sys.time()
+    
+    ## Connection
+    con <- 
+      do.call(
+        DBI::dbConnect, 
+        dbi_PROD
+      )
+    
+    ## Encodin UTF-8 in SQL
+    dbSendQuery(con, "SET NAMES utf8")
+    
+    ##  df_DM 
+    df_DM <- 
+      dbGetQuery(
+        con,
+        stringr::str_glue(
+          "
+          ##############  MEDICIONES DIARIAS  ##############
+          
+          SELECT DISTINCT
+          # DM ID
+          dm.id AS ID_DM,
+          # Jugador
+          concat(us.name,' ',us.last_name) AS Jugador,
+          if (pl.side=1,'Diestro','Zurdo') AS Lateralidad,
+          pl.height AS Estatura,
+          pl.initial_weight AS Peso,
+          ct.name_category AS Categoría,
+          pt.name_position AS Posición,
+          # Mediciones Diarias
+          if (dm.measurement_moment=1,'Entrenamiento','Partido') AS MomentoMedición,
+          mt.name AS TipoMedición,
+          dm.value AS ValorMedición,
+          dm.date AS FechaMedición
+          
+          FROM player pl 
+            # Jugador
+            LEFT JOIN user us ON us.id = pl.id_user 
+                  AND us.deleted = 0
+                  AND us.id_user_type = 12
+                  AND us.tenant_code = '{tenant}'
+            LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+            LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+            LEFT JOIN position_type pt ON pl.id_position_type = pt.id
+            # Mediciones Diarias
+            LEFT JOIN daily_measurements dm ON dm.id_player = pl.id 
+                  AND dm.deleted = 0
+                  # AND dm.tenant_code = '{tenant}'
+            LEFT JOIN measurement_type mt ON mt.id = dm.measurement_type  
+                  AND mt.deleted = 0
+                  # AND mt.tenant_code = '{tenant}'
+          
+          WHERE pl.deleted = 0 
+            AND pl.tenant_code = '{tenant}'
+            
+          ;
+          
+          "
+        )
+      ) %>% as.data.frame() 
+    # df_PD_G
+    df_PD_G <- 
+      dbGetQuery(
+        con,
+        stringr::str_glue(
+          "
+          ##############  DIMENSIONES DE JUGADOR  ##############
+          
+          SELECT 
+          # PD ID
+          pldm.id AS ID_PlayerDimension,
+          # Jugador
+          concat(us.name,' ',us.last_name) AS Jugador,
+          ct.name_category AS Categoría,
+          # Dimensiones de Jugador
+          dm.name AS Dimensión,
+          pldm.date AS FechaDimensión,
+          # Meters
+          pldm.meters AS Medición
+          
+          FROM player pl 
+            # Jugador
+            LEFT JOIN user us ON us.id = pl.id_user 
+                  AND us.deleted = 0
+                  AND us.id_user_type = 12
+                  AND us.tenant_code = '{tenant}'
+            LEFT JOIN user_type ust ON ust.id = us.id_user_type 
+            LEFT JOIN category_type ct ON pl.id_category_type = ct.id
+            # Dimensiones de Jugador
+            LEFT JOIN player_dimension pldm ON pl.id = pldm.id_player 
+                  AND pldm.deleted = 0
+                  # AND us.tenant_code = '{tenant}'
+            LEFT JOIN dimension dm ON dm.id = pldm.id_dimension
+                  # AND dm.tenant_code = '{tenant}'
+            
+          WHERE pl.deleted = 0 
+            AND pl.tenant_code = '{tenant}'
+            
+          ;
+          "
+        )     
+      )
+    # Disconnection
+    dbDisconnect(con)
+    
+    ##df_PD_reload I  
+    # DF
+    df_PD_I <- 
+      df_PD_G %>% 
+      distinct() %>%
+      drop_na() %>%
+      # slice(1:100) %>%
+      arrange(desc(ID_PlayerDimension)) %>% 
+      filter(FechaDimensión >= input$timeReloadFromInput)
+    
+    if (nrow(df_PD_I) != 0) {
+      
+      # Removing ID adn Medición
+      df_PD_reload<- 
+        df_PD_I %>% 
+        select(!c(ID_PlayerDimension, Medición))
+      
+      # Defining Specific Json's Meters Data Frame
+      df_Json <- 
+        df_PD_I %>% 
+        select(Medición)
+      json <- 
+        df_Json$Medición 
+      
+      # Creating DF's Structutre
+      df <- 
+        data.frame(
+          "id" = integer(),
+          "name" = character(),
+          "value" = double(),
+          "TipoMedición" = character(),
+          "Jugador" = character(),      
+          "Categoría" = character(),             
+          "Dimensión" = character(),             
+          "FechaDimensión" = character()     
+        )
+      
+      # Triple Loop for Building the whole DT
+      for (i in (1:length(json))) {
+        json_n <-
+          json[i] %>%
+          jsonlite::fromJSON()
+        for (j in (1:length(json_n))) {
+          json_df_b <- 
+            json_n[[j]] %>%
+            jsonlite::fromJSON()
+          for (b in (1:length(json_df_b))) {
+            json_df <- 
+              json_df_b[[b]]
+            for (k in (1:length(json_df$meters))) {
+              json_m <- 
+                json_df$meters[[k]] %>%
+                as.data.frame() %>%
+                mutate("TipoMedición" = json_df$name)
+              if (df_PD_reload[i,"Dimensión"] %in% "Masoterápea") { 
+                json_m <- 
+                  json_m %>%
+                  mutate("value" = 0)
+              }
+              json_df_c <-
+                cbind(json_m,
+                      df_PD_reload[i,] %>%
+                        slice(rep(1:n(), each = nrow(json_m))))
+              df <- 
+                rbind(df,json_df_c)
+            }
+          }
+        }
+      }
+      
+      # print("Lleguamos hasta aquí nomas !!")
+      
+      # Renaming, Relocating and Filtering
+      df_PD_reload<- 
+        df %>% 
+        select(-id) %>% 
+        rename(
+          "Medición" = name,
+          "ValorMedición" = value
+        ) %>% 
+        relocate(
+          "Jugador", 
+          "Categoría",           
+          "FechaDimensión",
+          "Dimensión",
+          "TipoMedición",
+          "Medición",
+          "ValorMedición"
+        ) %>% 
+        filter(!ValorMedición == "") %>% 
+        rbind(
+          df_DM %>%
+            select(!ID_DM) %>% 
+            rename(
+              "Medición" = TipoMedición,
+              "TipoMedición" = MomentoMedición,
+              "FechaDimensión" = FechaMedición
+            ) %>%
+            mutate(Dimensión = "GPS") %>% 
+            relocate(
+              Jugador,
+              Categoría,
+              FechaDimensión,
+              Dimensión,
+              TipoMedición,
+              Medición,
+              ValorMedición
+            ) %>%
+            select(!c(
+              Posición,Peso,Estatura,Lateralidad
+            ))
+        )
+      
+      ##  df_PD_F_reload
+      df_PD_F_reload<- 
+        rbind(
+          df_PD_reload %>% 
+            filter(
+              Dimensión %in% "Masoterápea"
+            ),
+          df_PD_reload %>% 
+            filter(
+              Medición %in% "PCR"
+            ) %>%
+            mutate(
+              PCR = df_PD_reload %>%
+                filter(
+                  Medición %in% "PCR"
+                ) %>% 
+                pull(ValorMedición) %>%
+                recode(
+                  "58"="Negativo",
+                  "59"="Positivo",
+                  "60"="Negativo",
+                  "61"="Positivo"
+                )
+            ) %>%
+            select(!ValorMedición) %>%
+            rename(ValorMedición=PCR)
+        )
+      df_PD_F_reload$Categoría <- df_PD_F_reload$Categoría %>% as.factor()
+      df_PD_F_reload$Jugador <- df_PD_F_reload$Jugador %>% as.factor()
+      df_PD_F_reload$FechaDimensión <- df_PD_F_reload$FechaDimensión %>% as.Date()
+      df_PD_F_reload$TipoMedición <- df_PD_F_reload$TipoMedición %>% as.factor()
+      df_PD_F_reload$Medición <- 
+        gsub("\\s*\\([^\\)]+\\)","",
+             as.character(df_PD_F_reload$Medición)) %>% as.factor()
+      df_PD_F_reload$Medición <- df_PD_F_reload$Medición %>% as.factor()
+      df_PD_F_reload$ValorMedición <- df_PD_F_reload$ValorMedición %>% as.factor()
+      
+      ##  df_PD_reload II
+      df_PD_reload<- 
+        df_PD_reload%>% 
+        filter(
+          !Dimensión %in% "Masoterápea",
+          !Medición %in% c("PCR","Estress")
+        )
+      df_PD_reload$ValorMedición <- df_PD_reload$ValorMedición %>% as.numeric()
+      df_PD_reload$Categoría <- df_PD_reload$Categoría %>% as.factor()
+      df_PD_reload$Jugador <- df_PD_reload$Jugador %>% as.factor()
+      df_PD_reload$FechaDimensión <- df_PD_reload$FechaDimensión %>% as.Date()
+      df_PD_reload$TipoMedición <- df_PD_reload$TipoMedición %>% as.factor()
+      df_PD_reload$Medición <- df_PD_reload$Medición %>% as.factor()
+      df_PD_reload$Medición <- 
+        gsub("\\s*\\([^\\)]+\\)","",
+             as.character(df_PD_reload$Medición)) %>% as.factor()
+      df_PD_reload$Dimensión <- df_PD_reload$Dimensión %>% as.factor()
+      # Droping NA
+      df_PD_reload<- 
+        df_PD_reload %>% 
+        drop_na() %>% 
+        filter(ValorMedición >= 0)
+      # re Value
+      df_PD_reload$Medición <- 
+        df_PD_reload$Medición %>% 
+        plyr::revalue(c(
+          "Nivel de percepción por el esfuerzo" = "Percepción subjetiva del esfuerzo",
+          "Total Duration" = "Minutos de exposición",
+          "Dolor muscular" = "Estado general muscular",
+          "Estado de ánimo" = "Humor / Estado de ánimo",
+          'T.Q.R Recuperación física' = 'T.Q.R'
+        )) 
+      df_PD$Medición <- 
+        factor(
+          df_PD$Medición, 
+          unique(df_PD$Medición)
+        )
+      
+      ##  MERGING DFs 
+      # df_PD_F
+      dropboxDownload(tenant, 'df_PD.rds')
+      df_PD_prev <- 
+        readRDS("df_PD.rds") %>%
+        filter(FechaDimensión < input$timeReloadFromInput)
+      df_PD_reload<- 
+        rbind(
+          df_PD_reload,
+          df_PD_prev
+        ) %>% 
+        distinct()
+      # df_PD
+      dropboxDownload(tenant, 'df_PD_F.rds')
+      df_PD_F_prev <- 
+        readRDS("df_PD_F.rds") %>%
+        filter(FechaDimensión < input$timeReloadFromInput)
+      df_PD_F_reload<- 
+        rbind(
+          df_PD_F_reload,
+          df_PD_F_prev
+        ) %>% 
+        distinct()
+      
+      ## Uploading
+      # Local
+      saveRDS(df_PD_reload, file = "df_PD.rds")
+      saveRDS(df_PD_F_reload, file = "df_PD_F.rds")
+      # Dropbox
+      dropboxUpload(tenant, 'df_PD.rds')
+      dropboxUpload(tenant, 'df_PD_F.rds')
+      
+    }
+    
+    ## Ending Time
+    end_tenant_time <- 
+      Sys.time()
+    
+    ## Total Time
+    total_tenant_time <- 
+      difftime(
+        end_tenant_time,
+        start_tenant_time,
+        units = c("mins")
+      ) %>% 
+      as.numeric() %>%
+      round(1)
+    print(
+      paste(
+        "Tiempo de procesamiento de Recarga del Tenant ", tenant,
+        " con fecha ", Sys.time(), ": ", 
+        as.numeric(total_tenant_time), " minutos.", 
+        sep = ""
+      )
+    )
+    
+    hide_spinner(spin_id = NULL, session = shiny::getDefaultReactiveDomain())
+    
+    shinyjs::enable('update')
+    
+  })
+  
+  ####  Modal  ####
+  observeEvent( input$update, {
+    show_alert(
+      title = "Datos actualizados con éxito !",
+      text = "Vuelva a cargar sus visualizaciones para poder observar los cambios.",
+      # "Cierre la Aplicación de Reconquer por 5 minutos y luego vuelva a iniciarla."
+      type = "success",
+      btn_labels = "Entendido",
+      btn_colors = "#142c59",
+      width = "40%"
+    )
+  })
+  # observeEvent(input$update, {
+  #   Sys.sleep(15)
+  #   closeSweetAlert(
+  #     session = shiny::getDefaultReactiveDomain()
+  #   )
+  # })
+  
+  
+  #### --------------------------- TAB_REPORT --------------------------- #### 
+  
+  ####  Loading  ####
+  output$plotReport <- renderPlot({
+    input$generate_report
+  })
+  
+  ####  UI  ####
+  output$initialCondition <- renderUI({
+    textAreaInput(
+      width = "380px",
+      height = "60px",
+      inputId = "initialConditionInput", 
+      label = 'Condición de Ingreso', 
+      value = ""
+    )
+  })
+  output$finalCondition <- renderUI({
+    textAreaInput(
+      width = "380px",
+      height = "60px",
+      inputId = "finalConditionInput", 
+      label = 'Condición de Salida', 
+      value = ""
+    )
+  })
+  output$entryDate <- renderUI({
+    dateInput(
+      width = "120px",
+      inputId = "entryDateInput", 
+      label = "Fecha ingreso:",
+      value = min(date_range),
+      min = NULL,
+      max = NULL,
+      startview = "month",
+      language = "es"
+    )
+  })
+  output$leaveDate <- renderUI({
+    dateInput(
+      width = "120px",
+      inputId = "leaveDateInput", 
+      label = "Fecha salida:",
+      value = max(date_range),
+      min = NULL,
+      max = NULL,
+      startview = "month",
+      language = "es"
+    )
+  })
+  
+  ####  Process  ####
+  observeEvent( input$generate_report, {
+    
+    
+    if ( 
+      stringr::str_detect(input$ReportEmailInput, "[.]") == FALSE |
+      stringr::str_detect(input$ReportEmailInput, "email") == TRUE |
+      stringr::str_detect(input$ReportEmailInput, "@") == FALSE 
+    ) {
+      
+    } else {
+      
+      shinyjs::disable('generate_report')
+      
+      show_spinner(spin_id = NULL, session = shiny::getDefaultReactiveDomain())
+      
+      
+      ## Starting Time
+      start_report_time <- 
+        Sys.time()
+      
+      ### INPUTS
+      # Client
+      client <- 
+        ifelse(
+          tenant == "ANFP", 
+          "ANFP", 
+          stringr::str_to_title(tenant)
+        )
+      # Category
+      filter_category <- 
+        input$CategoryInput
+      # Period
+      start_date <- 
+        input$timeFromInput
+      end_date <- 
+        input$timeToInput
+      # Mail
+      email_adress <- 
+        input$ReportEmailInput
+      #second_email_adress <- userEmail()
+      
+      
+      ### IMPORTING
+      df_CED_report <- df_CED_fil()
+      df_CED_TE_report <- df_CED_TE_fil() 
+      df_KT_report <- df_KT_fil()
+      df_KA_report <- df_KA_fil() 
+      df_PD_report <- df_PD_fil() 
+      df_PD_F_report <- df_PD_F_fil() 
+      df_TL_report <- df_TL_fil()
+      df_MED_report <- df_MED_fil()
+      df_AC_report <- df_AC_fil()
+      df_EO_report <- df_EO_fil() 
+      
+      
+      ####  SAVING  #### 
+      # Web
+      saveRDS(df_CED_report, 'df_CED.rds')
+      saveRDS(df_CED_report, 'df_CED_G.rds')
+      saveRDS(df_CED_TE_report, 'df_CED_TE.rds')
+      saveRDS(df_KT_report, 'df_KT.rds')
+      saveRDS(df_KA_report, 'df_KA.rds')
+      saveRDS(df_PD_report, 'df_PD.rds')
+      saveRDS(df_PD_F_report, 'df_PD_F.rds')
+      saveRDS(df_TL_report, 'df_TL.rds')
+      saveRDS(df_MED_report, 'df_MED.rds')
+      saveRDS(df_AC_report, 'df_AC.rds')
+      saveRDS(df_EO_report, 'df_EO.rds')
+      # Local
+      # saveRDS(df_CED_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_CED.rds')
+      # saveRDS(df_CED_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_CED_G.rds')
+      # saveRDS(df_CED_TE_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_CED_TE.rds')
+      # saveRDS(df_KT_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_KT.rds')
+      # saveRDS(df_KA_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_KA.rds')
+      # saveRDS(df_PD_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_PD.rds')
+      # saveRDS(df_PD_F_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_PD_F.rds')
+      # saveRDS(df_TL_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_TL.rds')
+      # saveRDS(df_MED_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_MED.rds')
+      # saveRDS(df_AC_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_AC.rds')
+      # saveRDS(df_EO_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_EO.rds')
+      
+      
+      ### RENDERING
+      
+      if ( input$Player ) {
+        
+        if ( input$conditionReport ) {
+          
+          ### Variables
+          # Player Info
+          player <- 
+            input$PlayerInput
+          df_current_player <- 
+            df_PC %>% 
+            filter(Jugador == player)
+          ID_Jugador <- 
+            df_current_player %>% 
+            pull(ID_Jugador)
+          ID_Categoría_Jugador <- 
+            df_current_player %>% 
+            pull(ID_Categoría)
+          # Conditions
+          CondiciónIngreso <- 
+            input$initialConditionInput %>% 
+            as.character()
+          CondiciónEgreso <- 
+            input$finalConditionInput %>% 
+            as.character()
+          FechaIngreso <- 
+            input$entryDateInput %>% 
+            as.character()
+          FechaEgreso <- 
+            input$leaveDateInput %>% 
+            as.character()
+          # Date
+          time_difference <- 0 
+          current_date <- 
+            Sys.time() %>% 
+            clock::add_hours(time_difference) %>% 
+            format("%Y-%m-%d %H:%M:%S")
+          
+          ### Report
+          file_report <- 
+            paste0('Reporte_', player, "_", Sys.Date(), "_ID", sample(1:10000,1), '.html', sep = "")
+          rmarkdown::render(
+            'Report_I_C.Rmd', 
+            #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/Report_I_C.Rmd', 
+            output_file = file_report
+          )
+          
+          ### SQL
+          # Connection
+          con <- 
+            do.call(
+              DBI::dbConnect, 
+              dbi_SAMPLE
+            )
+          # Encodin UTF-8 in SQL
+          dbSendQuery(
+            con, 
+            "SET NAMES utf8"
+          )
+          # Setting Auto Increment
+          dbSendQuery(
+            con,
+            "SET auto_increment_increment = 1;"
+          )
+          # Sending Query 1
+          dbSendQuery(
+            con,
+            stringr::str_glue(
+              "
+              INSERT INTO player_conditions (id_player, id_category_type, 
+                                             initial_condition, final_condition, 
+                                             initial_date, final_date, created)
+              VALUES ('{ID_Jugador}','{ID_Categoría_Jugador}',
+                      '{CondiciónIngreso}','{CondiciónEgreso}',
+                      '{FechaIngreso}','{FechaEgreso}','{current_date}')
+              ;
+              "
+            )
+          )
+          # Disconnection
+          dbDisconnect(con)
+          rm(con)
+          
+        } else {
+          
+          # Variables
+          player <- 
+            input$PlayerInput
+          
+          file_report <- 
+            paste0('Reporte_', player, "_", Sys.Date(), "_ID", sample(1:10000,1), '.html', sep = "")
+          rmarkdown::render(
+            'Report_I.Rmd', 
+            #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/Report_I.Rmd', 
+            output_file = file_report
+          )
+          
+        }
+        
+      } else {
+        
+        file_report <- 
+          paste0('Reporte_', client, "_", Sys.Date(), "_ID", sample(1:10000,1), '.html', sep = "")
+        rmarkdown::render(
+          'Report_G.Rmd', 
+          #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/Report_G.Rmd', 
+          output_file = file_report
+        )
+        
+      }
+      
+      ## Path
+      report_path <- 
+        file_report
+        #paste('/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/', file_report, sep = "")
+      
+      
+      ### Dropbox
+      ## Uploading
+      drop_upload(
+        file = stringr::str_glue(report_path), 
+        path = stringr::str_glue("ReConquer/R Data/{tenant}/Report/"), 
+        mode = "overwrite"
+      )
+      ## Dropbox link
+      sharing_link <- 
+        drop_share(stringr::str_glue("ReConquer/R Data/{tenant}/Report/{file_report}"))$url[1]
+      
+      
+      ### MAIL
+      time <- 
+        Sys.Date()
+      title <- 
+        paste("Informe Clínico-Deportivo de ", client, sep = "")
+      message <- 
+        stringr::str_glue(
+          "<p>Estimado(a), 
+           <br><br>A continuación encontrará, con fecha {time}, 
+                   un Link de acceso para la descarga del Informe Clínico-Deportivo 
+                   considerando datos ingresados en nuestra plataforma
+                   entre las fechas {start_date} y {end_date}. 
+          <br><br>{sharing_link}
+          <br><br>Saluda atenatamente a Ud. 
+          <br><br>Equipo <b style='color: rgb(73,170,230);'>ReConquer</b></p>
+          <br><br>P.D. <i>Dado que el formato del archivo es HTML, 
+                  para visualizarlo correctamente recomendamos
+                  abrirlo desde un computador haciendo <b>doble click</b> en él</i>."
+        )
+      ## Structure
+      email <- 
+        envelope() %>%
+        to(email_adress) %>% 
+        #cc(second_email_adress) %>% 
+        subject(title) %>% 
+        html(message) %>%
+        sender("ReConquer Analytics") %>%
+        from("ReConquer Analytics")
+      ## Sending Email
+      smtp(
+        email, 
+        verbose = TRUE
+      )
+      
+      ## Ending Time
+      end_report_time <- 
+        Sys.time()
+      
+      ## Total Time
+      total_report_time <- 
+        difftime(
+          end_report_time,
+          start_report_time,
+          units = c("secs")
+        ) %>% 
+        as.numeric() %>%
+        round(1)
+      print(
+        paste(
+          "Tiempo de procesamiento del Informe del Tenant ", tenant,
+          " con fecha ", Sys.time(), ": ", 
+          as.numeric(total_report_time), " segundos", 
+          sep = ""
+        )
+      )
+      
+      hide_spinner(spin_id = NULL, session = shiny::getDefaultReactiveDomain())
+      
+      shinyjs::enable('generate_report')
+      
+    }
+    
+  })
+  
+  ####  Modal  ####
+  
+  observeEvent( req(input$conditionReport == TRUE), {
+    show_alert(
+      title = "Atención",
+      text = "Es importante verificar que las Condiciones y Fechas ingresadas sean correctas.",
+      type = "warning",
+      btn_labels = "Entendido",
+      btn_colors = "#142c59",
+      width = "40%"
+    )
+  })
+  # observeEvent( req(input$conditionReport == TRUE), {
+  #   Sys.sleep(5)
+  #   closeSweetAlert(
+  #     session = shiny::getDefaultReactiveDomain()
+  #   )
+  # })
+  
+  observeEvent(input$generate_report, {
+    
+    if (
+      stringr::str_detect(input$ReportEmailInput, "email") == TRUE
+    ) {
+      show_alert(
+        title = "Error de envio",
+        text = "Verifique el nombre inicial de su Email.",
+        btn_labels = "Vamos a corregirlo",
+        type = "error",
+        btn_colors = "#142c59",
+        width = "80%"
+      )
+    } else if (
+      stringr::str_detect(input$ReportEmailInput, "@") == FALSE
+    ) {
+      show_alert(
+        title = "Error de envio",
+        text = "Verifique el ingreso del @ en el Email.",
+        btn_labels = "Vamos a corregirlo",
+        type = "error",
+        btn_colors = "#142c59",
+        width = "80%"
+      )
+    } else if (
+      stringr::str_detect(input$ReportEmailInput, "[.]") == FALSE 
+    ) {
+      show_alert(
+        title = "Error de envio",
+        text = "Verifique la terminación del Email.",
+        btn_labels = "Vamos a corregirlo",
+        type = "error",
+        btn_colors = "#142c59",
+        width = "80%"
+      )
+    } else {
+      show_alert(
+        title = "Informe enviado con éxito !",
+        text = paste(
+          "No olvide revisar su carpeta de Spam.",
+          "Se aconseja Descargar el archivo y luego visualizarlo desde su navegador de preferencia.",
+          sep = " "
+        ),
+        type = "success",
+        btn_labels = "Vamos a descargarlo",
+        btn_colors = "#142c59",
+        width = "40%"
+      )
+    }
+    
+  })
+  
   
 }
 
 ####  INTERFACE  #### 
 
 shinyApp(ui = ui, server = server)
-
-
-
-## fun::random_password(58, replace = FALSE, extended = FALSE)
-## COQUIMBO : COQUIMBOWd7iHRgSFMpNXI8LJuZz53b0nK4cBmwarQAol6VO1yUfCGjtsPvhYe
-
-
 
