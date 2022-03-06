@@ -2541,25 +2541,25 @@ smtp <-
   server(
     host = "smtp.gmail.com",
     port = 465,
-    username = "reconquer.analytics@gmail.com",
-    password = "DataScience$2313"
+    username = "some_mail@gmail.com",
+    password = "some_password"
   )
 
 
 ####  VII. DOWNLOADS  #### 
 
 ## Reports
-drop_download(stringr::str_glue('ReConquer/Report_G.Rmd',
+drop_download(stringr::str_glue('path/Report_G.Rmd',
                                 local_path = ""),
               overwrite = TRUE)
-drop_download(stringr::str_glue('ReConquer/Report_I.Rmd',
+drop_download(stringr::str_glue('path/Report_I.Rmd',
                                 local_path = ""),
               overwrite = TRUE)
-drop_download(stringr::str_glue('ReConquer/Report_I_C.Rmd',
+drop_download(stringr::str_glue('path/Report_I_C.Rmd',
                                 local_path = ""),
               overwrite = TRUE)
 ## Modals
-drop_download(stringr::str_glue('ReConquer/Modals.zip',
+drop_download(stringr::str_glue('path/Modals.zip',
                                 local_path = ""),
               overwrite = TRUE)
 
@@ -2569,11 +2569,11 @@ drop_download(stringr::str_glue('ReConquer/Modals.zip',
 ## Unzip Modals
 unzip(
   'Modals.zip'
-  #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Modals.zip'
+  #'/Users/usuario/Documents/RStudio/Projects/path/Modals.zip'
 )
 file.remove(
   'Modals.zip'
-  #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Modals.zip'
+  #'/Users/usuario/Documents/RStudio/Projects/path/Modals.zip'
 )
 
 ## Years

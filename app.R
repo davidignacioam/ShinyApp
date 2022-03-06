@@ -13621,18 +13621,6 @@ server <- function(input, output, session) {
       saveRDS(df_MED_report, 'df_MED.rds')
       saveRDS(df_AC_report, 'df_AC.rds')
       saveRDS(df_EO_report, 'df_EO.rds')
-      # Local
-      # saveRDS(df_CED_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_CED.rds')
-      # saveRDS(df_CED_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_CED_G.rds')
-      # saveRDS(df_CED_TE_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_CED_TE.rds')
-      # saveRDS(df_KT_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_KT.rds')
-      # saveRDS(df_KA_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_KA.rds')
-      # saveRDS(df_PD_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_PD.rds')
-      # saveRDS(df_PD_F_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_PD_F.rds')
-      # saveRDS(df_TL_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_TL.rds')
-      # saveRDS(df_MED_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_MED.rds')
-      # saveRDS(df_AC_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_AC.rds')
-      # saveRDS(df_EO_report, '/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/df_EO.rds')
       
       
       ### RENDERING
@@ -13679,7 +13667,6 @@ server <- function(input, output, session) {
             paste0('Reporte_', player, "_", Sys.Date(), "_ID", sample(1:10000,1), '.html', sep = "")
           rmarkdown::render(
             'Report_I_C.Rmd', 
-            #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/Report_I_C.Rmd', 
             output_file = file_report
           )
           
@@ -13728,8 +13715,7 @@ server <- function(input, output, session) {
           file_report <- 
             paste0('Reporte_', player, "_", Sys.Date(), "_ID", sample(1:10000,1), '.html', sep = "")
           rmarkdown::render(
-            'Report_I.Rmd', 
-            #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/Report_I.Rmd', 
+            'Report_I.Rmd',  
             output_file = file_report
           )
           
@@ -13741,7 +13727,6 @@ server <- function(input, output, session) {
           paste0('Reporte_', client, "_", Sys.Date(), "_ID", sample(1:10000,1), '.html', sep = "")
         rmarkdown::render(
           'Report_G.Rmd', 
-          #'/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/Report_G.Rmd', 
           output_file = file_report
         )
         
@@ -13750,19 +13735,18 @@ server <- function(input, output, session) {
       ## Path
       report_path <- 
         file_report
-        #paste('/Users/usuario/Documents/RStudio/Projects/ReConquer/Report/', file_report, sep = "")
       
       
       ### Dropbox
       ## Uploading
       drop_upload(
         file = stringr::str_glue(report_path), 
-        path = stringr::str_glue("ReConquer/R Data/{tenant}/Report/"), 
+        path = stringr::str_glue("report_path/R Data/{tenant}/Report/"), 
         mode = "overwrite"
       )
       ## Dropbox link
       sharing_link <- 
-        drop_share(stringr::str_glue("ReConquer/R Data/{tenant}/Report/{file_report}"))$url[1]
+        drop_share(stringr::str_glue("report_path/R Data/{tenant}/Report/{file_report}"))$url[1]
       
       
       ### MAIL
