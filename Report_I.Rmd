@@ -1,0 +1,1009 @@
+---
+title: "Informe `r player`: datos desde el `r start_date` al `r end_date`" 
+author: "ReConquer Analytics"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:  #downcute#readthedown 
+    self_contained: true
+    toc_depth: 3
+    highlight: tango
+    code_folding: hide
+    embed_fonts: TRUE
+---
+
+```{=html}
+<style type="text/css">
+
+h1 {
+  font-family: times, serif;
+  font-size: 38px;
+  # color: DarkRed;
+  text-align: center;
+}
+
+h2,h3,h4 {
+  font-family: times, serif;
+  text-align: left;
+}
+
+body,p {
+  font-family: times, serif;
+  font-size: 19px;
+  text-align: left
+}
+
+box {
+    padding: 0px;
+    border-radius: 0px;
+    border-radius: 0px;
+  }
+
+</style>
+```
+
+<br>
+
+## `r filter_category`
+
+<br>
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE, message=FALSE, results="hide"}
+
+#####  DATA  #### 
+
+df_CED <- readRDS('df_CED.rds')
+df_CED_TE <- readRDS('df_CED_TE.rds')
+df_KT <- readRDS('df_KT.rds')
+df_KA <- readRDS('df_KA.rds')
+df_PD <- readRDS('df_PD.rds')
+df_PD_F <- readRDS('df_PD_F.rds')
+df_TL <- readRDS('df_TL.rds')
+df_MED <- readRDS('df_MED.rds')
+df_AC <- readRDS('df_AC.rds')
+df_EO <- readRDS('df_EO.rds')
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE,  results="hide", fig.width=7.4, fig.height=1.2}
+# Value 1
+value_1 <- 
+  df_PD_F%>% 
+  filter(Medición %in% "PCR",
+         ValorMedición %in% "Negativo") %>%
+  nrow()
+# Value 2
+value_2 <- 
+    df_PD_F%>% 
+  filter(Medición %in% "PCR",
+         ValorMedición %in% "Positivo") %>%
+  nrow()
+
+# Defining the DF
+df <- 
+  data.frame(
+    values=c(value_1,value_2), 
+    infos=c("PCR Negativos", "PCR Positivos"), 
+    icons=c("fa-heart", "fa-stethoscope")
+    )
+# Visualization
+createValueBoxes_PCR(df, rows=1)
+```
+
+## Disponibilidad
+
+El siguiente Diagrama de Torta muestra la distribución Proporcional de la Condición de Disponibilidad de los Jugadores.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align="center", fig.width = 7.4, fig.height=4}
+if (nrow(df_AC) == 0) {
+  
+  emptyChart(
+    emptyMessage('Disponibilidad')      
+  )
+  
+} else {
+  
+  # Creating Cross Tab DF
+  df_TL_AC <- 
+    df_AC %>%
+    select(CondiciónDisponibilidad) %>% 
+    table() %>% 
+    as.data.frame() %>% 
+    rename("Disponibilidad"='.',"Cantidad"=Freq) %>% 
+    filter(!Disponibilidad %in% 'Descanso')
+  
+  # Visualization
+  plot_ly(
+      df_TL_AC, 
+      labels = ~Disponibilidad, 
+      values = ~Cantidad, 
+      type = 'pie',
+      opacity=.8,
+      #domain = list(x = c(0, 0.45)),
+      textposition = 'inside',
+      textinfo = 'label+percent',
+      insidetextfont = list(color = '#FFFFFF'),
+      hoverinfo = 'text',
+      text = ~paste(
+        Disponibilidad, "/", 
+        round((Cantidad/sum(df_TL_AC$Cantidad))*100,1), "%", 
+        " del Total con ", Cantidad, ifelse(Cantidad == 1, ' Registro', ' Registros')
+        ),
+      textfont = list(color = '#000000', size = 13),
+      marker = list(line = list(color = '#FFFFFF', width = 6)),
+      showlegend = FALSE
+      ) %>%
+    config(
+      displaylogo = FALSE,
+      modeBarButtonsToRemove = c("select2d", "zoomIn2d",
+                                 "zoomOut2d", "lasso2d",
+                                 "toggleSpikelines"),
+      toImageButtonOptions = list(
+        format = "jpeg",
+        filename =
+          paste(
+            "Frecuencia de Condición de Disponibilidad de ", filter_category,
+            " con rango de fecha desde ", start_date, " hasta ", end_date,
+            sep = ""
+          ),
+        scale = 3
+      )
+    ) 
+  
+}
+
+```
+
+<br>
+
+## Autoreporte
+
+### Estadística General
+
+Esta Gráfica presenta tanto el **Promedio** el **Intervalo de Confianza** asociado a todas las **Mediciones** de Autoreporte del Plantel. Si la Barra de Error (ubicada en la parte superior de cada Barra) es de color Rojo, quiere decir que el Promedio no es representativo de los datos; en cambio, si es de color negro, quiere decir que sí lo es.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+## Total Wellness
+Wellness <- 
+  df_PD %>% 
+  filter(
+    Medición %in% c("Nivel de energía",
+                    "Humor / Estado de ánimo",
+                    "Estado general muscular",
+                    "Calidad del sueño")
+  ) %>%
+  group_by(Jugador,FechaDimensión) %>%
+  summarise(
+    Total = sum(ValorMedición)
+  ) %>%
+  pull(Total)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width = 7.4, fig.height=3}
+
+if (length(Wellness) == 0) {
+
+  emptyChart(
+    emptyMessage('Total Wellness')      
+  )
+  
+} else {
+  
+  ## DF
+  df_S <- 
+    df_PD %>% 
+    filter(
+      Medición %in% c("Nivel de energía",
+                      "Humor / Estado de ánimo",
+                      "Estado general muscular",
+                      "Calidad del sueño",
+                      "Percepción subjetiva del esfuerzo")
+    ) %>% 
+    group_by(Medición) %>% 
+    summarise(
+      Promedio = mean(ValorMedición) %>% round(1),
+      Desviación = sd(ValorMedición) %>% round(1)
+      ) %>% 
+    as.data.frame() %>%
+    add_row(
+      Medición = "Total Wellness",
+      Promedio = mean(Wellness) %>% round(1),
+      Desviación = sd(Wellness) %>% round(1),
+      .before = 1
+    ) %>%
+    mutate(Color_Fill = 0, Color_Line = 0)
+  ## Loop for Colors
+  for (i in seq(1, nrow(df_S), by=1)) {
+    df_S$Color_Line[i] = if (df_S$Promedio[i]>2*df_S$Desviación[i]) { "black" } else { "red" } 
+  }
+  ## Sorting Levels
+  df_S$Medición <- 
+    factor(
+      df_S$Medición, 
+      levels=c(
+        "Nivel de energía",
+        "Humor / Estado de ánimo",
+        "Estado general muscular",
+        "Calidad del sueño",
+        "Total Wellness",
+        "Percepción subjetiva del esfuerzo"
+        )
+      )
+  ## Visualization
+  ggplotly(
+    ggplot(df_S) +
+      geom_bar(aes(x = Medición,
+                   y = Promedio,
+                   fill = Medición),
+               stat = "identity", color="black",
+               width = .8, size=.3, alpha = .7) +
+      geom_errorbar(aes(x = Medición,
+                        ymin = Promedio-Desviación,
+                        ymax = Promedio+Desviación),
+                    width = 1.1, alpha = 0.9, size = 1,
+                    colour = ifelse(df_S$Color_Line=="black",
+                                    "black","red")) +
+      coord_flip() +
+      labs(x=NULL, y=NULL, fill=NULL) +
+      scale_fill_brewer(palette = "Paired") +
+      theme(#axis.text.x = element_text(angle = 45),
+            panel.grid.major.x = element_blank(),
+            panel.grid.major=element_line(colour="#00000018"),
+            panel.grid.minor=element_line(colour="#00000018"),
+            panel.background=element_rect(fill="transparent",colour=NA)),
+    tooltip = c("y","ymin","ymax")
+  ) %>%
+  layout(
+    #hovermode = 'compare',
+    showlegend = FALSE
+  ) %>%
+  config(
+    displaylogo = FALSE,
+    modeBarButtonsToRemove = c("select2d", "zoomIn2d",
+                               "zoomOut2d", "lasso2d",
+                               "toggleSpikelines"),
+    toImageButtonOptions = list(
+      format = "jpeg",
+      filename =
+        paste(
+          "Promedio y Desviación Estándar de Autoreporte de ", filter_category,
+          " con rango de fecha desde ", start_date, " hasta ", end_date,
+          sep = ""
+        ),
+      scale = 3
+    )
+  ) 
+  
+}
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+df_S <- 
+  left_join(
+    left_join(
+      full_join(
+        df_PD %>%
+          filter(
+            Medición %in% "Percepción subjetiva del esfuerzo" 
+          ) %>%
+          group_by(Jugador,FechaDimensión) %>%
+          summarise(
+            Esfuerzo = sum(ValorMedición)
+          ) %>%
+          as.data.frame() ,
+        df_PD %>%
+          filter(
+            Medición %in% "Minutos de exposición" 
+          ) %>%
+          group_by(Jugador,FechaDimensión) %>%
+          summarise(
+            Minutos = sum(ValorMedición)
+          ) %>%
+          as.data.frame(),
+        by = c('Jugador','FechaDimensión')
+      ),
+      df_PD %>%
+        filter(
+          Medición %in% c("Nivel de energía",
+                          "Humor / Estado de ánimo",
+                          "Estado general muscular",
+                          "Calidad del sueño")
+        ) %>%
+        group_by(Jugador,FechaDimensión) %>%
+        summarise(
+          TotalWellness = sum(ValorMedición)
+        ) %>%
+        as.data.frame(),
+      by = c('Jugador','FechaDimensión')
+    ),
+    df_PD %>%
+      filter(
+        Medición %in%  "T.Q.R" 
+      ) %>%
+      group_by(Jugador,FechaDimensión) %>%
+      summarise(
+        "T.Q.R" = sum(ValorMedición)
+      ) %>%
+      as.data.frame(),
+    by = c('Jugador','FechaDimensión')
+  ) %>% 
+  mutate(
+    CargaInterna = Minutos * Esfuerzo
+  ) %>%
+  select(-c("Esfuerzo","Minutos")) %>%
+  drop_na() %>% 
+  group_by(FechaDimensión) %>%
+  summarise(
+    TotalWellness = mean(TotalWellness) %>% round(2),
+    T.Q.R = mean(T.Q.R) %>% round(2),
+    CargaInterna = mean(CargaInterna) %>% round(2)
+  ) %>%
+  arrange(FechaDimensión)
+
+```
+
+La siguiente Gráfica muestra el Promedio general del Plantel tanto respecto del **Total Wellness** (suma total de todos los valores de Autoreporte con *excepción* de la Percepción del Esfuerzo) como de la **Carga Interna** (la multiplicación de los *Minutos de Exposición* por la Medida de *Percepción del Esfuerzo*) del Jugador.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width = 7.4, fig.height = 3.5}
+
+if (nrow(df_S) == 0) {
+
+  emptyChart(
+    emptyMessage('Total Wellness')      
+  )
+  
+} else {
+  
+  filtered <- df_S
+  # Visualization
+  plotly_wellness <- 
+    plot_ly() %>%
+    add_trace(
+      type = 'bar',
+      x = filtered$FechaDimensión %>% as.character(),
+      y = filtered$TotalWellness,
+      color = I("#2089E0E2"),
+      alpha = .8,
+      name = 'Total Wellness',
+      marker = list(line = list(width = 1.3, color = 'rgb(0, 0, 0)'))
+    ) %>%
+    add_trace(
+      type = 'scatter',
+      x = filtered$FechaDimensión %>% as.character(),
+      y = filtered$`T.Q.R`,
+      color = I("#66CC66"),
+      marker = list(
+        size = 8,
+        line = list(width = .6, 
+                    color = 'rgb(0, 0, 0)')
+      ),
+      line = list(
+        width = 4
+        ),
+      name = "T.Q.R"
+    ) %>%
+    add_trace(
+      type = 'scatter',
+      x = filtered$FechaDimensión %>% as.character(),
+      y = filtered$CargaInterna,
+      color = I("#EB1C15"),
+      alpha = .9,
+      marker = list(
+        size = 8,
+        line = list(width = .6, 
+                    color = 'rgb(0, 0, 0)')
+      ),
+      line = list(
+        width = 4
+      ),
+      yaxis = "y2",
+      name = "Carga Interna (CI)"
+    ) %>%
+    add_trace(
+      type = 'bar',
+      x = (max(filtered$FechaDimensión)+1) %>% as.character(),
+      y = mean(filtered$CargaInterna) %>% round(1),
+      color = I("#EB1C15"),
+      alpha = .9,
+      name = 'Promedio CI',
+      marker = list(line = list(width = 1.6, color = 'rgb(0, 0, 0)')),
+      yaxis = "y2"
+    ) 
+  
+  # Condition for Size and Legend
+  if (filtered %>% pull(FechaDimensión) %>% unique() %>% length() > 15) {
+    
+    plotly_wellness <- 
+      plotly_wellness %>%
+      layout(
+        hovermode = 'compare',
+        legend = list(
+          orientation = 'h',
+          y = 1.05, 
+          x = 0.01
+        ),
+        margin = list(
+          l = 20,
+          r = 40,
+          b = 30,
+          t = 20,
+          pad = 0
+        ),
+        xaxis= list(
+          showticklabels = FALSE
+          ),
+        yaxis2 = list(
+          overlaying = "y",
+          side = "right"
+        )
+      ) %>%
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = c("select2d", "zoomIn2d",
+                                   "zoomOut2d", "lasso2d",
+                                   "toggleSpikelines"),
+        toImageButtonOptions = list(
+          format = "jpeg",
+          filename =
+            paste(
+              "Total Wellness y Carga Interna de ", filter_category,
+              " con rango de fecha desde ", start_date, " hasta ", end_date,
+              sep = ""
+            ),
+          scale = 3
+        )
+      ) 
+     
+  } else {
+    
+    plotly_wellness <- 
+      plotly_wellness %>%
+      layout(
+        #legend = list(orientation = 'h'),
+        hovermode = 'compare',
+        legend = list(
+          y = 1.03,
+          x = 1.1
+        ),
+        xaxis= list(
+          showticklabels = FALSE
+          ),
+        yaxis2 = list(
+          overlaying = "y",
+          side = "right"
+        )
+      ) %>%
+      config(
+        displaylogo = FALSE,
+        modeBarButtonsToRemove = c("select2d", "zoomIn2d",
+                                   "zoomOut2d", "lasso2d",
+                                   "toggleSpikelines"),
+        toImageButtonOptions = list(
+          format = "jpeg",
+          filename =
+            paste(
+              "Total Wellness y Carga Interna de ", filter_category,
+              " con rango de fecha desde ", start_date, " hasta ", end_date,
+              sep = ""
+            ),
+          scale = 3
+        )
+      ) 
+    
+  }
+  
+plotly_wellness
+  
+}
+```
+
+### Tabla General
+
+La siguiente tabla muestra un resumen general de todas las variables asociadas a las medidas de **Autoreporte.**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Initial DF
+df_initial <- 
+  df_PD %>% 
+  filter(
+    Medición %in% c(
+      # For both
+      'Calidad del sueño',
+      'Minutos de exposición',
+      'Nivel de energía',
+      'Percepción subjetiva del esfuerzo',
+      # Real
+      'Peso inicial',
+      'T.Q.R',
+      'Nivel de energía',
+      'Estado general muscular',
+      'Humor / Estado de ánimo'
+    )
+  )
+
+# General Condition
+if (df_initial %>% nrow() == 0 |
+    df_initial %>% group_by(Medición) %>% count() %>% nrow() < 6) {
+   
+  emptyChart(
+    emptyMessage('Autoreporte')      
+  )
+  
+} else {
+  
+  df_selreport <- 
+    df_initial %>% 
+    group_by(FechaDimensión, Medición) %>% 
+    summarise(
+      ValorMedición = mean(ValorMedición) %>% round(0)
+    ) %>% 
+    spread(
+      key = Medición,
+      value = ValorMedición,
+      fill = 0
+    ) %>%
+    as.data.frame() %>%
+    arrange(desc(FechaDimensión)) %>%
+    mutate(
+      'Total Wellness' = 
+        `Estado general muscular`+
+        `Calidad del sueño`+
+        `Humor / Estado de ánimo`+
+        `Nivel de energía`,
+      'Carga Interna' = 
+        `Percepción subjetiva del esfuerzo` * 
+        `Minutos de exposición`,
+      FechaDimensión = FechaDimensión %>% 
+        as.character()
+    ) %>%
+    rename(Fecha = FechaDimensión,
+           'Estado de ánimo' = 'Humor / Estado de ánimo',
+           PSE = 'Percepción subjetiva del esfuerzo') 
+  # Column order
+  selected_variables <- c(
+    'Fecha',
+    'Peso inicial',
+    'T.Q.R',
+    'Calidad del sueño',
+    'Nivel de energía', 
+    'Estado general muscular',
+    'Estado de ánimo',
+    'Total Wellness',
+    'PSE',
+    'Minutos de exposición',
+    'Carga Interna'
+  )
+  # Filtering
+  col_order <- 
+    selected_variables[
+      selected_variables %in% colnames(df_selreport)
+    ]
+  # Ordering
+  df_selreport <- 
+    df_selreport[,col_order]
+  
+  ## Mean and SD
+  # Empty vectors
+  mean_row <- c("Promedio")
+  sd_row <- c("Desviación Estandar")
+  # Loop for append
+  for (i in seq(2, ncol(df_selreport))) {
+    mean_row <- 
+      mean_row %>% 
+      append(
+        df_selreport[,i] %>% mean() %>% round(1)
+      )
+    sd_row <- 
+      sd_row %>% 
+      append(
+        df_selreport[,i] %>% sd() %>% round(1)
+      )
+  }
+  # Merging Results
+  df_selreport_final <- 
+    df_selreport %>% 
+    rbind(mean_row) %>% 
+    rbind(sd_row)
+  
+  ## Table Visualization
+  kable(df_selreport_final, align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                  font_size=17) %>% 
+    scroll_box(width="100%", height="350px")
+  
+}
+```
+
+<br>
+
+## Antropometría 
+
+La siguiente tabla muestra los principales valores asociados a las mediciones de Nutrición en el marco de la Antropometría.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# Intial DF
+df_initial <- 
+  df_PD %>% 
+  filter(
+    Dimensión %in% "Nutrición"
+    ) %>%
+  select(
+    Jugador,
+    Fecha = FechaDimensión,
+    TipoMedición,
+    Medición,
+    ValorMedición
+    ) %>%
+  mutate(
+    Medición = Medición %>% as.character()
+  )
+
+# Condition
+if (df_initial %>% nrow() == 0) {
+
+  emptyChart(
+    emptyMessage('Antropometría')      
+  )
+  
+} else {
+  
+  # Loop for New names
+  for (i in seq(1,nrow(df_initial),by=1)) {
+    if (df_initial$TipoMedición[i] %in% c("Masa Grasa","Masa Muscular")) {
+      df_initial[i,'Medición'] <- 
+        paste(
+          df_initial[i,'Medición'],
+          df_initial[i,'TipoMedición'],
+          sep = " "
+        )
+    }
+  }
+  #Final DF
+  df_final <- 
+    df_initial %>% 
+    select(!c('TipoMedición','Jugador')) %>%
+    filter(
+      Medición %in% c("Porcentaje Masa Grasa",
+                      "Porcentaje Masa Muscular",
+                      "IMC",
+                      "Índice músculo óseo",
+                      "Sumatoria de 6 Pliegues")
+    ) %>%
+    spread(Medición,ValorMedición)
+  # Visualization
+    kable(df_final, align="c", digits=3, row.names=FALSE) %>% 
+      kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                    font_size=17) 
+    
+}
+```
+
+<br>
+
+## Evento Clínico 
+
+### Según Categoría
+
+La siguiente Tabla muestra todos los registros de **Diagnósticos** asociados a cada Jugador de acuerdo a su Fecha, Categorías y Lateralidad.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Initial DF
+df_initial <- 
+  df_CED %>% 
+  select(
+    ID_Diagnóstico,
+    Fecha = FechaDiagnóstico,
+    Categoría = Categoría_I, 
+    'Categoría II' = Categoría_II, 
+    'Complemento II' = Complemento_II,
+    Diagnóstico, 
+    Comentarios,
+    Lado
+    ) %>% 
+  mutate(
+    Comentarios = Comentarios %>% as.character()
+  ) %>%
+  drop_na()
+
+# General Condition
+if (df_initial %>% nrow() == 0) {
+
+  emptyChart(
+    emptyMessage('Evento Clínico')      
+  )
+  
+} else {
+  
+  # Loop for empty comments
+  for (i in seq(1, nrow(df_initial))) {
+    if (df_initial$Comentarios[i] == "") {
+      df_initial[i,"Comentarios"] <- "Sin comentarios"
+    }
+  }
+  
+  # Visualización de la Tabla
+  kable(
+    df_initial %>% 
+      distinct() %>%
+      select(!ID_Diagnóstico),
+        align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), font_size=17) 
+  
+}
+```
+
+<br>
+
+## Diagnóstico
+
+### Según Tratamientos Kinésicos
+
+La siguiente tabla muestra los **Tratamientos Kinésicos** asociados a los Diagnósticos según *Fecha* y *Categoría*.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+if (df_CED_TE %>% nrow() == 0) {
+
+  emptyChart(
+    emptyMessage('Tratamientos Kinésicos')      
+  )
+  
+} else {
+  ## Main DF
+  df_sample_KT <- 
+    df_CED_TE %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      FechaTratamientoKinésico,
+      TratamientoKinésico
+    ) %>%
+    summarise(
+      Complementos = Complemento_II %>% unique() %>% paste0(collapse = " / ")
+    ) %>% 
+    distinct() %>%
+    mutate(
+      TratamientosFecha = paste("(",FechaTratamientoKinésico,") ", TratamientoKinésico, sep = " ")
+    ) %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      Complementos
+    ) %>%
+    summarise(
+      Tratamientos = TratamientosFecha %>% unique() %>% paste0(collapse = " / ")
+    ) %>% 
+    distinct() %>%
+    as.data.frame() %>%
+    rename(Fecha = FechaDiagnóstico,
+           Categoría = Categoría_I)
+  ## Table Visualization
+  kable(df_sample_KT %>% select(!Tratamientos), align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                  font_size=17)
+
+  }
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+if (df_CED_TE %>% nrow() == 0) {
+  
+  emptyChart(
+    emptyMessage('Tratamientos Kinésicos')      
+  )
+  
+} else {
+  ## Main DF
+  df_sample_KT <- 
+  df_sample_KT <- 
+    df_CED_TE %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      FechaTratamientoKinésico,
+      TratamientoKinésico
+    ) %>%
+    summarise(
+      Complementos = Complemento_II %>% unique() %>% paste0(collapse = " / ")
+    ) %>% 
+    distinct() %>%
+    mutate(
+      TratamientosFecha = paste("( ",FechaTratamientoKinésico," ) ", TratamientoKinésico, sep = " ")
+    ) %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      Complementos
+    ) %>%
+    summarise(
+      Tratamientos = TratamientosFecha %>% unique() %>% paste0(collapse = "  /  ")
+    ) %>% 
+    distinct() %>%
+    as.data.frame() %>%
+    rename(Fecha = FechaDiagnóstico,
+           Categoría = Categoría_I)
+  ## Table Visualization
+  kable(df_sample_KT %>% select(Tratamientos), align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                  font_size=17)
+}
+
+```
+
+
+### Según Evaluaciones
+
+La siguiente tabla muestra las **Evaluaciones** asociados a los Diagnósticos según *Fecha* y *Categoría*.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+if (df_CED_TE %>% nrow() == 0) {
+
+  emptyChart(
+    emptyMessage('Evaluaciones')      
+  )
+  
+} else {
+  
+  ## Main DF
+  df_sample_EV <- 
+    df_CED_TE %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      FechaEvaluaciónObjetivo,
+      EvaluaciónObjetivo
+    ) %>%
+    summarise(
+      Complementos = Complemento_II %>% unique() %>% paste0(collapse = " / ")
+    ) %>% 
+    distinct() %>%
+    mutate(
+      EvaluacionesFecha = paste("(",FechaEvaluaciónObjetivo,") ", EvaluaciónObjetivo, sep = "")
+    )  %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      Complementos
+    ) %>%
+    summarise(
+      Evaluaciones = EvaluacionesFecha %>% unique() %>% paste0(collapse = " / ")
+    ) %>% 
+    distinct() %>%
+    as.data.frame() %>%
+    rename(Fecha = FechaDiagnóstico,
+           Categoría = Categoría_I)
+  ## Table Visualization
+  kable(df_sample_EV %>% select(!Evaluaciones), align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                  font_size=17)
+
+  }
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+if (df_CED_TE %>% nrow() == 0) {
+  
+  emptyChart(
+    emptyMessage('Tratamientos Kinésicos')      
+  )
+  
+} else {
+  
+  ## Main DF
+  df_sample_EV <- 
+     df_CED_TE %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      FechaEvaluaciónObjetivo,
+      EvaluaciónObjetivo
+    ) %>%
+    summarise(
+      Complementos = Complemento_II %>% unique() %>% paste0(collapse = " / ")
+    ) %>% 
+    distinct() %>%
+    mutate(
+      EvaluacionesFecha = paste("( ",FechaEvaluaciónObjetivo," ) ", EvaluaciónObjetivo, sep = "")
+    )  %>%
+    group_by(
+      FechaDiagnóstico,
+      Diagnóstico,
+      Categoría_I,
+      Complementos
+    ) %>%
+    summarise(
+      Evaluaciones = EvaluacionesFecha %>% unique() %>% paste0(collapse = " / ")
+    ) %>% 
+    distinct() %>%
+    as.data.frame() %>%
+    rename(Fecha = FechaDiagnóstico,
+           Categoría = Categoría_I)
+  ## Table Visualization
+  kable(df_sample_EV %>% select(Evaluaciones), align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                  font_size=17)
+
+  }
+
+```
+
+<br>
+
+## Acciones Terapéuticas
+
+La siguiente tabla muestra las **Acciones Terapéuticas** según su fecha de ingreso:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+if (df_CED_TE %>% nrow() == 0) {
+
+  emptyChart(
+    emptyMessage('Acciones Terapéuticas')      
+  )
+  
+} else {
+  
+  ## Main DF
+  df_ka_table <- 
+    df_KA %>%
+    select(
+      'Fecha Ingreso' = FechaAcciónTerapéutica,
+      'Acción Terapéutica' = AcciónTerapéutica
+    )
+  ## Table Visualization
+  kable(df_ka_table, align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                  font_size=17)
+
+  }
+
+```
+
+<br>
+
+## GPS
+
+La siguiente tabla muestra valores estadístico de Mínimo, Máximo, Promedio y Desviación Estándar de las principales medidas de GPS.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+df_GPS <- 
+  df_PD %>%
+  filter(Dimensión %in% "GPS")
+
+if (df_GPS %>% nrow() == 0) {
+
+  emptyChart(
+    emptyMessage('GPS')      
+  )
+  
+} else {
+
+  ## DF
+  df_ant <- 
+    df_GPS %>%
+    group_by(Medición) %>%
+    summarise(
+      Mínimo = min(ValorMedición) %>% round(0),
+      Máximo = max(ValorMedición) %>% round(0),
+      Promedio = mean(ValorMedición) %>% round(1),
+      Desviación = sd(ValorMedición) %>% round(1)
+    )
+  ## Table Visualization
+  kable(df_ant, align="c", digits=3, row.names=FALSE) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                  font_size=17)
+  
+}
+
+```
+
+
+
